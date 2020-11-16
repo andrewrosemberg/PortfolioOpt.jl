@@ -1,8 +1,8 @@
 using Gadfly
 
-include(".\\Mean_variance_Robust.jl")
+include(".\\mean_variance_robust.jl")
 
-include(".\\mean_variance_Markovitz_Sharpe.jl")
+include(".\\mean_variance_markovitz_sharpe.jl")
 
 pathprices = ".\\data.xlsx"
 
@@ -34,10 +34,18 @@ x = zeros(len,size(r̄,1))
 iter = 0
 for R=range
   iter += 1
-  x[iter,:],v_noR,E_noR[iter] = mv_pfal_quadratic_Rf(Σ,r̄,R,rf[t]) #Mean_variance_Robust_Bertsimas(Σ, r̄,rf[t],R,Δ,0)
-  x2,v_ber,E_ber[iter] = module_Mean_variance_Robust_Bertsimas.Mean_variance_Robust_Bertsimas(Σ, r̄,rf[t],R,Δ,2.5)
-  x3,v_soy,E_soy[iter] = module_Mean_variance_Robust_Bertsimas.Mean_variance_Robust_Bertsimas(Σ, r̄,rf[t],R,Δ,5)
-  x4,v_ben_tal,E_ben_tal[iter] = module_Mean_variance_Robust_BenTal.Mean_variance_Robust_BenTal(Σ, r̄,rf[t],R,δ,0)
+  model, w = base_model(numA)
+  po_mean_variance_Rf!(model, w, Σ,r̄,R,rf[t], 1) # Mean_variance_Robust_Bertsimas(Σ, r̄,rf[t],R,Δ,0)
+  x[iter,:],v_noR,E_noR[iter] = compute_solution_dual(model, w)
+  model, w = base_model(numA)
+  po_mean_variance_robust_bertsimas!(model, w, Σ, r̄, rf[t], R, Δ, 2.5, 1)
+  x2,v_ber,E_ber[iter] = compute_solution_dual(model, w)
+  model, w = base_model(numA)
+  po_mean_variance_robust_bertsimas!(model, w, Σ, r̄, rf[t], R, Δ, 5.0, 1)
+  x3,v_soy,E_soy[iter] = compute_solution_dual(model, w)
+  model, w = base_model(numA)
+  po_mean_variance_robust_bental!(model, w, Σ, r̄, rf[t], R, δ, 0)
+  x4,v_ben_tal,E_ben_tal[iter] = compute_solution_dual(model, w)
 
   σ_noR[iter] = sqrt(v_noR)
   σ_ber[iter] = sqrt(sum(x2'Σ*x2))

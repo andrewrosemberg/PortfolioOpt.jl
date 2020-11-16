@@ -1,7 +1,6 @@
-using Gurobi
 using JuMP
 using Gadfly
-include("mean_variance_Markovitz_Sharpe.jl")
+include("mean_variance_markovitz_sharpe.jl")
 
 ############ Read Prices (listed form most recent to oldest) #############
 Prices = readcsv(".\\data.csv")
@@ -32,17 +31,24 @@ E_sharpe = r̄'x_sharpe
 σ_sharpe = sqrt(x_sharpe'Σ*x_sharpe)
 iter = 0
 for R=range
-  iter += 1
-  x = mv_pfal_noRf_anal(Σ,r̄,R)
-  x_quad,r = mv_pfal_quadratic_noRf(Σ,r̄,R)
-  x_quad_Rf = mv_pfal_quadratic_Rf(Σ,r̄,R,rDi[t])
+      iter += 1
+      # analytical
+      x = mean_variance_noRf_analytical(Σ,r̄,R)
+      # quadratic optimization no risk free asset
+      model, w = base_model(numA)
+      po_mean_variance_noRf!(model, w, Σ, r̄, R)
+      x_quad, obj, r = compute_solution(model, w)
+      # quadratic optimization with risk free asset
+      model, w = base_model(numA)
+      po_mean_variance_Rf!(model, w, Σ,r̄,R,rDi[t], 1)
+      x_quad_Rf, obj, r = compute_solution(model, w)
 
-  E[iter] = R
-  σ[iter] = sqrt((x'Σ*x)[1])
-  E_quad[iter] = r[1]
-  σ_quad[iter] = sqrt(x_quad'Σ*x_quad)
-  E_quad_Rf[iter] = R
-  σ_quad_Rf[iter] = sqrt(x_quad_Rf'Σ*x_quad_Rf)
+      E[iter] = R
+      σ[iter] = sqrt((x'Σ*x)[1])
+      E_quad[iter] = r[1]
+      σ_quad[iter] = sqrt(x_quad'Σ*x_quad)
+      E_quad_Rf[iter] = R
+      σ_quad_Rf[iter] = sqrt(x_quad_Rf'Σ*x_quad_Rf)
 end
 #plot frontier
 plot(#layer(x=σ, y=E,

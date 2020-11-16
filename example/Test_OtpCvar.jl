@@ -1,6 +1,6 @@
 using Gadfly
 
-include(".\\ProgEst.jl")
+include(".\\stochastic programming.jl")
 
 pathprices = ".\\data.xlsx"
 
@@ -21,12 +21,16 @@ numS = 10000
 
 # Statistics
 Σ,r̄ = mean_variance(returns[t-k_back:t-1,:])
-r,P = retornos_montecarlo(Σ,r̄[:,1], numS)
+r,P = returns_montecarlo(Σ,r̄[:,1], numS)
 
 # test opt functions
 R = rf[t]
-x,e,Cvar,q1_α = minCvar_noRf(r̄,+1000,r,P,α)
-w,e,q1_α = maxReturn_LimCvar_noRf(r̄,Cvar,r,P,α)
+model, w = base_model(numA)
+min_cvar_noRf!(model, w, r̄, +1000, r, P, α)
+x,e,Cvar,q1_α = compute_solution_stoc(model, w)
+model, w = base_model(numA)
+max_return_lim_cvar_noRf!(model, w, r̄, Cvar, r, P, α)
+w,e,q1_α = compute_solution_stoc_2(model, w)
 
 range = 0:0.0002274:0.005
 len = size(range,1)
@@ -42,14 +46,18 @@ iter = 0
 for R=range
   iter += 1
 
-  x[iter,:],E_Cvar[iter],Cvar,q1_α = minCvar_noRf(r̄,R,r,P,α)
+  model, w = base_model(numA)
+  min_cvar_noRf!(model, w, r̄, R, r, P, α)
+  x[iter,:],E_Cvar[iter],Cvar,q1_α = compute_solution_stoc(model, w)
+  model, w = base_model(numA)
+  max_return_lim_cvar_noRf!(model, w, r̄, Cvar, r, P, α)
+  x2,E_limitCvar[iter] = compute_solution_stoc_2(model, w)
+
   # x1,v_noR,E_noR[iter] = mv_pfal_quadratic_noRf(Σ,r̄,R)
-  x2,E_limitCvar[iter] = maxReturn_LimCvar_noRf(r̄,Cvar,r,P,α)
 
   # σ_noR[iter] = sqrt(v_noR)
   # σ_Cvar[iter] = sqrt(sum(x[iter,:]'Σ*x[iter,:]))
   σ_limitCvar[iter] = sqrt(sum(x2'Σ*x2))
-
 end
 
 #plot frontier
