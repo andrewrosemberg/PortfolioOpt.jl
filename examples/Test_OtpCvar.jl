@@ -1,5 +1,6 @@
 using Gadfly
 
+include(".\\test_utils.jl")
 include(".\\stochastic programming.jl")
 
 pathprices = ".\\data.xlsx"

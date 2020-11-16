@@ -21,7 +21,7 @@ function po_mean_variance_robust_bertsimas!(model, w, Σ, r̄, rf, R, Δ, Λ, ma
     @variable(model, E)
     if !haskey(object_dictionary(model), :sum_invested)
       @variable(model, sum_invested)
-      @constraint(model, [sum_invested; w] in JuMP.NormOneCone())
+      @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
     else
       sum_invested = model[:sum_invested]
     end
@@ -42,7 +42,7 @@ Mean-Variance Portfolio Alocation. Robust return restriction (Worst case return 
 greater than chosen value). BenTal's uncertainty set.
 # TODO: Correct
 """
-function po_mean_variance_robust_bental!(model, w, Σ, r̄, rf, R, δ, Ucov)
+function po_mean_variance_robust_bental!(model, w, Σ, r̄, rf, R, δ, Ucov, max_wealth)
     # num of assets
     numA = size(r̄,1)
     # inverse cov
@@ -53,7 +53,7 @@ function po_mean_variance_robust_bental!(model, w, Σ, r̄, rf, R, δ, Ucov)
     @objective(model, Min, sum(w'Σ*w))
     if !haskey(object_dictionary(model), :sum_invested)
       @variable(model, sum_invested)
-      @constraint(model, [sum_invested; w] in JuMP.NormOneCone())
+      @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
     else
       sum_invested = model[:sum_invested]
     end
