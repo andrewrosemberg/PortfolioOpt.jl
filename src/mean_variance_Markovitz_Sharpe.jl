@@ -47,7 +47,7 @@ function po_mean_variance_Rf!(model, w, Σ,r̄,R,rf, max_wealth)
     else
       sum_invested = model[:sum_invested]
     end
-    @constraint(model, sum(r̄'w) + rf*(max_wealth-sum_invested)==E)
+    @constraint(model, sum(r̄'w) + rf*(max_wealth-sum_invested) == E)
     @constraint(model, E >= R)
     @objective(model, Min, sum(w'Σ*w))
 end

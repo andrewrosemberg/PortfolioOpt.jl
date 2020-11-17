@@ -24,7 +24,7 @@ k_back =60
 Σ,r̄ = mean_variance(returns[t-k_back:t-1,:])
 δ =rf[t]*10 # Defining the uncertainty set
 Δ = fill(δ,size(r̄,1)) # Defining the uncertainty set
-range = 0:0.5:10;
+range = 0.0:0.5:10
 len = size(range,1)
 E_ber = zeros(len);
 σ_ber = zeros(len);
@@ -38,23 +38,23 @@ x = zeros(len,size(r̄,1));
 iter = 0
 for R=range
       global iter += 1
-      model, w = base_model(numA)
+      model, w = base_model(numA; allow_borrow = true)
       po_mean_variance_Rf!(model, w, Σ,r̄,R,rf[t], 1) # Mean_variance_Robust_Bertsimas(Σ, r̄,rf[t],R,Δ,0)
-      x[iter,:],v_noR,E_noR[iter] = compute_solution_dual(model, w)
-      model, w = base_model(numA)
-      po_mean_variance_robust_bertsimas!(model, w, Σ, r̄, rf[t], R, Δ, 2.5, 1)
-      x2,v_ber,E_ber[iter] = compute_solution_dual(model, w)
-      model, w = base_model(numA)
-      po_mean_variance_robust_bertsimas!(model, w, Σ, r̄, rf[t], R, Δ, 5.0, 1)
-      x3,v_soy,E_soy[iter] = compute_solution_dual(model, w)
-      model, w = base_model(numA)
+      x[iter,:], v_noR, E_noR[iter] = compute_solution_dual(model, w)
+      model, w = base_model(numA; allow_borrow = true)
+      po_mean_variance_robust_bertsimas!(model, w, Σ, r̄, rf[t], R, Δ, 3.0, 1)
+      x2, v_ber, E_ber[iter] = compute_solution_dual(model, w)
+      model, w = base_model(numA; allow_borrow = true)
+      po_mean_variance_robust_bertsimas!(model, w, Σ, r̄, rf[t], R, Δ, numA, 1)
+      x3, v_soy, E_soy[iter] = compute_solution_dual(model, w)
+      model, w = base_model(numA; allow_borrow = true)
       po_mean_variance_robust_bental!(model, w, Σ, r̄, rf[t], R, δ, 0, 1)
-      x4,v_ben_tal,E_ben_tal[iter] = compute_solution_dual(model, w)
+      x4, v_ben_tal, E_ben_tal[iter] = compute_solution_dual(model, w)
 
-      σ_noR[iter] = sqrt(v_noR)
-      σ_ber[iter] = sqrt(v_ber)
-      σ_soy[iter] = sqrt(v_soy)
-      σ_ben_tal[iter] = sqrt(v_ben_tal)
+      σ_noR[iter] = sqrt(sum(x[iter,:]'Σ*x[iter,:])) #sqrt(v_noR)
+      σ_ber[iter] = sqrt(sum(x2'Σ*x2)) #sqrt(v_ber)
+      σ_soy[iter] = sqrt(sum(x3'Σ*x3)) #sqrt(v_soy)
+      σ_ben_tal[iter] = sqrt(sum(x4'Σ*x4)) #sqrt(v_ben_tal)
 end
 
 # plot frontier

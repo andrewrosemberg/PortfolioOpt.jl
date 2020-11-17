@@ -1,6 +1,7 @@
 using Distributions
 using MarketData
 using COSMO
+using Logging
 
 DEFAULT_SOLVER = optimizer_with_attributes(
     COSMO.Optimizer, 
@@ -44,6 +45,9 @@ end
 function compute_solution(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
+    status = termination_status(model)
+    # status !== MOI.OPTIMAL && warn("Did not find an optimal solution: status=$status")
+ 
     w_values = value.(w)
     if sum(w_values) > 1.0
         w_values = w_values / sum(w_values)
@@ -55,6 +59,9 @@ end
 function compute_solution_dual(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
+    status = termination_status(model)
+    # status !== MOI.OPTIMAL && warn("Did not find an optimal solution: status=$status")
+ 
     w_values = value.(w)
     if sum(w_values) > 1.0
         w_values = w_values / sum(w_values)
@@ -65,6 +72,9 @@ end
 function compute_solution_stoc(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
+    status = termination_status(model)
+    # status !== MOI.OPTIMAL && warn("Did not find an optimal solution: status=$status")
+ 
     w_values = value.(w)
     if sum(w_values) > 1.0
         w_values = w_values / sum(w_values)
@@ -78,6 +88,9 @@ end
 function compute_solution_stoc_2(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
+    status = termination_status(model)
+    # status !== MOI.OPTIMAL && warn("Did not find an optimal solution: status=$status")
+ 
     w_values = value.(w)
     if sum(w_values) > 1.0
         w_values = w_values / sum(w_values)
@@ -88,12 +101,15 @@ function compute_solution_stoc_2(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
 end
 
 # Create base PO model
-function base_model(numA::Integer)
+function base_model(numA::Integer; allow_borrow = true)
     model = Model()
     w = @variable(model, w[i=1:numA])
     @variable(model, sum_invested)
-    # @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1)) # for no stock renting
-    @constraint(model, sum_invested == sum(w))
-    @constraint(model, sum_invested == 1)
+    if allow_borrow
+        @constraint(model, sum_invested == sum(w))
+    else
+        @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
+    end
+    @constraint(model, sum_invested <= 1)
     return model, w
 end
