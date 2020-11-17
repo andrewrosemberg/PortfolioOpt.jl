@@ -1,22 +1,19 @@
-using Gadfly
+using JuMP
+using MarketData
+using LinearAlgebra
+using Plots
 
-include(".\\test_utils.jl")
-include(".\\stochastic programming.jl")
+include("./examples/test_utils.jl")
+include("./src/stochastic_programming.jl")
 
-pathprices = ".\\data.xlsx"
-
-pathrf = ".\\rf.csv"
-
-pathrm = ".\\rm.csv" # market index retuns
-
-returns, rf, rm, prices = readprices(pathprices,pathrf,pathrm)
-
-numD,numA = size(returns)
+############ Read Prices (listed form most recent to oldest) #############
+Prices = get_test_data()
+numD,numA = size(Prices) # A: Assets    D: Days
 
 ############ Efficient frontier ###################
 # Parameters
-t = 200
-k_back =60
+t = 100
+k_back = 60
 numS = 10000
 α = 0.95
 
@@ -27,47 +24,50 @@ r,P = returns_montecarlo(Σ,r̄[:,1], numS)
 # test opt functions
 R = rf[t]
 model, w = base_model(numA)
-min_cvar_noRf!(model, w, r̄, +1000, r, P, α)
+min_cvar_noRf!(model, w, r̄, R, r, P, α);
 x,e,Cvar,q1_α = compute_solution_stoc(model, w)
 model, w = base_model(numA)
 max_return_lim_cvar_noRf!(model, w, r̄, Cvar, r, P, α)
 w,e,q1_α = compute_solution_stoc_2(model, w)
 
-range = 0:0.0002274:0.005
-len = size(range,1)
-E_noR = zeros(len)
-σ_noR = zeros(len)
-E_Cvar = zeros(len)
-σ_Cvar = zeros(len)
-E_limitCvar = zeros(len)
-σ_limitCvar = zeros(len)
+# Loop
+range = 0:0.0002274:0.005;
+len = size(range,1);
+E_noR = zeros(len);
+σ_noR = zeros(len);
+E_Cvar = zeros(len);
+σ_Cvar = zeros(len);
+E_limitCvar = zeros(len);
+σ_limitCvar = zeros(len);
 
-x = zeros(len,size(r̄,1))
-iter = 0
+x = zeros(len,size(r̄,1));
+iter = 0;
 for R=range
-  iter += 1
+    global iter += 1
 
-  model, w = base_model(numA)
-  min_cvar_noRf!(model, w, r̄, R, r, P, α)
-  x[iter,:],E_Cvar[iter],Cvar,q1_α = compute_solution_stoc(model, w)
-  model, w = base_model(numA)
-  max_return_lim_cvar_noRf!(model, w, r̄, Cvar, r, P, α)
-  x2,E_limitCvar[iter] = compute_solution_stoc_2(model, w)
+    model, w = base_model(numA)
+    min_cvar_noRf!(model, w, r̄, R, r, P, α)
+    x[iter,:],E_Cvar[iter],Cvar,q1_α = compute_solution_stoc(model, w)
+    model, w = base_model(numA)
+    max_return_lim_cvar_noRf!(model, w, r̄, Cvar, r, P, α)
+    x2,E_limitCvar[iter] = compute_solution_stoc_2(model, w)
 
-  # x1,v_noR,E_noR[iter] = mv_pfal_quadratic_noRf(Σ,r̄,R)
+    σ_Cvar[iter] = sqrt(sum(x[iter,:]'Σ*x[iter,:]))
+    σ_limitCvar[iter] = sqrt(sum(x2'Σ*x2))
 
-  # σ_noR[iter] = sqrt(v_noR)
-  # σ_Cvar[iter] = sqrt(sum(x[iter,:]'Σ*x[iter,:]))
-  σ_limitCvar[iter] = sqrt(sum(x2'Σ*x2))
+    # model, w = base_model(numA)
+    # po_mean_variance_noRf!(model, w, Σ, r̄, R)
+    # x_quad, obj, E_noR[iter] = compute_solution(model, w)
+    # σ_noR[iter] = sqrt(obj)
 end
 
-#plot frontier
-plot(#layer(x=σ_noR, y=E_noR,
-    #  Geom.point,Theme(default_color=color("white"))),
-      layer(x=σ_Cvar, y=E_Cvar,
-         Geom.point,Theme(default_color=color("blue"))),
-    layer(x=σ_limitCvar, y=E_limitCvar,
-       Geom.point,Theme(default_color=color("magenta"))),
-
-
-    Guide.xlabel("σ"), Guide.ylabel("r"), Guide.title("Efficient Frontier Cvar vs Mean-Variance"))
+# plot frontier
+plt  = plot(σ_limitCvar, E_Cvar,
+    title="Efficient Frontier Cvar", # Cvar vs Mean-Variance
+    xlabel = "σ",
+    ylabel = "r",
+    label = "Limit Cvar",
+    legend = :topleft 
+);
+plot!(plt, σ_Cvar, E_Cvar, label = "Min Cvar");
+plt

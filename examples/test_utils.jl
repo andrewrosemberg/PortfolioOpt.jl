@@ -65,7 +65,7 @@ function compute_solution_stoc(model::JuMP.Model, w; solver = COSMO.Optimizer)
     end
     Cvar = -objective_value(model)
     r = sum(r̄'w_values)
-    q1_α = value.(z)
+    q1_α = value.(model[:z])
     return w_values, r, Cvar, q1_α
 end
 
@@ -77,6 +77,6 @@ function compute_solution_stoc_2(model::JuMP.Model, w; solver = COSMO.Optimizer)
         w_values = w_values / sum(w_values)
     end
     r = objective_value(model)
-    q1_α = value.(z)
+    q1_α = value.(model[:z])
     return w_values, r, q1_α
 end
