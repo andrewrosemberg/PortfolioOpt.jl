@@ -51,12 +51,3 @@ function po_mean_variance_Rf!(model, w, Σ,r̄,R,rf, max_wealth)
     @constraint(model, E >= R)
     @objective(model, Min, sum(w'Σ*w))
 end
-
-function base_model(numA::Integer)
-    model = Model()
-    w = @variable(model, w[i=1:numA])
-    @variable(model, sum_invested)
-    @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
-    @constraint(model, sum_invested==1)
-    return model, w
-end

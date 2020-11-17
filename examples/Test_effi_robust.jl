@@ -19,7 +19,7 @@ rf =  fill(3.2e-6, numD) # readcsv(".\\rf.csv")
 rm = mean(returns, dims=2)
 
 ############ Efficient frontier ###################
-t = 100
+t = 120
 k_back =60
 Σ,r̄ = mean_variance(returns[t-k_back:t-1,:])
 δ =rf[t]*10 # Defining the uncertainty set
@@ -52,7 +52,7 @@ for R=range
       x4,v_ben_tal,E_ben_tal[iter] = compute_solution_dual(model, w)
 
       σ_noR[iter] = sqrt(v_noR)
-      σ_ber[iter] = sqrt(sum(x2'Σ*x2))
+      σ_ber[iter] = sqrt(v_ber)
       σ_soy[iter] = sqrt(v_soy)
       σ_ben_tal[iter] = sqrt(v_ben_tal)
 end
@@ -62,7 +62,8 @@ plt  = plot(σ_noR, E_noR,
       title="Efficient Frontier Robust Mean-Variance",
       xlabel = "σ",
       ylabel = "r",
-      label = "Markowitz"
+      label = "Markowitz",
+      legend = :topleft 
 );
 plot!(plt, σ_ber, E_ber, label = "Bertsimas");
 plot!(plt, σ_soy, E_soy, label = "Soyster");

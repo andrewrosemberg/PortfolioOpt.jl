@@ -26,7 +26,7 @@ function po_mean_variance_robust_bertsimas!(model, w, Σ, r̄, rf, R, Δ, Λ, ma
       sum_invested = model[:sum_invested]
     end
     @constraint(model, E == rf*(max_wealth-sum_invested) - λ*Λ + sum(r̄[i]*(π2[i]-π1[i]) for i=1:numA) - sum(θ[i] for i=1:numA))
-    @constraint(model, E == R)
+    @constraint(model, E >= R)
 
     # constraints: from duality
     @constraints(model, begin

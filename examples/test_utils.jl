@@ -2,6 +2,12 @@ using Distributions
 using MarketData
 using COSMO
 
+DEFAULT_SOLVER = optimizer_with_attributes(
+    COSMO.Optimizer, 
+    "verbose" => false, 
+    "max_iter" => 5000
+)
+
 ## Get data
 function get_test_data(;
     start_date = Date(2009, 9, 1),
@@ -35,7 +41,7 @@ function returns_montecarlo(Σ,r̄, numS)
 end
 
 ## Prep solution 
-function compute_solution(model::JuMP.Model, w; solver = COSMO.Optimizer)
+function compute_solution(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     w_values = value.(w)
@@ -46,7 +52,7 @@ function compute_solution(model::JuMP.Model, w; solver = COSMO.Optimizer)
     return w_values, objective_value(model), r
 end
 
-function compute_solution_dual(model::JuMP.Model, w; solver = COSMO.Optimizer)
+function compute_solution_dual(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     w_values = value.(w)
@@ -56,7 +62,7 @@ function compute_solution_dual(model::JuMP.Model, w; solver = COSMO.Optimizer)
     return w_values, objective_value(model), value(model[:E])
 end
 
-function compute_solution_stoc(model::JuMP.Model, w; solver = COSMO.Optimizer)
+function compute_solution_stoc(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     w_values = value.(w)
@@ -69,7 +75,7 @@ function compute_solution_stoc(model::JuMP.Model, w; solver = COSMO.Optimizer)
     return w_values, r, Cvar, q1_α
 end
 
-function compute_solution_stoc_2(model::JuMP.Model, w; solver = COSMO.Optimizer)
+function compute_solution_stoc_2(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     w_values = value.(w)
@@ -79,4 +85,15 @@ function compute_solution_stoc_2(model::JuMP.Model, w; solver = COSMO.Optimizer)
     r = objective_value(model)
     q1_α = value.(model[:z])
     return w_values, r, q1_α
+end
+
+# Create base PO model
+function base_model(numA::Integer)
+    model = Model()
+    w = @variable(model, w[i=1:numA])
+    @variable(model, sum_invested)
+    # @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1)) # for no stock renting
+    @constraint(model, sum_invested == sum(w))
+    @constraint(model, sum_invested == 1)
+    return model, w
 end

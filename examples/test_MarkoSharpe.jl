@@ -60,7 +60,8 @@ plt  = plot(σ_quad, E_quad,
       title="Efficient Frontier Mean-Variance",
       xlabel = "σ",
       ylabel = "r",
-      label = "Quadratic"
+      label = "Quadratic",
+      legend = :topleft 
 );
 plot!(plt, [0;σ_sharpe], [rDi[t];E_sharpe], label = "Sharpe");
 plot!(plt, σ, E, label = "Analytical");

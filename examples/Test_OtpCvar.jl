@@ -55,10 +55,10 @@ for R=range
     σ_Cvar[iter] = sqrt(sum(x[iter,:]'Σ*x[iter,:]))
     σ_limitCvar[iter] = sqrt(sum(x2'Σ*x2))
 
-    # model, w = base_model(numA)
-    # po_mean_variance_noRf!(model, w, Σ, r̄, R)
-    # x_quad, obj, E_noR[iter] = compute_solution(model, w)
-    # σ_noR[iter] = sqrt(obj)
+    model, w = base_model(numA)
+    po_mean_variance_noRf!(model, w, Σ, r̄, R)
+    x_quad, obj, E_noR[iter] = compute_solution(model, w)
+    σ_noR[iter] = sqrt(obj)
 end
 
 # plot frontier
