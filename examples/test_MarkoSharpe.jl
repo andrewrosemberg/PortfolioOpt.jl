@@ -5,6 +5,7 @@ using Plots
 
 include("./examples/test_utils.jl")
 include("./src/mean_variance_markovitz_sharpe.jl")
+include("./src/simple_rules.jl")
 
 ############ Read Prices #############
 Prices = get_test_data()

@@ -8,6 +8,7 @@ include("./src/mean_variance_markovitz_sharpe.jl")
 include("./src/mean_variance_robust.jl")
 include("./src/stochastic_programming.jl")
 include("./src/mean_variance_dro.jl")
+include("./src/simple_rules.jl")
 include("./src/backtest.jl")
 
 ############ Read Prices #############
@@ -225,6 +226,18 @@ wealth_sharpe = backtest_po(
 end;
 rename!(wealth_sharpe, :sharpe);
 
+wealth_equal_weights = backtest_po(
+    returns_series; 
+    start_date = start_date
+) do past_returns, max_wealth, rf
+    # Prep
+    numD,numA = size(past_returns)
+    # Parameters
+    x = equal_weights(numA)
+    return x*max_wealth
+end;
+rename!(wealth_equal_weights, :equal_weights);
+
 ############# plot results  #####################
 
 plt  = plot(wealth_sharpe,
@@ -233,6 +246,8 @@ plt  = plot(wealth_sharpe,
       ylabel = "Wealth",
       legend = :outertopright 
 );
+plot!(plt, wealth_equal_weights);
+
 plot!(plt, wealth_markowitz_limit_R);
 plot!(plt, wealth_soyster_limit_R);
 plot!(plt, wealth_bertsimas_limit_R);
