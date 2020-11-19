@@ -49,8 +49,7 @@ function compute_solution_backtest(model::JuMP.Model, w; solver = DEFAULT_SOLVER
     status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
     w_values = value.(w)
     w_values = reajust_volumes(w_values, max_wealth)
-    r = sum(r̄'w_values)
-    return w_values, objective_value(model), r
+    return w_values
 end
 
 function compute_solution(model::JuMP.Model, w; solver = DEFAULT_SOLVER)

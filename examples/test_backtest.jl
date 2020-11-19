@@ -7,6 +7,7 @@ include("./examples/test_utils.jl")
 include("./src/mean_variance_markovitz_sharpe.jl")
 include("./src/mean_variance_robust.jl")
 include("./src/stochastic_programming.jl")
+include("./src/mean_variance_dro.jl")
 include("./src/backtest.jl")
 
 ############ Read Prices #############
@@ -37,7 +38,7 @@ wealth_markowitz_limit_R = backtest_po(
     R = 0.0015
     model, w = base_model(numA; allow_borrow = false)
     po_minvar_limitmean_Rf!(model, w, Σ,r̄,R,rf, 1)
-    x, obj, r = compute_solution_backtest(model, w)
+    x = compute_solution_backtest(model, w)
     return x*max_wealth
 end;
 rename!(wealth_markowitz_limit_R, :markowitz_limit_R);
@@ -54,7 +55,7 @@ wealth_markowitz_infeasible_limit_R = backtest_po(
     R = 0.005
     model, w = base_model(numA; allow_borrow = false)
     po_minvar_limitmean_Rf!(model, w, Σ,r̄,R,rf, 1)
-    x, obj, r = compute_solution_backtest(model, w)
+    x = compute_solution_backtest(model, w)
     return x*max_wealth
 end;
 rename!(wealth_markowitz_infeasible_limit_R, :markowitz_infeasible_limit_R);
@@ -72,7 +73,7 @@ wealth_soyster_limit_R = backtest_po(
     Δ = fill(3.2e-4*3.5,size(r̄,1)) # Defining the uncertainty set
     model, w = base_model(numA; allow_borrow = false)
     po_minvar_limitmean_robust_bertsimas!(model, w, Σ, r̄, rf, R, Δ, numA, 1)
-    x, obj, r = compute_solution_backtest(model, w)
+    x = compute_solution_backtest(model, w)
     return x*max_wealth
 end;
 rename!(wealth_soyster_limit_R, :soyster_limit_R);
@@ -90,7 +91,7 @@ wealth_bertsimas_limit_R = backtest_po(
     Δ = fill(3.2e-4*3.5,size(r̄,1)) # Defining the uncertainty set
     model, w = base_model(numA; allow_borrow = false)
     po_minvar_limitmean_robust_bertsimas!(model, w, Σ, r̄, rf, R, Δ, 3, 1)
-    x, obj, r = compute_solution_backtest(model, w)
+    x = compute_solution_backtest(model, w)
     return x*max_wealth
 end;
 rename!(wealth_bertsimas_limit_R, :bertsimas_limit_R);
@@ -108,7 +109,7 @@ wealth_bental_limit_R = backtest_po(
     δ = 0.025 # Defining the uncertainty set
     model, w = base_model(numA; allow_borrow = false)
     po_minvar_limitmean_robust_bental!(model, w, Σ, r̄, rf, R, δ, 1)
-    x, obj, r = compute_solution_backtest(model, w)
+    x = compute_solution_backtest(model, w)
     return x*max_wealth
 end;
 rename!(wealth_bental_limit_R, :bental_limit_R);
@@ -127,7 +128,7 @@ wealth_markowitz_limit_var = backtest_po(
     # Parameters
     model, w = base_model(numA; allow_borrow = false)
     po_maxmean_limitvar_Rf!(model, w, Σ, r̄, max_risk, rf, 1)
-    x, obj, r = compute_solution_backtest(model, w)
+    x = compute_solution_backtest(model, w)
     return x*max_wealth
 end;
 rename!(wealth_markowitz_limit_var, :markowitz_limit_var);
@@ -144,7 +145,7 @@ wealth_soyster_limit_var = backtest_po(
     Δ = fill(3.2e-4*10,size(r̄,1)) # Defining the uncertainty set
     model, w = base_model(numA; allow_borrow = false)
     po_maxmean_limitvar_robust_bertsimas!(model, w, Σ, r̄, rf, max_risk, Δ, numA, 1)
-    x, obj, r = compute_solution_backtest(model, w)
+    x = compute_solution_backtest(model, w)
     return x*max_wealth
 end;
 rename!(wealth_soyster_limit_var, :soyster_limit_var);
@@ -161,7 +162,7 @@ wealth_bertsimas_limit_var = backtest_po(
     Δ = fill(3.2e-4*10,size(r̄,1)) # Defining the uncertainty set
     model, w = base_model(numA; allow_borrow = false)
     po_maxmean_limitvar_robust_bertsimas!(model, w, Σ, r̄, rf, max_risk, Δ, 3, 1)
-    x, obj, r = compute_solution_backtest(model, w)
+    x = compute_solution_backtest(model, w)
     return x*max_wealth
 end;
 rename!(wealth_bertsimas_limit_var, :bertsimas_limit_var);
@@ -178,10 +179,35 @@ wealth_bental_limit_var = backtest_po(
     δ = 0.032 # Defining the uncertainty set
     model, w = base_model(numA; allow_borrow = false)
     po_maxmean_limitvar_robust_bental!(model, w, Σ, r̄, rf, max_risk, δ, 1)
-    x, obj, r = compute_solution_backtest(model, w)
+    x = compute_solution_backtest(model, w)
     return x*max_wealth
 end;
 rename!(wealth_bental_limit_var, :bental_limit_var);
+
+############# backtest with DRO strategies #####################
+
+wealth_delague = backtest_po(
+    returns_series; 
+    start_date = start_date
+) do past_returns, max_wealth, rf
+    # Prep
+    numD,numA = size(past_returns)
+    returns = values(past_returns)
+    Σ,r̄ = mean_variance(returns[end-k_back:end,:])
+    # Parameters
+    K = 1
+    # a =  [0.020646446303211906; 0.01456965970660176; 0.011268181574938444; 0.009189943838602721; 0.007760228688512961; 0.006716054241470283; 0.005919840492702679; 0.005292563196132596; 0.004785576102825234; 0.004367285293323039; 0.004367285293323039]
+    # b = [12351.417663268794; 11949.933298064285; 11797.83904955914; 11743.66244416854; 11734.986173090612; 11749.533056761096; 11776.549758689594; 11810.379744602318; 11847.862045043921; 11887.152715141867; 11887.152715141867]
+    a = [1.0]
+    b = [0.0]
+    γ1 = 0.0065
+    γ2 = 5.5
+    model, w = base_model(numA; allow_borrow = false)
+    po_maxmean_delague(model, w, r̄, Σ, a, b, γ1, γ2, K)
+    x = compute_solution_backtest(model, w)
+    return x*max_wealth
+end;
+rename!(wealth_delague, :delague);
 
 ############# extra strategies #####################
 
@@ -216,6 +242,8 @@ plot!(plt, wealth_markowitz_limit_var);
 plot!(plt, wealth_soyster_limit_var);
 plot!(plt, wealth_bertsimas_limit_var);
 plot!(plt, wealth_bental_limit_var);
+
+plot!(plt, wealth_delague);
 
 # plot!(plt, wealth_markowitz_infeasible);
 
