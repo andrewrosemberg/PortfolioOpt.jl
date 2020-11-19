@@ -17,7 +17,6 @@ end
 function max_return_lim_cvar_noRf!(model, w, r̄, λ, r, P, α)
     numA = size(r̄,1)
     numS = size(P,1)
-    set_lower_bound.(w, 0)
     @variable(model, z)
     @variable(model, y[i=1:numS]>=0)
 

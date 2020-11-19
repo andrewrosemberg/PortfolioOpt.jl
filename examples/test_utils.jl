@@ -6,7 +6,7 @@ using Logging
 DEFAULT_SOLVER = optimizer_with_attributes(
     COSMO.Optimizer, 
     "verbose" => false, 
-    "max_iter" => 5000
+    "max_iter" => 900000
 )
 
 ## Get data
@@ -41,12 +41,23 @@ function returns_montecarlo(Σ,r̄, numS)
     return r',P/sum(P)
 end
 
-## Prep solution 
+## Prep solution
+function compute_solution_backtest(model::JuMP.Model, w; solver = DEFAULT_SOLVER, max_wealth=1)
+    set_optimizer(model, solver)
+    optimize!(model)
+    status = termination_status(model)
+    status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
+    w_values = value.(w)
+    w_values = reajust_volumes(w_values, max_wealth)
+    r = sum(r̄'w_values)
+    return w_values, objective_value(model), r
+end
+
 function compute_solution(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     status = termination_status(model)
-    # status !== MOI.OPTIMAL && warn("Did not find an optimal solution: status=$status")
+    status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
  
     w_values = value.(w)
     if sum(w_values) > 1.0
@@ -60,7 +71,7 @@ function compute_solution_dual(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     status = termination_status(model)
-    # status !== MOI.OPTIMAL && warn("Did not find an optimal solution: status=$status")
+    status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
  
     w_values = value.(w)
     if sum(w_values) > 1.0
@@ -73,7 +84,7 @@ function compute_solution_stoc(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     status = termination_status(model)
-    # status !== MOI.OPTIMAL && warn("Did not find an optimal solution: status=$status")
+    status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
  
     w_values = value.(w)
     if sum(w_values) > 1.0
@@ -89,7 +100,7 @@ function compute_solution_stoc_2(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     status = termination_status(model)
-    # status !== MOI.OPTIMAL && warn("Did not find an optimal solution: status=$status")
+    status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
  
     w_values = value.(w)
     if sum(w_values) > 1.0

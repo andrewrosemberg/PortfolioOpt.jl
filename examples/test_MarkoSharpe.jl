@@ -6,7 +6,7 @@ using Plots
 include("./examples/test_utils.jl")
 include("./src/mean_variance_markovitz_sharpe.jl")
 
-############ Read Prices (listed form most recent to oldest) #############
+############ Read Prices #############
 Prices = get_test_data()
 numD,numA = size(Prices) # A: Assets    D: Days
 
@@ -14,7 +14,7 @@ numD,numA = size(Prices) # A: Assets    D: Days
 returns_series = percentchange(Prices)
 returns = values(returns_series)
 # risk free asset
-rDi =  fill(3.2e-6, numD) # readcsv(".\\rf.csv")
+rf =  fill(3.2e-6, numD) # readcsv(".\\rf.csv")
 
 ############ Efficient frontier ###################
 t = 100
@@ -30,7 +30,7 @@ E_quad = zeros(len);
 E_quad_Rf = zeros(len);
 σ_quad_Rf = zeros(len);
 
-x_sharpe = max_sharpe(Σ,r̄,rDi[t])
+x_sharpe = max_sharpe(Σ,r̄,rf[t])
 E_sharpe = r̄'x_sharpe
 σ_sharpe = sqrt(x_sharpe'Σ*x_sharpe)
 iter = 0
@@ -40,11 +40,11 @@ for R=range
       x = mean_variance_noRf_analytical(Σ,r̄,R)
       # quadratic optimization no risk free asset
       model, w = base_model(numA)
-      po_mean_variance_noRf!(model, w, Σ, r̄, R)
+      po_minvar_limitmean_noRf!(model, w, Σ, r̄, R)
       x_quad, obj, r = compute_solution(model, w)
       # quadratic optimization with risk free asset
       model, w = base_model(numA)
-      po_mean_variance_Rf!(model, w, Σ,r̄,R,rDi[t], 1)
+      po_minvar_limitmean_Rf!(model, w, Σ,r̄,R,rf[t], 1)
       x_quad_Rf, obj, r = compute_solution(model, w)
 
       E[iter] = sum(x'r̄)
@@ -61,9 +61,9 @@ plt  = plot(σ_quad, E_quad,
       xlabel = "σ",
       ylabel = "r",
       label = "Quadratic",
-      legend = :topleft 
+      legend = :outertopright 
 );
-plot!(plt, [0;σ_sharpe], [rDi[t];E_sharpe], label = "Sharpe");
+plot!(plt, [0;σ_sharpe], [rf[t];E_sharpe], label = "Sharpe");
 plot!(plt, σ, E, label = "Analytical");
 plot!(plt, σ_quad_Rf, E_quad_Rf, label = "Quadratic with RF");
 plt

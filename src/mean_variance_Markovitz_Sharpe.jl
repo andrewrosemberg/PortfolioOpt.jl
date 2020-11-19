@@ -25,21 +25,23 @@ function max_sharpe(Σ,r̄,rf)
     one = ones(size(r̄,1))
     invΣ = pinv(Σ, 1E-25)
     v = invΣ*(r̄.-one*rf)
-    return v./sum(v)
+    return v
 end
 
 """
 Mean-Variance Portfolio Alocation With no risk free asset. Quadratic problem.
+Minimize Variance and limit mean.
 """
-function po_mean_variance_noRf!(model, w, Σ, r̄, R)
+function po_minvar_limitmean_noRf!(model, w, Σ, r̄, R)
     @constraint(model, sum(r̄'w)>=R)
     @objective(model, Min, sum(w'Σ*w))
 end
 
 """
 Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
+Minimize Variance and limit mean.
 """
-function po_mean_variance_Rf!(model, w, Σ,r̄,R,rf, max_wealth)
+function po_minvar_limitmean_Rf!(model, w, Σ, r̄, R, rf, max_wealth)
     @variable(model, E)
     if !haskey(object_dictionary(model), :sum_invested)
       @variable(model, sum_invested)
@@ -50,4 +52,21 @@ function po_mean_variance_Rf!(model, w, Σ,r̄,R,rf, max_wealth)
     @constraint(model, sum(r̄'w) + rf*(max_wealth-sum_invested) == E)
     @constraint(model, E >= R)
     @objective(model, Min, sum(w'Σ*w))
+end
+
+"""
+Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
+Maximize mean and limit variance.
+"""
+function po_maxmean_limitvar_Rf!(model, w, Σ, r̄, max_risk, rf, max_wealth)
+    @variable(model, E)
+    if !haskey(object_dictionary(model), :sum_invested)
+      @variable(model, sum_invested)
+      @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
+    else
+      sum_invested = model[:sum_invested]
+    end
+    @constraint(model, sum(r̄'w) + rf*(max_wealth-sum_invested) == E)
+    @constraint(model, sum(w'Σ*w) <= max_risk*max_wealth)
+    @objective(model, Max, E)
 end

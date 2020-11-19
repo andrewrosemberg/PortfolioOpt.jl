@@ -6,7 +6,7 @@ using Plots
 include("./examples/test_utils.jl")
 include("./src/stochastic_programming.jl")
 
-############ Read Prices (listed form most recent to oldest) #############
+############ Read Prices #############
 Prices = get_test_data()
 numD,numA = size(Prices) # A: Assets    D: Days
 
@@ -22,7 +22,7 @@ numS = 10000
 r,P = returns_montecarlo(Σ,r̄[:,1], numS)
 
 # test opt functions
-R = rf[t]
+R = 0.003
 model, w = base_model(numA)
 min_cvar_noRf!(model, w, r̄, R, r, P, α);
 x,e,Cvar,q1_α = compute_solution_stoc(model, w)
@@ -56,7 +56,7 @@ for R=range
     σ_limitCvar[iter] = sqrt(sum(x2'Σ*x2))
 
     model, w = base_model(numA)
-    po_mean_variance_noRf!(model, w, Σ, r̄, R)
+    po_minvar_limitmean_noRf!(model, w, Σ, r̄, R)
     x_quad, obj, E_noR[iter] = compute_solution(model, w)
     σ_noR[iter] = sqrt(obj)
 end
