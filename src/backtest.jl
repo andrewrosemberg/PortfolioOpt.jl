@@ -23,6 +23,8 @@ function backtest_po(
     time_stamps = timestamp(to(from(returns_series, start_date_previous), end_date))
     T = length(time_stamps)-1
     numD,numA = size(returns_series)
+    # save returns
+    strategy_returns = Array{Float64}(undef, T)
     # wealth at the beginning of the period
     wealth = Array{Float64}(undef, T+1)
     wealth[1] = initial_wealth
@@ -34,7 +36,8 @@ function backtest_po(
         )
         step_return = sum(portfolio_volumes*values(returns_series[t]))
         wealth[iter+1] = wealth[iter] + step_return
+        strategy_returns[iter] = step_return/wealth[iter]
     end
     # wealth at the end of each period
-    return TimeArray((datetime=time_stamps, wealth=wealth), timestamp=:datetime)
+    return TimeArray((datetime=time_stamps, wealth=wealth), timestamp=:datetime), strategy_returns
 end

@@ -25,6 +25,7 @@ Minimize Variance and limit mean.
 function po_minvar_limitmean_noRf!(model, w, Σ, r̄, R)
     @constraint(model, sum(r̄'w)>=R)
     @objective(model, Min, sum(w'Σ*w))
+    return
 end
 
 """
@@ -42,6 +43,7 @@ function po_minvar_limitmean_Rf!(model, w, Σ, r̄, R, rf, max_wealth)
     @constraint(model, sum(r̄'w) + rf*(max_wealth-sum_invested) == E)
     @constraint(model, E >= R)
     @objective(model, Min, sum(w'Σ*w))
+    return
 end
 
 """
@@ -59,4 +61,5 @@ function po_maxmean_limitvar_Rf!(model, w, Σ, r̄, max_risk, rf, max_wealth)
     @constraint(model, sum(r̄'w) + rf*(max_wealth-sum_invested) == E)
     @constraint(model, sum(w'Σ*w) <= max_risk*max_wealth)
     @objective(model, Max, E)
+    return
 end

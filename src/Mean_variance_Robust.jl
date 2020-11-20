@@ -36,6 +36,7 @@ function po_minvar_limitmean_robust_bertsimas!(model, w, Σ, r̄, rf, R, Δ, Λ,
     @constraints(model, begin
       constrain_dual2[i=1:numA], Δ[i] * (π2[i] + π1[i]) - θ[i] <= λ
     end)
+    return
 end
 
 """
@@ -65,6 +66,7 @@ function po_minvar_limitmean_robust_bental!(model, w, Σ, r̄, rf, R, δ, max_we
     @constraint(model, norm_2_pi <= θ)
     @constraint(model, E == rf*(max_wealth-sum_invested) + dot(w, r̄) - θ*δ)
     @constraint(model, E >= R)
+    return
 end
 
 """
@@ -101,6 +103,7 @@ function po_maxmean_limitvar_robust_bertsimas!(model, w, Σ, r̄, rf, max_risk, 
     end)
 
     @objective(model, Max, E)
+    return
 end
 
 """
@@ -132,4 +135,5 @@ function po_maxmean_limitvar_robust_bental!(model, w, Σ, r̄, rf, max_risk, δ,
     @constraint(model, sum(w'Σ*w) <= max_risk*max_wealth)
 
     @objective(model, Max, E)
+    return
 end
