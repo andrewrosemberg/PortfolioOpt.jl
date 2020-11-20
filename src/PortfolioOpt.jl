@@ -4,13 +4,14 @@ using JuMP
 using LinearAlgebra
 using LinearAlgebra: dot
 
-include("./src/mean_variance_markovitz.jl")
-include("./src/mean_variance_robust.jl")
-include("./src/stochastic_programming.jl")
-include("./src/mean_variance_dro.jl")
-include("./src/simple_rules.jl")
-include("./src/data_driven_ro.jl")
-include("./src/forecasts.jl")
+include("./mean_variance_markovitz.jl")
+include("./mean_variance_robust.jl")
+include("./stochastic_programming.jl")
+include("./mean_variance_dro.jl")
+include("./simple_rules.jl")
+include("./data_driven_ro.jl")
+include("./forecasts.jl")
+include("./test_utils/testutils.jl")
 
 export mean_variance_noRf_analytical,
     po_minvar_limitmean_noRf!,

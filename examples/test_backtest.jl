@@ -1,8 +1,6 @@
 using Plots
 using PortfolioOpt
-
-include("./test/test_utils/auxilary_functions.jl")
-include("./test/test_utils/backtest.jl")
+using PortfolioOpt.TestUtils
 
 ############ Read Prices #############
 Prices = get_test_data()
@@ -15,6 +13,10 @@ returns_series = percentchange(Prices)
 # rf =  fill(3.2e-4, numD)
 
 ############# backtest Parameters #####################
+DEFAULT_SOLVER = optimizer_with_attributes(
+    COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
+)
+
 start_date = timestamp(returns_series)[100]
 
 ## Strategies
@@ -39,7 +41,7 @@ wealth_markowitz_limit_R, strategy_returns =
         R = 0.0015
         model, w = base_model(numA; allow_borrow=false)
         po_minvar_limitmean_Rf!(model, w, Σ, r̄, R, rf, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_markowitz_limit_R, :markowitz_limit_R);
@@ -54,7 +56,7 @@ wealth_markowitz_infeasible_limit_R, strategy_returns =
         R = 0.005
         model, w = base_model(numA; allow_borrow=false)
         po_minvar_limitmean_Rf!(model, w, Σ, r̄, R, rf, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_markowitz_infeasible_limit_R, :markowitz_infeasible_limit_R);
@@ -70,7 +72,7 @@ wealth_soyster_limit_R, strategy_returns =
         Δ = std(returns[(end - k_back):end, :]; dims=1)' / 5 # Defining the uncertainty set
         model, w = base_model(numA; allow_borrow=false)
         po_minvar_limitmean_robust_bertsimas!(model, w, Σ, r̄, rf, R, Δ, numA, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_soyster_limit_R, :soyster_limit_R);
@@ -86,7 +88,7 @@ wealth_bertsimas_limit_R, strategy_returns =
         Δ = std(returns[(end - k_back):end, :]; dims=1)' / 5 # Defining the uncertainty set
         model, w = base_model(numA; allow_borrow=false)
         po_minvar_limitmean_robust_bertsimas!(model, w, Σ, r̄, rf, R, Δ, 3, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_bertsimas_limit_R, :bertsimas_limit_R);
@@ -102,7 +104,7 @@ wealth_bental_limit_R, strategy_returns =
         δ = 0.025 # Defining the uncertainty set
         model, w = base_model(numA; allow_borrow=false)
         po_minvar_limitmean_robust_bental!(model, w, Σ, r̄, rf, R, δ, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_bental_limit_R, :bental_limit_R);
@@ -120,7 +122,7 @@ wealth_markowitz_limit_var, returns_markowitz_limit_var =
         # Parameters
         model, w = base_model(numA; allow_borrow=false)
         po_maxmean_limitvar_Rf!(model, w, Σ, r̄_s, max_risk, rf, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_markowitz_limit_var, :markowitz_limit_var);
@@ -136,7 +138,7 @@ wealth_soyster_limit_var, returns_soyster_limit_var =
         Δ = std(returns[(end - k_back):end, :]; dims=1)' / 3 # Defining the uncertainty set
         model, w = base_model(numA; allow_borrow=false)
         po_maxmean_limitvar_robust_bertsimas!(model, w, Σ, r̄_s, rf, max_risk, Δ, numA, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_soyster_limit_var, :soyster_limit_var);
@@ -152,7 +154,7 @@ wealth_bertsimas_2_limit_var, returns_bertsimas_2_limit_var =
         Δ = std(returns[(end - k_back):end, :]; dims=1)' / 3 # Defining the uncertainty set
         model, w = base_model(numA; allow_borrow=false)
         po_maxmean_limitvar_robust_bertsimas!(model, w, Σ, r̄_s, rf, max_risk, Δ, 2, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_bertsimas_2_limit_var, :bertsimas_2_limit_var);
@@ -168,7 +170,7 @@ wealth_bertsimas_4_limit_var, returns_bertsimas_4_limit_var =
         Δ = std(returns[(end - k_back):end, :]; dims=1)' / 3 # Defining the uncertainty set
         model, w = base_model(numA; allow_borrow=false)
         po_maxmean_limitvar_robust_bertsimas!(model, w, Σ, r̄_s, rf, max_risk, Δ, 4, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_bertsimas_4_limit_var, :bertsimas_4_limit_var);
@@ -184,7 +186,7 @@ wealth_bental_limit_var, returns_bental_limit_var =
         δ = 0.028 # Defining the uncertainty set
         model, w = base_model(numA; allow_borrow=false)
         po_maxmean_limitvar_robust_bental!(model, w, Σ, r̄_s, rf, max_risk, δ, 1)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_bental_limit_var, :bental_limit_var);
@@ -208,7 +210,7 @@ wealth_betina, returns_betina =
         # solve
         model, w = base_model(numA; allow_borrow=false)
         betina_robust(model, w, returns, r_bar_t, rf, λ; j_robust=j_robust)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_betina, :betina);
@@ -232,7 +234,7 @@ wealth_delague, returns_delague_limit_var =
         γ2 = 5.5
         model, w = base_model(numA; allow_borrow=false)
         po_maxmean_delague(model, w, r̄_s, Σ, a, b, γ1, γ2, K)
-        x = compute_solution_backtest(model, w)
+        x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
         return x * max_wealth
     end;
 rename!(wealth_delague, :delague);

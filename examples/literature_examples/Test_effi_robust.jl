@@ -1,7 +1,7 @@
 using Plots
 using PortfolioOpt
+using PortfolioOpt.TestUtils
 
-include("./test/test_utils/auxilary_functions.jl")
 include("./examples/literature_examples/example_utils.jl")
 
 ############ Read Prices #############
