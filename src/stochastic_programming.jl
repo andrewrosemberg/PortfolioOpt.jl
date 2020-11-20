@@ -1,5 +1,3 @@
-using JuMP
-
 function min_cvar_noRf!(model, w, r̄, R, r, P, α)
     numA = size(r̄,1)
     numS = size(P,1)

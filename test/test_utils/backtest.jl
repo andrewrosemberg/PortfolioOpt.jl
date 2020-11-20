@@ -1,8 +1,8 @@
 using JuMP
 using MarketData
 using LinearAlgebra
-using Plots
 
+"""Ajust volumes to be feasible under current wealth"""
 function reajust_volumes(w_values, max_wealth)
     w_values_ajusted = deepcopy(w_values)
     if norm(w_values, 1) > max_wealth
@@ -11,6 +11,7 @@ function reajust_volumes(w_values, max_wealth)
     return w_values_ajusted
 end
 
+"""Simple backtest logic"""
 function backtest_po(
     strategy_logic::Function, 
     returns_series; 

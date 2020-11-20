@@ -1,6 +1,4 @@
-using JuMP
-using LinearAlgebra
-
+"""Maximize expected return under distribution uncertainty using DRO"""
 function po_maxmean_delague(model, w, r̄, Σ, a, b, γ1, γ2, K)
     numA = size(r̄,1)
     

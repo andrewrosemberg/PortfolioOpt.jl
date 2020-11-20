@@ -70,7 +70,7 @@ end
 """
 Mixed signals predictor proposed by Betina and al.
 """
-function predict_return(asset_rtn_sgn,num_t, kst_a, klt_a,kmom, ϱ = 2)
+function mixed_signals_predict_return(asset_rtn_sgn,num_t, kst_a, klt_a,kmom, ϱ = 2)
     numD = size(asset_rtn_sgn,1)
     num_train = min(numD-1, num_t)
   

@@ -1,5 +1,5 @@
 # PortfolioOpt
-Portfolio optimization
+Simple package with some Portfolio Optimization formulations
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://andrewrosemberg.github.io/PortfolioOpt.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev)

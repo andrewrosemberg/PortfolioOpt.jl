@@ -1,3 +1,4 @@
+using MarketData
 using PortfolioOpt
 using Test
 

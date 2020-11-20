@@ -1,10 +1,8 @@
-using JuMP
-using MarketData
-using LinearAlgebra
 using Plots
+using PortfolioOpt
 
-include("./examples/test_utils.jl")
-include("./src/stochastic_programming.jl")
+include("./test/test_utils/auxilary_functions.jl")
+include("./examples/literature_examples/example_utils.jl")
 
 ############ Read Prices #############
 Prices = get_test_data()

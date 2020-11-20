@@ -1,5 +1,3 @@
-using LinearAlgebra
-
 """
 Maximize sharp coeficient alocation.
 """

@@ -1,18 +1,8 @@
-using JuMP
-using MarketData
-using LinearAlgebra
 using Plots
+using PortfolioOpt
 
-include("./examples/test_utils.jl")
-include("./src/mean_variance_markovitz_sharpe.jl")
-include("./src/mean_variance_robust.jl")
-include("./src/stochastic_programming.jl")
-include("./src/mean_variance_dro.jl")
-include("./src/simple_rules.jl")
-include("./src/data_driven_ro.jl")
-include("./src/backtest.jl")
-include("./src/forecasts.jl")
-
+include("./test/test_utils/auxilary_functions.jl")
+include("./test/test_utils/backtest.jl")
 
 ############ Read Prices #############
 Prices = get_test_data()
@@ -233,7 +223,7 @@ wealth_betina, returns_betina = backtest_po(
     # Predict return 
     r_bar_t = zeros(numA)
     for i = 1:numA
-        r_bar_t[i] = predict_return(returns[:,i],num_train, kst, klt,kmom, Q)
+        r_bar_t[i] = mixed_signals_predict_return(returns[:,i],num_train, kst, klt,kmom, Q)
     end
     # solve
     model, w = base_model(numA; allow_borrow = false)
