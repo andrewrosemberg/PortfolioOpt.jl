@@ -2,7 +2,7 @@ module PortfolioOpt
 
 using JuMP
 using LinearAlgebra
-using LinearAlgebra: dot 
+using LinearAlgebra: dot
 
 include("./src/mean_variance_markovitz.jl")
 include("./src/mean_variance_robust.jl")

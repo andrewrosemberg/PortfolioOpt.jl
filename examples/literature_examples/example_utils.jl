@@ -4,15 +4,12 @@ using COSMO
 using Logging
 
 DEFAULT_SOLVER = optimizer_with_attributes(
-    COSMO.Optimizer, 
-    "verbose" => false, 
-    "max_iter" => 900000
+    COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
 )
 
 ## Get data
 function get_test_data(;
-    start_date = Date(2009, 9, 1),
-    end_date = start_date + Year(1) + Month(3)
+    start_date=Date(2009, 9, 1), end_date=start_date + Year(1) + Month(3)
 )
     df_AAPL = rename(to(from(AAPL[:Close], start_date), end_date), :AAPL)
     df_BA = rename(to(from(BA[:Close], start_date), end_date), :BA)
@@ -25,12 +22,12 @@ function get_test_data(;
 end
 
 ## Prep data
-function compute_solution(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
+function compute_solution(model::JuMP.Model, w; solver=DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     status = termination_status(model)
     status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
- 
+
     w_values = value.(w)
     if sum(w_values) > 1.0
         w_values = w_values / sum(w_values)
@@ -39,12 +36,12 @@ function compute_solution(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     return w_values, objective_value(model), r
 end
 
-function compute_solution_dual(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
+function compute_solution_dual(model::JuMP.Model, w; solver=DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     status = termination_status(model)
     status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
- 
+
     w_values = value.(w)
     if sum(w_values) > 1.0
         w_values = w_values / sum(w_values)
@@ -52,12 +49,12 @@ function compute_solution_dual(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     return w_values, objective_value(model), value(model[:E])
 end
 
-function compute_solution_stoc(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
+function compute_solution_stoc(model::JuMP.Model, w; solver=DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     status = termination_status(model)
     status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
- 
+
     w_values = value.(w)
     if sum(w_values) > 1.0
         w_values = w_values / sum(w_values)
@@ -68,12 +65,12 @@ function compute_solution_stoc(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
     return w_values, r, Cvar, q1_α
 end
 
-function compute_solution_stoc_2(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
+function compute_solution_stoc_2(model::JuMP.Model, w; solver=DEFAULT_SOLVER)
     set_optimizer(model, solver)
     optimize!(model)
     status = termination_status(model)
     status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
- 
+
     w_values = value.(w)
     if sum(w_values) > 1.0
         w_values = w_values / sum(w_values)
@@ -84,7 +81,7 @@ function compute_solution_stoc_2(model::JuMP.Model, w; solver = DEFAULT_SOLVER)
 end
 
 # Create base PO model
-function base_model(numA::Integer; allow_borrow = true)
+function base_model(numA::Integer; allow_borrow=true)
     model = Model()
     w = @variable(model, w[i=1:numA])
     @variable(model, sum_invested)

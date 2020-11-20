@@ -2,23 +2,25 @@
 Mean and Variance of returns
 """
 function mean_variance(returns)
-    r̄ = mean(returns,dims=1)'
+    r̄ = mean(returns; dims=1)'
     Σ = cov(returns)
-    return Σ,r̄
+    return Σ, r̄
 end
 
 """
 simulate returns normal
 """
-function returns_montecarlo(Σ,r̄, numS)
+function returns_montecarlo(Σ, r̄, numS)
     d = MvNormal(r̄, Σ)
     r = rand(d, numS)
-    P = pdf(d,r)
-    return r',P/sum(P)
+    P = pdf(d, r)
+    return r', P / sum(P)
 end
 
 """Basic solution """
-function compute_solution_backtest(model::JuMP.Model, w; solver = DEFAULT_SOLVER, max_wealth=1)
+function compute_solution_backtest(
+    model::JuMP.Model, w; solver=DEFAULT_SOLVER, max_wealth=1
+)
     set_optimizer(model, solver)
     optimize!(model)
     status = termination_status(model)
