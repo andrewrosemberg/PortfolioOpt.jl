@@ -4,8 +4,8 @@
 Some commom test utilities for portfolio optimization formulations.
 
 Mainly:
-    - `get_test_data` that returns a TimeArray of returns for 6 assets.
-    - `backtest_po` that 
+    - `get_test_data` that returns a TimeArray of Prices for 6 assets.
+    - `backtest_po` that provides a basic backtest using provided strategy and returns data.
 """
 module TestUtils
     using Distributions

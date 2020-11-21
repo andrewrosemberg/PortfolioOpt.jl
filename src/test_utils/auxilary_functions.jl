@@ -1,5 +1,5 @@
 """
-Get test data from MarketData.
+Get test data (Prices) from MarketData.
 """
 function get_test_data(;
     start_date=Date(2009, 9, 1), end_date=start_date + Year(1) + Month(3)

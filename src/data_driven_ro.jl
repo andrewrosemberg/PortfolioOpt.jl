@@ -1,5 +1,5 @@
 """Portifolio optimization with data-driven robust loss constraint."""
-function betina_robust(model, w, returns, r̄, rf, λ; j_robust::Int64=45, max_wealth=1.0)
+function betina_robust!(model, w, returns, r̄, rf, λ; j_robust::Int64=45, max_wealth=1.0)
     numD, numA = size(returns)
 
     if !haskey(object_dictionary(model), :sum_invested)
