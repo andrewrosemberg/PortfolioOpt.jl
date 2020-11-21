@@ -63,17 +63,3 @@ function compute_solution_stoc_2(model::JuMP.Model, w; solver=DEFAULT_SOLVER)
     q1_α = value.(model[:z])
     return w_values, r, q1_α
 end
-
-# Create base PO model
-function base_model(numA::Integer; allow_borrow=true)
-    model = Model()
-    w = @variable(model, w[i=1:numA])
-    @variable(model, sum_invested)
-    if allow_borrow
-        @constraint(model, sum_invested == sum(w))
-    else
-        @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
-    end
-    @constraint(model, sum_invested <= 1)
-    return model, w
-end

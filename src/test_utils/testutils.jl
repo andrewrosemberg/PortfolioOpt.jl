@@ -18,11 +18,12 @@ module TestUtils
     include("./backtest.jl")
 
     export reajust_volumes,
-        backtest_po
+        backtest_po,
+        base_model,
+        compute_solution_backtest,
         get_test_data,
         mean_variance,
-        returns_montecarlo,
-        compute_solution_backtest
+        returns_montecarlo
 
     Reexport.@reexport using MarketData
 end
