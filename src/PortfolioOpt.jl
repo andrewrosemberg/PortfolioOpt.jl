@@ -3,6 +3,7 @@ module PortfolioOpt
 using JuMP
 using LinearAlgebra
 using LinearAlgebra: dot
+import Reexport
 
 include("./mean_variance_markovitz.jl")
 include("./mean_variance_robust.jl")
@@ -26,5 +27,7 @@ export mean_variance_noRf_analytical,
     min_cvar_noRf!,
     max_return_lim_cvar_noRf!,
     mixed_signals_predict_return
+
+    Reexport.@reexport using JuMP
 
 end

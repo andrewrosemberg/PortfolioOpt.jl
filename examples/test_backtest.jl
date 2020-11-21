@@ -1,6 +1,7 @@
+using COSMO
 using Plots
 using PortfolioOpt
-using PortfolioOpt.TestUtils
+using PortfolioOpt.TestUtils #: backtest_po, compute_solution_backtest, get_test_data
 
 ############ Read Prices #############
 Prices = get_test_data()

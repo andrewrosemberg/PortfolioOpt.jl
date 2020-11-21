@@ -12,6 +12,7 @@ module TestUtils
     using JuMP
     using MarketData
     using LinearAlgebra
+    import Reexport
 
     include("./auxilary_functions.jl")
     include("./backtest.jl")
@@ -22,4 +23,6 @@ module TestUtils
         mean_variance,
         returns_montecarlo,
         compute_solution_backtest
+
+    Reexport.@reexport using MarketData
 end
