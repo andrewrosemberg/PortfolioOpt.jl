@@ -62,18 +62,24 @@ solver = optimizer_with_attributes(
 start_date = timestamp(returns_series)[100]
 
 wealth_strategy, returns_strategy =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, risk_free_return
+    backtest_po(returns_series; start_date=start_date) 
+        do past_returns, current_wealth, risk_free_return
+
         # Prep data provided by the backtest pipeline
         numD, numA = size(past_returns)
         returns = values(past_returns)
-        Σ, r̄ = mean_variance(returns[(end - 60):end, :]) # Calculate Mean and variance for the past 60 days
+        # calculate mean and variance for the past 60 days
+        Σ, r̄ = mean_variance(returns[(end - 60):end, :])
 
         # Parameters
-        max_risk = 0.8 # maximum acceptable normalized variance for our portfolio
+        # maximum acceptable normalized variance for our portfolio
+        max_risk = 0.8
         
         # Build model 
-        model, w = base_model(numA; allow_borrow=false) # creates jump model with portfolio weights variable w
-        po_maxmean_limitvar_Rf!(model, w, Σ, r̄, max_risk, risk_free_return, 1) # modifies the problem to fromulation variable and constraints
+        # creates jump model with portfolio weights variable w
+        model, w = base_model(numA; allow_borrow=false)
+        # modifies the problem to fromulation variable and constraints
+        po_maxmean_limitvar_Rf!(model, w, Σ, r̄, max_risk, risk_free_return, 1)
 
         # Optimize model and retrieve solution (x = optimal w value)
         x = compute_solution_backtest(model, w, solver)
@@ -94,4 +100,4 @@ plot(
     legend=:outertopright,
 )
 ```
-![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/cumwealth.jpg?raw=true)
+![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/cumwealth.png?raw=true)
