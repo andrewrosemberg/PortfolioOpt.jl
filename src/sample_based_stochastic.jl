@@ -1,3 +1,23 @@
+"""Betina Robust Sampled based Formulation"""
+struct CVaR <: AbstractSampleBased
+    sampled_returns::Array{Float64,2}
+    quantile::Float64::Array{Float64,2}
+    scenarios_probability::
+    number_of_assets::Int
+    number_of_samples::Int
+end
+
+function CVaR(;
+    sampled_returns
+)
+    number_of_samples, number_of_assets = size(sampled_returns)
+
+    return SampleBased(
+        sampled_returns, number_of_assets, number_of_samples
+    )
+end
+
+# TODO: UPDATE
 function min_cvar_noRf!(model, w, r̄, R, r, P, α)
     numA = size(r̄, 1)
     numS = size(P, 1)

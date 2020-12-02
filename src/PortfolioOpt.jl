@@ -1,5 +1,6 @@
 module PortfolioOpt
 
+using Distributions
 using JuMP
 using LinearAlgebra
 using LinearAlgebra: dot
