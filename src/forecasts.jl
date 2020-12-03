@@ -72,7 +72,7 @@ function feature_indexes_sgns(asset_rtn_sgn, kst, klt, kmom, ϱ=2)
 end
 
 """
-Mixed signals predictor proposed by Betina and al.
+Mixed signals predictor proposed by Betina and al. Univariate
 """
 function mixed_signals_predict_return(asset_rtn_sgn, num_t, kst_a, klt_a, kmom, ϱ=2)
     numD = size(asset_rtn_sgn, 1)
