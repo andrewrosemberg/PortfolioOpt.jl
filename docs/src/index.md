@@ -10,3 +10,9 @@ CurrentModule = PortfolioOpt
 ```@autodocs
 Modules = [PortfolioOpt]
 ```
+
+# TestUtils
+```@autodocs
+Modules = [TestUtils]
+Private = false
+```

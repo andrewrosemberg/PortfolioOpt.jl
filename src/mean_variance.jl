@@ -58,6 +58,8 @@ function mean_variance_noRf_analytical(formulation::MeanVariance, R)
 end
 
 """
+    po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R; rf = 0, current_wealth = 1)
+
 Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
 Minimize Variance and limit mean.
 """

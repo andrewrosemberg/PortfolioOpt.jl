@@ -39,7 +39,12 @@ function _portfolio_return_latex()
 end
 
 """
-returns worst case return in Bertsimas's uncertainty set.
+    portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
+
+Returns worst case return in Bertsimas's uncertainty set, defined by the following dual problem: 
+
+$(_portfolio_return_latex())
+
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
     # parameters
