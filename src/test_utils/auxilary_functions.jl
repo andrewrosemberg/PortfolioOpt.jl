@@ -18,19 +18,9 @@ end
 Mean and Variance of returns
 """
 function mean_variance(returns)
-    r̄ = mean(returns; dims=1)'
+    r̄ = mean(returns; dims=1)'[:,1]
     Σ = cov(returns)
     return Σ, r̄
-end
-
-"""
-simulate returns normal
-"""
-function returns_montecarlo(Σ, r̄, numS)
-    d = MvNormal(r̄, Σ)
-    r = rand(d, numS)
-    P = pdf(d, r)
-    return r', P / sum(P)
 end
 
 """

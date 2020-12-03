@@ -22,20 +22,15 @@ There are two types of strategies implemented in this package:
     - `max_sharpe` 
     - `equal_weights` 
     - `mean_variance_noRf_analytical` 
- - Modifying functions (identifiable by a `!` at the end of the function) that receive a `JuMP` model, a reference to the investment variable present in this model and the parameters of the strategy as inputs, and modifies the model by adding the necessary variables and constraints. Currently implemented ones are: 
-    - `po_minvar_limitmean_noRf!` 
-    - `po_minvar_limitmean_Rf!` 
-    - `po_maxmean_limitvar_Rf!` 
-    - `po_minvar_limitmean_robust_bertsimas!` 
-    - `po_minvar_limitmean_robust_bental!` 
-    - `po_maxmean_limitvar_robust_bertsimas!` 
-    - `po_maxmean_limitvar_robust_bental!` 
-    - `po_maxmean_delague!` 
-    - `betina_robust!` 
-    - `min_cvar_noRf!` 
-    - `max_return_lim_cvar_noRf!`
+ - Modifying functions (identifiable by a `!` at the end of the function) that receive a `JuMP` model, a reference to the investment variable present in this model, the formulation and parameters of the strategy as inputs, and modifies the model by adding the necessary variables and constraints. Currently implemented ones are: 
+    - `po_max_conditional_expectation_limit_predicted_return!` 
+    - `po_max_predicted_return_limit_conditional_expectation!`
+    - `po_max_predicted_return_limit_return!`
+    - `po_max_return_limit_variance!`
+    - `po_max_utility_return!`
+    - `po_min_variance_limit_return!`
 
-Normally this package won't focus nor make available forecasting functionalities, but, as an exception, there is one point prediction forecasting function exported: 
+Normally this package won't focus nor make available forecasting functionalities, but, as an exception, there is one univariate point-prediction forecasting function exported: 
  - `mixed_signals_predict_return`
 
 ## TestUtils
@@ -56,8 +51,9 @@ But also:
 ```julia
 using COSMO
 using PortfolioOpt
-using PortfolioOpt.TestUtils: backtest_po, compute_solution_backtest, get_test_data, 
-    mean_variance, base_model
+using PortfolioOpt.TestUtils: 
+    backtest_po, compute_solution_backtest, get_test_data, mean_variance, base_model, 
+    percentchange, timestamp, rename!
 
 prices = get_test_data()
 numD, numA = size(prices) # A: Assets    D: Days
@@ -82,12 +78,16 @@ wealth_strategy, returns_strategy =
         # Parameters
         # maximum acceptable normalized variance for our portfolio
         max_risk = 0.8
-        
+        formulation = MeanVariance(;
+            predicted_mean = r̄_s,
+            predicted_covariance = Σ,
+        )
+
         # Build model 
         # creates jump model with portfolio weights variable w
         model, w = base_model(numA; allow_borrow=false)
-        # modifies the problem to fromulation variable and constraints
-        po_maxmean_limitvar_Rf!(model, w, Σ, r̄, max_risk, risk_free_return, 1)
+        # modifies the problem to add fromulation variable and constraints
+        po_max_return_limit_variance!(model, w, formulation, max_risk; rf = rf)
 
         # Optimize model and retrieve solution (x = optimal w value)
         x = compute_solution_backtest(model, w, solver)

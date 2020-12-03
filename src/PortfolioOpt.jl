@@ -6,30 +6,41 @@ using LinearAlgebra
 using LinearAlgebra: dot
 import Reexport
 
-include("./mean_variance_markovitz.jl")
+include("./formulations.jl")
+include("./mean_variance.jl")
 include("./mean_variance_robust.jl")
-include("./stochastic_programming.jl")
 include("./mean_variance_dro.jl")
+include("./sample_based.jl")
+include("./sample_based_robust.jl")
+include("./sample_based_stochastic.jl")
 include("./simple_rules.jl")
-include("./data_driven_ro.jl")
 include("./forecasts.jl")
-include("./test_utils/testutils.jl")
+include("./test_utils/Testutils.jl")
 
-export mean_variance_noRf_analytical,
-    po_minvar_limitmean_noRf!,
-    po_minvar_limitmean_Rf!,
-    po_maxmean_limitvar_Rf!,
-    po_minvar_limitmean_robust_bertsimas!,
-    po_minvar_limitmean_robust_bental!,
-    po_maxmean_limitvar_robust_bertsimas!,
-    po_maxmean_limitvar_robust_bental!,
-    po_maxmean_delague!,
-    betina_robust!,
+export AbstractPortfolioFormulation,
+    AbstractMeanVariance,
+    AbstractSampleBased,
+    MeanVariance,
+    mixed_signals_predict_return,
+    portfolio_return!,
+    portfolio_variance!,
+    po_max_conditional_expectation_limit_predicted_return!,
+    po_max_predicted_return_limit_conditional_expectation!,
+    po_max_predicted_return_limit_return!,
+    po_max_return_limit_variance!,
+    po_max_utility_return!,
+    po_min_variance_limit_return!,
+    predicted_portfolio_return!,
+    predicted_portfolio_variance!,
+    RobustBenTal,
+    RobustBertsimas,
+    RobustDelague,
+    RobustBetina,
+    SampleBased,
+    # end-to-end
+    mean_variance_noRf_analytical,
     max_sharpe,
-    equal_weights,
-    min_cvar_noRf!,
-    max_return_lim_cvar_noRf!,
-    mixed_signals_predict_return
+    equal_weights
 
     Reexport.@reexport using JuMP
 

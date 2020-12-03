@@ -21,7 +21,7 @@ function conditional_expectation!(model, w, formulation::AbstractSampleBased;
 end
 
 
-function po_max_conditional_expectation_limit_predicted_return!(model, w, formulation::AbstractSampleBased, R;
+function po_max_conditional_expectation_limit_predicted_return!(model::JuMP.Model, w, formulation::AbstractSampleBased, R;
     current_wealth = 1.0, rf = 0, quantile = 0.95, kwargs... 
 )
     if !haskey(object_dictionary(model), :sum_invested)
@@ -40,7 +40,7 @@ function po_max_conditional_expectation_limit_predicted_return!(model, w, formul
     return nothing
 end
 
-function po_max_conditional_expectation_limit_predicted_return!(model, w, formulation::AbstractSampleBased, λ;
+function po_max_predicted_return_limit_conditional_expectation!(model::JuMP.Model, w, formulation::AbstractSampleBased, λ;
     current_wealth = 1.0, rf = 0, quantile = 0.95, kwargs... 
 )
     if !haskey(object_dictionary(model), :sum_invested)

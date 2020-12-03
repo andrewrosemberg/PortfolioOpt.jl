@@ -5,6 +5,16 @@ DEFAULT_SOLVER = optimizer_with_attributes(
     COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
 )
 
+"""
+simulate returns normal
+"""
+function returns_montecarlo(Σ, r̄, numS)
+    d = MvNormal(r̄, Σ)
+    r = rand(d, numS)
+    P = pdf(d, r)
+    return r', P / sum(P)
+end
+
 ## Prep data
 function compute_solution(model::JuMP.Model, w; solver=DEFAULT_SOLVER)
     set_optimizer(model, solver)

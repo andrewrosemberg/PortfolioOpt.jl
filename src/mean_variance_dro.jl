@@ -1,5 +1,5 @@
 """Delague's uncertainty set"""
-struct RobustDelague <: AbstractMeanVariance
+struct RobustDelague <: AbstractPortfolioFormulation # AbstractMeanVariance
     predicted_mean::Array{Float64,1}
     predicted_covariance::Array{Float64,2}
     γ1::Float64
@@ -11,12 +11,12 @@ struct RobustDelague <: AbstractMeanVariance
 end
 
 function RobustDelague(;
-    predicted_mean,
-    predicted_covariance,
-    γ1,
-    γ2,
-    utility_coeficients,
-    utility_intercepts,
+    predicted_mean::Array{Float64,1},
+    predicted_covariance::Array{Float64,2},
+    γ1::Float64,
+    γ2::Float64,
+    utility_coeficients::Array{Float64,1},
+    utility_intercepts::Array{Float64,1},
 )
     number_of_assets = size(predicted_mean, 1)
     number_of_utility_pieces = size(utility_coeficients, 1)
@@ -37,7 +37,7 @@ function RobustDelague(;
 end
 
 """Maximize expected return under distribution uncertainty using DRO"""
-function po_max_utility_return!(model, w, formulation::RobustDelague)
+function po_max_utility_return!(model::JuMP.Model, w, formulation::RobustDelague)
     # parameters
     r̄ = formulation.predicted_mean
     Σ = formulation.predicted_covariance

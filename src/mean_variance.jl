@@ -6,8 +6,8 @@ struct MeanVariance <: AbstractMeanVariance
 end
 
 function MeanVariance(;
-    predicted_mean,
-    predicted_covariance,
+    predicted_mean::Array{Float64,1},
+    predicted_covariance::Array{Float64,2},
 )
     number_of_assets = size(predicted_mean, 1)
     if number_of_assets != size(predicted_covariance, 1)
@@ -20,19 +20,19 @@ function MeanVariance(;
     )
 end
 
-function predicted_portfolio_return!(::JuMP.model, w, formulation::AbstractMeanVariance)
+function predicted_portfolio_return!(::JuMP.Model, w, formulation::AbstractMeanVariance)
     return sum(formulation.predicted_mean'w)
 end
 
-function portfolio_return!(model::JuMP.model, w, formulation::AbstractMeanVariance; kwargs...)
+function portfolio_return!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
     return predicted_portfolio_return!(model, w, formulation; kwargs...)
 end
 
-function predicted_portfolio_variance!(::JuMP.model, w, formulation::AbstractMeanVariance)
+function predicted_portfolio_variance!(::JuMP.Model, w, formulation::AbstractMeanVariance)
     return sum(w'formulation.predicted_covariance * w)
 end
 
-function portfolio_variance!(::JuMP.model, w, formulation::AbstractMeanVariance; kwargs...)
+function portfolio_variance!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
     return predicted_portfolio_variance!(model, w, formulation; kwargs...)
 end
 
@@ -61,7 +61,7 @@ end
 Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
 Minimize Variance and limit mean.
 """
-function po_min_variance_limit_return!(model, w, formulation::AbstractMeanVariance, R; 
+function po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R; 
     rf = 0, current_wealth = 1,
     portfolio_return = portfolio_return!,
     portfolio_variance = portfolio_variance!
@@ -75,7 +75,7 @@ function po_min_variance_limit_return!(model, w, formulation::AbstractMeanVarian
         sum_invested = model[:sum_invested]
     end
     # model
-    @constraint(model, E = portfolio_return(model, w, formulation) + rf * (current_wealth - sum_invested))
+    @constraint(model, E == portfolio_return(model, w, formulation) + rf * (current_wealth - sum_invested))
     @constraint(model, E >= R * current_wealth)
     @objective(model, Min, portfolio_variance(model, w, formulation))
     return nothing
@@ -85,7 +85,7 @@ end
 Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
 Maximize mean and limit variance.
 """
-function po_max_return_limit_variance!(model, w, formulation::AbstractMeanVariance, max_risk; 
+function po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk; 
     rf = 0, current_wealth = 1,
     portfolio_return = portfolio_return!,
     portfolio_variance = portfolio_variance!
@@ -99,7 +99,7 @@ function po_max_return_limit_variance!(model, w, formulation::AbstractMeanVarian
         sum_invested = model[:sum_invested]
     end
     # model
-    @constraint(model, E = portfolio_return(model, w, formulation) + rf * (current_wealth - sum_invested))
+    @constraint(model, E == portfolio_return(model, w, formulation) + rf * (current_wealth - sum_invested))
     @constraint(model, portfolio_variance(model, w, formulation) <= max_risk * current_wealth)
     @objective(model, Max, E)
     return nothing
