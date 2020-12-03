@@ -44,7 +44,6 @@ But also:
  - `base_model`
  - `compute_solution_backtest`
  - `mean_variance`
- - `returns_montecarlo`
 
 ## Example
 
