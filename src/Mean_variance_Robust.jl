@@ -32,8 +32,8 @@ function _portfolio_return_latex()
     return """
         ```math
         \\max \\quad  \\sum_{i}^{\\mathcal{N}} (\\hat{r}_i (\\pi 2_i \\pi 1_i) - \\theta_i ) - \\Gamma \\lambda\\\\
-        s.t.  \\quad   w_i == \\pi 2_i - \\pi 1_i  \\forall i = 1:N \\\\
-        \\quad \\quad  \\Delta_i (\\pi 2_i + \\pi 1_i) - \\theta_i <= \\lambda    \\forall i = 1:N \\\\
+        s.t.  \\quad   w_i = \\pi 2_i - \\pi 1_i  \\quad \\forall i = 1:N \\\\
+        \\quad \\quad  \\Delta_i (\\pi 2_i + \\pi 1_i) - \\theta_i \\leq \\lambda \\quad \\forall i = 1:N \\\\
         ```
         """
 end
