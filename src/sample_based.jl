@@ -35,7 +35,6 @@ function portfolio_variance!(::JuMP.model, w, formulation::AbstractSampleBased; 
     return predicted_portfolio_variance!(model, w, formulation)
 end
 
-"""Portifolio optimization with data-driven robust loss constraint."""
 function po_max_predicted_return_limit_return!(model, w, formulation::AbstractSampleBased, R;
     current_wealth = 1.0, rf = 0, kwargs... 
 )
