@@ -58,10 +58,10 @@ function mean_variance_noRf_analytical(formulation::MeanVariance, R)
 end
 
 """
-    po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R; rf = 0, current_wealth = 1)
+    po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R)
 
 Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
-Minimize Variance and limit mean.
+Minimize Variance and limit return.
 """
 function po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R; 
     rf = 0, current_wealth = 1,
@@ -83,9 +83,21 @@ function po_min_variance_limit_return!(model::JuMP.Model, w, formulation::Abstra
     return nothing
 end
 
+function _po_max_return_limit_variance_latex()
+    return """
+        ```math
+        \\max_{w} \\quad  WCR ' w \\\\
+        s.t.  \\quad WCR \\in UncertaintySet \\\\
+        \\quad \\quad w ' \\Sigma w \\leq max_risk * current_wealth\\\\
+        ```
+        """
+end
+
 """
+    po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk)
+
 Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
-Maximize mean and limit variance.
+Maximize worst case return in uncertainty set and limit variance.
 """
 function po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk; 
     rf = 0, current_wealth = 1,
