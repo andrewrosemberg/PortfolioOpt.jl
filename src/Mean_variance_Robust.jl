@@ -31,7 +31,7 @@ end
 function _portfolio_return_latex_RobustBertsimas_primal()
     return """
         ```math
-        \\min_{\\mu, z} \\\\
+        \\min_{\\mu, z} \\mu ' \\hat{r} \\\\
         s.t.  \\quad \\mu_i \\leq \\hat{r}_i + z_i \\Delta_i \\quad \\forall i = 1:\\mathcal{N} \\quad : \\pi^-_i \\\\
         \\quad \\quad \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\quad : \\pi^+_i \\\\
         \\quad \\quad z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
@@ -55,13 +55,16 @@ end
 """
     portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
 
-Returns worst case return in Bertsimas's uncertainty set, defined by the following primal problem: 
+Returns worst case return (WCR) in Bertsimas's uncertainty set, defined by the following primal problem: 
 
 $(_portfolio_return_latex_RobustBertsimas_primal())
 
 Which is equivalent to the following dual problem:
 
 $(_portfolio_return_latex_RobustBertsimas_dual())
+
+To avoid solving an optimization problem we enforece the dual constraints in 
+the upper level problem and return the objective expression (a lower bound of the optimum).
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
     # parameters
