@@ -15,7 +15,7 @@ function RobustBetina(;
     )
 end
 
-function _portfolio_return_latex_RobustBetina()
+function _portfolio_return_latex_RobustBetina_dual()
     return """
         ```math
         \\max_{\\theta} \\quad  \\theta \\\\
@@ -29,7 +29,7 @@ end
 
 Returns worst case return in Betina's uncertainty set, defined by the following dual problem: 
 
-$(_portfolio_return_latex_RobustBetina())
+$(_portfolio_return_latex_RobustBetina_dual())
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::RobustBetina)
     # auxilary variables

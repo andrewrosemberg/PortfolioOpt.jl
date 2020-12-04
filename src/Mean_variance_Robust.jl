@@ -28,13 +28,26 @@ function RobustBertsimas(;
     )
 end
 
-function _portfolio_return_latex_RobustBertsimas()
+function _portfolio_return_latex_RobustBertsimas_primal()
     return """
         ```math
-        \\max_{\\lambda, \\pi 1, \\pi 2, \\theta} \\quad  \\sum_{i}^{\\mathcal{N}} (\\hat{r}_i (\\pi 2_i \\pi 1_i) - \\theta_i ) - \\Gamma \\lambda\\\\
-        s.t.  \\quad   w_i = \\pi 2_i - \\pi 1_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\quad  \\Delta_i (\\pi 2_i + \\pi 1_i) - \\theta_i \\leq \\lambda \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\lambda \\geq 0 , \\; \\pi 1 \\geq 0 , \\; \\pi 2 \\geq 0 , \\; \\theta \\geq 0 \\\\
+        \\min_{\\mu, z} \\\\
+        s.t.  \\quad \\mu_i \\leq \\hat{r}_i + z_i \\Delta_i \\quad \\forall i = 1:\\mathcal{N} \\quad : \\pi^-_i \\\\
+        \\quad \\quad \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\quad : \\pi^+_i \\\\
+        \\quad \\quad z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
+        \\quad \\quad z_i \\leq 1 \\quad \\forall i = 1:\\mathcal{N} \\quad : \\theta_i \\\\
+        \\quad \\quad \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\quad \\forall i = 1:\\mathcal{N} \\quad : \\lambda \\\\
+        ```
+        """
+end
+
+function _portfolio_return_latex_RobustBertsimas_dual()
+    return """
+        ```math
+        \\max_{\\lambda, \\pi^-, \\pi^+, \\theta} \\quad  \\sum_{i}^{\\mathcal{N}} (\\hat{r}_i (\\pi^+_i \\pi^-_i) - \\theta_i ) - \\Gamma \\lambda\\\\
+        s.t.  \\quad   w_i = \\pi^+_i - \\pi^-_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
+        \\quad \\quad  \\Delta_i (\\pi^+_i + \\pi^-_i) - \\theta_i \\leq \\lambda \\quad \\forall i = 1:\\mathcal{N} \\\\
+        \\quad \\lambda \\geq 0 , \\; \\pi^- \\geq 0 , \\; \\pi^+ \\geq 0 , \\; \\theta \\geq 0 \\\\
         ```
         """
 end
@@ -42,10 +55,13 @@ end
 """
     portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
 
-Returns worst case return in Bertsimas's uncertainty set, defined by the following dual problem: 
+Returns worst case return in Bertsimas's uncertainty set, defined by the following primal problem: 
 
-$(_portfolio_return_latex_RobustBertsimas())
+$(_portfolio_return_latex_RobustBertsimas_primal())
 
+Which is equivalent to the following dual problem:
+
+$(_portfolio_return_latex_RobustBertsimas_dual())
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
     # parameters
@@ -55,24 +71,24 @@ function portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
     Λ = formulation.bertsimas_budjet
     # dual variables
     @variable(model, λ >= 0)
-    @variable(model, π1[i=1:numA] >= 0)
-    @variable(model, π2[i=1:numA] >= 0)
+    @variable(model, π_neg[i=1:numA] >= 0)
+    @variable(model, π_pos[i=1:numA] >= 0)
     @variable(model, θ[i=1:numA] >= 0)
     # constraints: from duality
     @constraints(
         model,
         begin
-            constrain_dual1[i=1:numA], w[i] == π2[i] - π1[i]
+            constrain_dual1[i=1:numA], w[i] == π_pos[i] - π_neg[i]
         end
     )
     @constraints(
         model,
         begin
-            constrain_dual2[i=1:numA], Δ[i] * (π2[i] + π1[i]) - θ[i] <= λ
+            constrain_dual2[i=1:numA], Δ[i] * (π_pos[i] + π_neg[i]) - θ[i] <= λ
         end
     )
 
-    return sum(r̄[i] * (π2[i] - π1[i]) for i in 1:numA) - sum(θ[i] for i in 1:numA)
+    return sum(r̄[i] * (π_pos[i] - π_neg[i]) for i in 1:numA) - sum(θ[i] for i in 1:numA)
 end
 
 ##################################
@@ -101,7 +117,7 @@ function RobustBenTal(;
     )
 end
 
-function _portfolio_return_latex_RobustBenTal()
+function _portfolio_return_latex_RobustBenTal_dual()
     return """
         ```math
         \\max_{\\theta} \\quad  w ' \\hat{r} - \\theta ' \\delta \\\\
@@ -115,8 +131,7 @@ end
 
 Returns worst case return in BenTal's uncertainty set, defined by the following dual problem: 
 
-$(_portfolio_return_latex_RobustBenTal())
-
+$(_portfolio_return_latex_RobustBenTal_dual())
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::RobustBenTal)
     # parameters
