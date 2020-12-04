@@ -98,6 +98,8 @@ end
 
 Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
 Maximize worst case return in uncertainty set and limit variance.
+
+$(_po_max_return_limit_variance_latex())
 """
 function po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk; 
     rf = 0, current_wealth = 1,
