@@ -1,27 +1,29 @@
 
 function _RobustBertsimas_latex()
     return """
-        Bertsimas's uncertainty set:
         ```math
-        {\\mu
+        {\\mu | \\\\
         s.t.  \\quad \\mu_i \\leq \\hat{r}_i + z_i \\Delta_i \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad z_i \\leq 1 \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\quad \\forall i = 1:\\mathcal{N} \\\\
-        }
+        } \\\\
         ```
-        Atributes:
-        - `predicted_mean::Array{Float64,1}` (latex notation \\hat{r}): Predicted mean of returns.
-        - `uncertainty_delta::Array{Float64,1}` (latex notation \\Delta): Uncertainty around mean.
-        - `bertsimas_budjet::Array{Float64,1}` (latex notation \\Gamma): Number of assets in worst case.
-        - `predicted_covariance::Array{Float64,2}`: Predicted covariance of returns (formulation atribute).
         """
 end
 """
     RobustBertsimas <: AbstractMeanVariance
 
+Bertsimas's uncertainty set:
+
 $(_RobustBertsimas_latex())
+
+Atributes:
+- `predicted_mean::Array{Float64,1}` (latex notation \\hat{r}): Predicted mean of returns.
+- `uncertainty_delta::Array{Float64,1}` (latex notation \\Delta): Uncertainty around mean.
+- `bertsimas_budjet::Array{Float64,1}` (latex notation \\Gamma): Number of assets in worst case.
+- `predicted_covariance::Array{Float64,2}`: Predicted covariance of returns (formulation atribute).
 """
 struct RobustBertsimas <: AbstractMeanVariance
     predicted_mean::Array{Float64,1}
@@ -79,11 +81,7 @@ end
 """
     portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
 
-Returns worst case return (WCR) in Bertsimas's uncertainty set.
-
-Bertsimas's uncertainty set:
-
-$(_RobustBertsimas_latex())
+Returns worst case return (WCR) in Bertsimas's uncertainty set ([`RobustBertsimas`](@ref)).
 
 WCR is defined by the following primal problem: 
 
