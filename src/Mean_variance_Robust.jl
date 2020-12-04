@@ -34,7 +34,7 @@ function _portfolio_return_latex_RobustBertsimas()
         \\max_{\\lambda, \\pi 1, \\pi 2, \\theta} \\quad  \\sum_{i}^{\\mathcal{N}} (\\hat{r}_i (\\pi 2_i \\pi 1_i) - \\theta_i ) - \\Gamma \\lambda\\\\
         s.t.  \\quad   w_i = \\pi 2_i - \\pi 1_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad  \\Delta_i (\\pi 2_i + \\pi 1_i) - \\theta_i \\leq \\lambda \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\lambda \\geq 0 , \\; \\pi 1 \\geq 0 , \\; \\pi 2 \\geq 0 , \\; \\theta \\geq 0 , \\; \\\\
+        \\quad \\lambda \\geq 0 , \\; \\pi 1 \\geq 0 , \\; \\pi 2 \\geq 0 , \\; \\theta \\geq 0 \\\\
         ```
         """
 end

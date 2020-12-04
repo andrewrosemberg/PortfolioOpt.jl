@@ -15,14 +15,27 @@ function RobustBetina(;
     )
 end
 
+function _portfolio_return_latex_RobustBetina()
+    return """
+        ```math
+        \\max_{\\theta} \\quad  \\theta \\\\
+        s.t.  \\quad \\theta \\leq r_s ' w \\quad \\forall s = 1:\\mathcal{S} \\\\
+        ```
+        """
+end
+
 """
-returns worst case return in Betina's uncertainty set.
+    portfolio_return!(model::JuMP.Model, w, formulation::RobustBetina)
+
+Returns worst case return in Betina's uncertainty set, defined by the following dual problem: 
+
+$(_portfolio_return_latex_RobustBetina())
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::RobustBetina)
     # auxilary variables
-    E_risky = @variable(model, E_risky)
+    θ = @variable(model, θ)
     # convex hull
-    @constraint(model, sum(formulation.sampled_returns * w , dims=2) .>= E_risky)
+    @constraint(model, sum(formulation.sampled_returns * w , dims=2) .>= θ)
 
-    return E_risky
+    return θ
 end
