@@ -28,12 +28,13 @@ function RobustBertsimas(;
     )
 end
 
-function _portfolio_return_latex()
+function _portfolio_return_latex_RobustBertsimas()
     return """
         ```math
-        \\max \\quad  \\sum_{i}^{\\mathcal{N}} (\\hat{r}_i (\\pi 2_i \\pi 1_i) - \\theta_i ) - \\Gamma \\lambda\\\\
-        s.t.  \\quad   w_i = \\pi 2_i - \\pi 1_i  \\quad \\forall i = 1:N \\\\
-        \\quad \\quad  \\Delta_i (\\pi 2_i + \\pi 1_i) - \\theta_i \\leq \\lambda \\quad \\forall i = 1:N \\\\
+        \\max_{\\lambda, \\pi 1, \\pi 2, \\theta} \\quad  \\sum_{i}^{\\mathcal{N}} (\\hat{r}_i (\\pi 2_i \\pi 1_i) - \\theta_i ) - \\Gamma \\lambda\\\\
+        s.t.  \\quad   w_i = \\pi 2_i - \\pi 1_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
+        \\quad \\quad  \\Delta_i (\\pi 2_i + \\pi 1_i) - \\theta_i \\leq \\lambda \\quad \\forall i = 1:\\mathcal{N} \\\\
+        \\quad \\lambda \\geq 0 , \\; \\pi 1 \\geq 0 , \\; \\pi 2 \\geq 0 , \\; \\theta \\geq 0 , \\; \\\\
         ```
         """
 end
@@ -43,7 +44,7 @@ end
 
 Returns worst case return in Bertsimas's uncertainty set, defined by the following dual problem: 
 
-$(_portfolio_return_latex())
+$(_portfolio_return_latex_RobustBertsimas())
 
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
@@ -100,8 +101,22 @@ function RobustBenTal(;
     )
 end
 
+function _portfolio_return_latex_RobustBenTal()
+    return """
+        ```math
+        \\max_{\\theta} \\quad  w ' \\hat{r} - \\theta ' \\delta \\\\
+        s.t.  \\quad   ||Σ^{\\frac{1}{2}}  w || \\leq \\delta \\\\
+        ```
+        """
+end
+
 """
-returns worst case return in BenTal's uncertainty set.
+    portfolio_return!(model::JuMP.Model, w, formulation::RobustBenTal)
+
+Returns worst case return in BenTal's uncertainty set, defined by the following dual problem: 
+
+$(_portfolio_return_latex_RobustBenTal())
+
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::RobustBenTal)
     # parameters
