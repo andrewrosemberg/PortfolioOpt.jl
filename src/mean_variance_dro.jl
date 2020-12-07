@@ -12,7 +12,7 @@ end
 """
     RobustDelague <: AbstractMeanVariance
 
-Delague's Ambiguity set:
+Delague's Ambiguity set oi:
 
 $(_RobustDelague_latex())
 
