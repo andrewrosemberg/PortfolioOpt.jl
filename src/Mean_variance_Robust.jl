@@ -1,4 +1,3 @@
-
 function _RobustBertsimas_latex()
     return """
         ```math
@@ -128,7 +127,27 @@ function portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
 end
 
 ##################################
-"""BenTal's uncertainty set"""
+function _BenTal_latex()
+    return """
+        ```math
+        \\{\\mu | \\\\
+        s.t.  \\quad \\sqrt{(\\hat{r} - \\mu) ' \\Sigma^{-1} (\\hat{r} - \\mu)} \\leq \\delta \\\\
+        \\} \\\\
+        ```
+        """
+end
+"""
+    BenTal <: AbstractMeanVariance
+
+BenTal's uncertainty set:
+
+$(_BenTal_latex())
+
+Atributes:
+- `predicted_mean::Array{Float64,1}` (latex notation \\hat{r}): Predicted mean of returns.
+- `uncertainty_delta::Float64` (latex notation \\delta): Uncertainty around mean.
+- `predicted_covariance::Array{Float64,2}` (latex notation \\Sigma): Predicted covariance of returns (formulation atribute).
+"""
 struct RobustBenTal <: AbstractMeanVariance
     predicted_mean::Array{Float64,1}
     predicted_covariance::Array{Float64,2}
@@ -153,11 +172,20 @@ function RobustBenTal(;
     )
 end
 
+function _portfolio_return_latex_RobustBenTal_primal()
+    return """
+        ```math
+        \\min_{\\mu, z} \\mu ' w \\\\
+        s.t.  \\quad   ||Σ^{-\\frac{1}{2}} (\\mu - \\hat{r}) || \\leq \\delta \\quad : \\theta \\\\
+        ```
+        """
+end
+
 function _portfolio_return_latex_RobustBenTal_dual()
     return """
         ```math
         \\max_{\\theta} \\quad  w ' \\hat{r} - \\theta ' \\delta \\\\
-        s.t.  \\quad   ||Σ^{\\frac{1}{2}}  w || \\leq \\delta \\\\
+        s.t.  \\quad   ||Σ^{\\frac{1}{2}}  w || \\leq \\theta \\\\
         ```
         """
 end
@@ -165,9 +193,23 @@ end
 """
     portfolio_return!(model::JuMP.Model, w, formulation::RobustBenTal)
 
-Returns worst case return in BenTal's uncertainty set, defined by the following dual problem: 
+Returns worst case return (WCR) in BenTal's uncertainty set ([`RobustBenTal`](@ref)).
+
+WCR is defined by the following primal problem: 
+
+$(_portfolio_return_latex_RobustBenTal_primal())
+
+Which is equivalent to the following dual problem:
 
 $(_portfolio_return_latex_RobustBenTal_dual())
+
+To avoid solving an optimization problem we enforece the dual constraints in 
+the upper level problem and return the objective expression (a lower bound of the optimum).
+
+Arguments:
+    - `model::JuMP.Model`: JuMP upper level portfolio optimization model.
+    - `w`: portfolio optimization investment variable ("weights").
+    - `formulation::RobustBenTal`: Struct containing atributes of BenTal's uncertainty set.
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::RobustBenTal)
     # parameters
