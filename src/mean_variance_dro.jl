@@ -1,10 +1,11 @@
 function _RobustDelague_latex()
     return """
         ```math
-        \\left{ r  \\; \\middle|
+        \\left\\{ r  \\; \\middle| \\begin{array}
         s.t.  \\quad (\\mathbb{E} [r] - \\hat{r}) ' \\Sigma^{-1} (\\mathbb{E} [r] - \\hat{r}) \\leq \\gamma_1 \\\\
         \\quad \\quad \\mathbb{E} [ (r - \\hat{r}) ' (r - \\hat{r}) ] \\leq \\gamma_2 \\Sigma \\\\
-        \\right} \\\\
+        \\end{array}
+        \\right\\} \\\\
         ```
         """
 end
