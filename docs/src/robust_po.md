@@ -1,5 +1,5 @@
 # Robust Portfolio Optimization
-**Acknowledgements**: Robust Formulations based on and inspired by [Davi M. Valladão](http://www.ind.puc-rio.br/en/equipe/davi-michel-valladao/)'s lectures on "Capital Market".
+**Acknowledgements**: Robust Formulations based on and inspired by Professor [Davi M. Valladão](http://www.ind.puc-rio.br/en/equipe/davi-michel-valladao/)'s lectures on "Capital Market".
 
 ## Motivation
 Portfolio Optimization (PO) formulations were developed to adapt to a variety of settings for decisions under uncertainty. These formulations depend on the available information of the uncertain data and the risk aversion of the decision-maker.
@@ -13,7 +13,7 @@ Robust Optimization (RO) problems belong to the class of optimization under unce
 
 Many uncertainty sets have been proposed to accommodate different levels of conservatism and data structures ([1]-[6]). A comparison of uncertainty sets to usual risk measures used in finance was made in [3] and [10].
 
-A collection of recent contributions to robust portfolio strategies was made in [7 - 10]. Data-driven approaches to robust PO also gained interest in recent years and can be found in [11] (for a portfolio of stocks) and [12] (for a portfolio of future contracts). The results in those studies indicate promising alternatives for the integration between uncertain data and PO.
+A collection of recent contributions to robust portfolio strategies was made in [7 - 10]. Data-driven approaches to robust PO also gained interest in recent years and can be found in [11] - for a portfolio of stocks - and [12] - for a portfolio of future contracts. The results in those studies indicate promising alternatives for the integration between uncertain data and PO.
 
 ## Problem Definition
 Simple versions of the Mean-Variance PO problem with robust uncertainty around the estimated mean returns are implemented by the following functions:
@@ -26,7 +26,37 @@ po_min_variance_limit_return!
 po_max_return_limit_variance!
 ```
 
-## Example case Bertsimas
+### Bertsimas's Uncertainty Set
+The uncertainty set proposed by Bertsimas in [5] is defined by the following julia type:
+
+```@docs
+RobustBertsimas
+```
+
+When the above functions are dispatched on this type (referred to as a formulation) the JuMP expression defining the worst case return is returned by the following function:
+
+```@docs
+portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
+```
+
+While the worst case variance is calculated as in a usual Mean Variance PO since this uncertainty sets does not imply any uncertainty to the covariance matrix:
+
+```@docs
+portfolio_variance!(model::JuMP.Model, w, formulation::RobustBertsimas)
+```
+
+Finally, for instance, the Maximization of Returns problem becomes:
+
+```math
+\max_{w, \lambda, \pi^-, \pi^+, \theta} \quad  WCR \\
+s.t.  \quad WCR = \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i ) - \Gamma \lambda \\
+\quad \quad w_i = \pi^+_i - \pi^-_i  \quad \forall i = 1:\mathcal{N} \\
+\quad \quad  \Delta_i (\pi^+_i + \pi^-_i) - \theta_i \leq \lambda \quad \forall i = 1:\mathcal{N} \\\\
+\quad \quad w ' \Sigma w  \leq MaxRisk * CurrentWealth \\
+\quad \lambda \geq 0 , \; \pi^- \geq 0 , \; \pi^+ \geq 0 , \; \theta \\geq 0 \\
+\quad \quad w \in \mathcall{X} \\
+```
+
 
 ## References
 [1] Ben-Tal, A. e Nemirovski, A. (1999). Robust solutions of uncertain linear programs. Operations research letters, 25(1):1–13. 

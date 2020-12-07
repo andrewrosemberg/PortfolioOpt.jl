@@ -73,6 +73,7 @@ function _po_min_variance_limit_return_latex()
         s.t. \\quad WCR = (\\min r'w \\; | \\; r \\in UncertaintySet) \\\\
         \\quad \\quad WCV = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in UncertaintySet) \\\\
         \\quad \\quad WCR \\geq R * CurrentWealth \\\\
+        \\quad \\quad w \\in \\mathcall{X} \\\\
         ```
         """
 end
@@ -80,10 +81,13 @@ end
 """
     po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R)
 
-Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
-Minimize worst case variance (MWV) and limit worst case return (MWR) in uncertainty set.
+Mean-Variance Portfolio Alocation (with a risk free asset). Posed as a quadratic convex problem.
+Minimizes worst case portfolio variance (WCV) and limit worst case portfolio return (WCR) in uncertainty set.
 
 $(_po_min_variance_limit_return_latex())
+
+Where ``\\mathcall{X}`` represents the additional constraints defined in the model by the user 
+(like maximum invested money).
 """
 function po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R; 
     rf = 0, current_wealth = 1,
@@ -112,6 +116,7 @@ function _po_max_return_limit_variance_latex()
         s.t.  \\quad WCR = (\\min r'w \\; | \\; r \\in UncertaintySet) \\\\
         \\quad \\quad WCV \\leq MaxRisk * CurrentWealth\\\\
         \\quad \\quad WCV = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in UncertaintySet) \\\\
+        \\quad \\quad w \\in \\mathcall{X} \\\\
         ```
         """
 end
@@ -119,10 +124,13 @@ end
 """
     po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk)
 
-Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
-Maximize worst case return (MWR) and limit worst case variance (MWV) in uncertainty set.
+Mean-Variance Portfolio Alocation (with a risk free asset). Posed as a quadratic convex problem.
+Maximizes worst case portfolio return (WCR) and limit worst case portfolio variance (WCV) in uncertainty set.
 
 $(_po_max_return_limit_variance_latex())
+
+Where ``\\mathcall{X}`` represents the additional constraints defined in the model by the user 
+(like maximum invested money).
 """
 function po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk; 
     rf = 0, current_wealth = 1,
