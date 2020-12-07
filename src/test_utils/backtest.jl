@@ -1,7 +1,7 @@
 """
 Ajust volumes to be feasible under current wealth
 """
-function reajust_volumes(w_values, max_wealth)
+function readjust_volumes(w_values, max_wealth)
     w_values_ajusted = deepcopy(w_values)
     if norm(w_values, 1) > max_wealth
         w_values_ajusted = w_values / norm(w_values, 1)
@@ -33,7 +33,7 @@ function backtest_po(
     wealth[1] = initial_wealth
     for iter in 1:T
         t = time_stamps[iter + 1]
-        portfolio_volumes = reajust_volumes(
+        portfolio_volumes = readjust_volumes(
             strategy_logic(
                 to(returns_series, time_stamps[iter]),
                 wealth[iter],

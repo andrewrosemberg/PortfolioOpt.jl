@@ -13,8 +13,9 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
-        "API" => "api.md",
+        "Robust PO" => "robust_po.md",
         "Examples" => "examples.md",
+        "API" => "api.md",
     ],
     strict=true,
     checkdocs=:exports,

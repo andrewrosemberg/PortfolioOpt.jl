@@ -34,7 +34,7 @@ function compute_solution_backtest(
     status = termination_status(model)
     status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
     w_values = value.(w)
-    w_values = reajust_volumes(w_values, max_wealth)
+    w_values = readjust_volumes(w_values, max_wealth)
     return w_values
 end
 
