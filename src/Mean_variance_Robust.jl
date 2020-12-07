@@ -12,6 +12,7 @@ function _RobustBertsimas_latex()
         ```
         """
 end
+
 """
     RobustBertsimas <: AbstractMeanVariance
 

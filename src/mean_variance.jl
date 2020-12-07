@@ -73,7 +73,7 @@ function _po_min_variance_limit_return_latex()
         s.t. \\quad WCR = (\\min r'w \\; | \\; r \\in UncertaintySet) \\\\
         \\quad \\quad WCV = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in UncertaintySet) \\\\
         \\quad \\quad WCR \\geq R * CurrentWealth \\\\
-        \\quad \\quad w \\in \\mathcall{X} \\\\
+        \\quad \\quad w \\in \\mathcal{X} \\\\
         ```
         """
 end
@@ -86,7 +86,7 @@ Minimizes worst case portfolio variance (WCV) and limit worst case portfolio ret
 
 $(_po_min_variance_limit_return_latex())
 
-Where ``\\mathcall{X}`` represents the additional constraints defined in the model by the user 
+Where ``\\mathcal{X}`` represents the additional constraints defined in the model by the user 
 (like maximum invested money).
 """
 function po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R; 
@@ -116,7 +116,7 @@ function _po_max_return_limit_variance_latex()
         s.t.  \\quad WCR = (\\min r'w \\; | \\; r \\in UncertaintySet) \\\\
         \\quad \\quad WCV \\leq MaxRisk * CurrentWealth\\\\
         \\quad \\quad WCV = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in UncertaintySet) \\\\
-        \\quad \\quad w \\in \\mathcall{X} \\\\
+        \\quad \\quad w \\in \\mathcal{X} \\\\
         ```
         """
 end
@@ -129,7 +129,7 @@ Maximizes worst case portfolio return (WCR) and limit worst case portfolio varia
 
 $(_po_max_return_limit_variance_latex())
 
-Where ``\\mathcall{X}`` represents the additional constraints defined in the model by the user 
+Where ``\\mathcal{X}`` represents the additional constraints defined in the model by the user 
 (like maximum invested money).
 """
 function po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk; 

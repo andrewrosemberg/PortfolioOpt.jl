@@ -30,19 +30,19 @@ po_max_return_limit_variance!
 The uncertainty set proposed by Bertsimas in [5] is defined by the following julia type:
 
 ```@docs
-RobustBertsimas
+RobustBertsimas <: AbstractMeanVariance
 ```
 
-When the above functions are dispatched on this type (referred to as a formulation) the JuMP expression defining the worst case return is returned by the following function:
+When the above functions are dispatched on this type (referred to as a formulation), the JuMP expression defining the worst case return is returned by the following function:
 
 ```@docs
 portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
 ```
 
-While the worst case variance is calculated as in a usual Mean Variance PO since this uncertainty sets does not imply any uncertainty to the covariance matrix:
+While the worst case variance is calculated as in a usual Mean Variance PO since this uncertainty set does not imply any uncertainty to the covariance matrix:
 
 ```@docs
-portfolio_variance!(model::JuMP.Model, w, formulation::RobustBertsimas)
+portfolio_variance!(::JuMP.Model, w, ::RobustBertsimas)
 ```
 
 Finally, for instance, the Maximization of Returns problem becomes:
@@ -53,8 +53,8 @@ s.t.  \quad WCR = \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i
 \quad \quad w_i = \pi^+_i - \pi^-_i  \quad \forall i = 1:\mathcal{N} \\
 \quad \quad  \Delta_i (\pi^+_i + \pi^-_i) - \theta_i \leq \lambda \quad \forall i = 1:\mathcal{N} \\\\
 \quad \quad w ' \Sigma w  \leq MaxRisk * CurrentWealth \\
-\quad \lambda \geq 0 , \; \pi^- \geq 0 , \; \pi^+ \geq 0 , \; \theta \\geq 0 \\
-\quad \quad w \in \mathcall{X} \\
+\quad \lambda \geq 0 , \; \pi^- \geq 0 , \; \pi^+ \geq 0 , \; \theta \geq 0 \\
+\quad \quad w \in \mathcal{X} \\
 ```
 
 
