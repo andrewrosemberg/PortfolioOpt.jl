@@ -70,8 +70,8 @@ function _po_min_variance_limit_return_latex()
     return """
         ```math
         \\min_{w} \\quad WCV \\\\
-        s.t. \\quad WCR = (\\min r'w | r \\in UncertaintySet) \\\\
-        \\quad \\quad WCV = (\\max w ' \\Sigma w  | \\Sigma \\in UncertaintySet) \\\\
+        s.t. \\quad WCR = (\\min r'w \\; | \\; r \\in UncertaintySet) \\\\
+        \\quad \\quad WCV = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in UncertaintySet) \\\\
         \\quad \\quad WCR \\geq R * CurrentWealth \\\\
         ```
         """
@@ -109,9 +109,9 @@ function _po_max_return_limit_variance_latex()
     return """
         ```math
         \\max_{w} \\quad  WCR \\\\
-        s.t.  \\quad WCR = (\\min r'w | r \\in UncertaintySet) \\\\
+        s.t.  \\quad WCR = (\\min r'w \\; | \\; r \\in UncertaintySet) \\\\
         \\quad \\quad WCV \\leq MaxRisk * CurrentWealth\\\\
-        \\quad \\quad WCV = (\\max w ' \\Sigma w  | \\Sigma \\in UncertaintySet) \\\\
+        \\quad \\quad WCV = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in UncertaintySet) \\\\
         ```
         """
 end

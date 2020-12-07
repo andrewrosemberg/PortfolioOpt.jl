@@ -11,7 +11,10 @@ makedocs(;
         canonical="https://andrewrosemberg.github.io/PortfolioOpt.jl",
         assets=String[],
     ),
-    pages=["Home" => "index.md"],
+    pages=[
+        "Home" => "index.md",
+        "API" => "api.md",
+    ],
     strict=true,
     checkdocs=:exports,
 )

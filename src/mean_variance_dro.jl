@@ -1,4 +1,28 @@
-"""Delague's uncertainty set"""
+function _RobustDelague_latex()
+    return """
+        ```math
+        \\{r  \\; | \\\\
+        s.t.  \\quad (\\E \\[ r \\] - \\hat{r}) ' \\Sigma^{-1} (\\E \\[ r \\] - \\hat{r}) \\leq \\gamma_1 \\\\
+        \\quad \\quad \\E \\[ (r - \\hat{r}) ' (r - \\hat{r}) \\] \\leq \\gamma_2 \\Sigma \\\\
+        \\} \\\\
+        ```
+        """
+end
+"""
+    RobustDelague <: AbstractMeanVariance
+
+Delague's Ambiguity set:
+
+$(_RobustDelague_latex())
+
+Atributes:
+- `predicted_mean::Array{Float64,1}` (latex notation \\hat{r}): Predicted mean of returns.
+- `predicted_covariance::Array{Float64,2}` (latex notation \\Sigma): Predicted covariance of returns.
+- `γ1::Float64`: Mean uncertainty parameter (has to be greater than 0).
+- `γ2::Float64`: Covariance uncertainty parameter (has to be greater than 1).
+- `utility_coeficients::Array{Float64,1}`: Piece-wise utility coeficients (default 1).
+- `utility_intercepts::Array{Float64,1}`: Piece-wise utility intercepts (default 0).
+"""
 struct RobustDelague <: AbstractPortfolioFormulation # AbstractMeanVariance
     predicted_mean::Array{Float64,1}
     predicted_covariance::Array{Float64,2}
@@ -36,7 +60,12 @@ function RobustDelague(;
     )
 end
 
-"""Maximize expected return under distribution uncertainty using DRO"""
+"""
+    po_max_utility_return!(model::JuMP.Model, w, formulation::RobustDelague)
+
+Maximize expected utility of portfolio return under distribution uncertainty defined by
+Delague's ambiguity set ([`RobustDelague`](@ref)).
+"""
 function po_max_utility_return!(model::JuMP.Model, w, formulation::RobustDelague)
     # parameters
     r̄ = formulation.predicted_mean

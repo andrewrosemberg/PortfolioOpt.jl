@@ -1,7 +1,7 @@
 function _RobustBertsimas_latex()
     return """
         ```math
-        \\{\\mu | \\\\
+        \\{\\mu \\; | \\\\
         s.t.  \\quad \\mu_i \\leq \\hat{r}_i + z_i \\Delta_i \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
@@ -130,7 +130,7 @@ end
 function _BenTal_latex()
     return """
         ```math
-        \\{\\mu | \\\\
+        \\{\\mu \\; | \\\\
         s.t.  \\quad \\sqrt{(\\hat{r} - \\mu) ' \\Sigma^{-1} (\\hat{r} - \\mu)} \\leq \\delta \\\\
         \\} \\\\
         ```
@@ -146,7 +146,7 @@ $(_BenTal_latex())
 Atributes:
 - `predicted_mean::Array{Float64,1}` (latex notation \\hat{r}): Predicted mean of returns.
 - `uncertainty_delta::Float64` (latex notation \\delta): Uncertainty around mean.
-- `predicted_covariance::Array{Float64,2}` (latex notation \\Sigma): Predicted covariance of returns (formulation atribute).
+- `predicted_covariance::Array{Float64,2}` (latex notation \\Sigma): Predicted covariance of returns.
 """
 struct RobustBenTal <: AbstractMeanVariance
     predicted_mean::Array{Float64,1}
