@@ -15,5 +15,5 @@ julia> ] add https://github.com/andrewrosemberg/PortfolioOpt.jl.git
 
 ## Contents
 ```@contents
-Pages = ["api.md"]
+Pages = ["api.md", "examples.md"]
 ```

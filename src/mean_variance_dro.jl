@@ -16,8 +16,8 @@ Delague's Ambiguity set:
 $(_RobustDelague_latex())
 
 Atributes:
-- `predicted_mean::Array{Float64,1}` (latex notation \\hat{r}): Predicted mean of returns.
-- `predicted_covariance::Array{Float64,2}` (latex notation \\Sigma): Predicted covariance of returns.
+- `predicted_mean::Array{Float64,1}` (latex notation ``\\hat{r}``): Predicted mean of returns.
+- `predicted_covariance::Array{Float64,2}` (latex notation ``\\Sigma``): Predicted covariance of returns.
 - `γ1::Float64`: Mean uncertainty parameter (has to be greater than 0).
 - `γ2::Float64`: Covariance uncertainty parameter (has to be greater than 1).
 - `utility_coeficients::Array{Float64,1}`: Piece-wise utility coeficients (default 1).

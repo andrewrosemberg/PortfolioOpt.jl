@@ -19,10 +19,10 @@ Bertsimas's uncertainty set:
 $(_RobustBertsimas_latex())
 
 Atributes:
-- `predicted_mean::Array{Float64,1}` (latex notation \\hat{r}): Predicted mean of returns.
-- `uncertainty_delta::Array{Float64,1}` (latex notation \\Delta): Uncertainty around mean.
-- `bertsimas_budjet::Array{Float64,1}` (latex notation \\Gamma): Number of assets in worst case.
-- `predicted_covariance::Array{Float64,2}`: Predicted covariance of returns (formulation atribute).
+- `predicted_mean::Array{Float64,1}` (latex notation ``\\hat{r}``): Predicted mean of returns.
+- `uncertainty_delta::Array{Float64,1}` (latex notation ``\\Delta``): Uncertainty around mean.
+- `bertsimas_budjet::Array{Float64,1}` (latex notation ``\\Gamma``): Number of assets in worst case.
+- `predicted_covariance::Array{Float64,2}`: Predicted covariance of returns.
 """
 struct RobustBertsimas <: AbstractMeanVariance
     predicted_mean::Array{Float64,1}
@@ -144,9 +144,9 @@ BenTal's uncertainty set:
 $(_BenTal_latex())
 
 Atributes:
-- `predicted_mean::Array{Float64,1}` (latex notation \\hat{r}): Predicted mean of returns.
-- `uncertainty_delta::Float64` (latex notation \\delta): Uncertainty around mean.
-- `predicted_covariance::Array{Float64,2}` (latex notation \\Sigma): Predicted covariance of returns.
+- `predicted_mean::Array{Float64,1}` (latex notation ``\\hat{r}``): Predicted mean of returns.
+- `uncertainty_delta::Float64` (latex notation ``\\delta``): Uncertainty around mean.
+- `predicted_covariance::Array{Float64,2}` (latex notation ``\\Sigma``): Predicted covariance of returns.
 """
 struct RobustBenTal <: AbstractMeanVariance
     predicted_mean::Array{Float64,1}

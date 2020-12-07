@@ -99,6 +99,8 @@ end
 
 ### Plot Results
 ```
+using Plots
+
 plot(
     wealth_strategy;
     title="Culmulative Wealth",

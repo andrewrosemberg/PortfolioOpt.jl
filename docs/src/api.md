@@ -1,4 +1,4 @@
-# PortfolioOpt
+## PortfolioOpt
 
 ```@index
 Modules = [PortfolioOpt]
@@ -8,13 +8,9 @@ Modules = [PortfolioOpt]
 Modules = [PortfolioOpt]
 ```
 
-# TestUtils
-
-```@index
-Modules = [TestUtils]
-```
+## TestUtils
 
 ```@autodocs
-Modules = [TestUtils]
+Modules = [PortfolioOpt.TestUtils]
 Private = false
 ```

@@ -6,8 +6,8 @@ Mean Variance Formulation (Markowitz).
 PS.: Equivalent to a single point uncertainty set.
 
 Atributes:
-- `predicted_mean::Array{Float64,1}` (latex notation \\hat{r}): Predicted mean of returns.
-- `predicted_covariance::Array{Float64,2}`: Predicted covariance of returns (formulation atribute).
+- `predicted_mean::Array{Float64,1}`: Predicted mean of returns.
+- `predicted_covariance::Array{Float64,2}`: Predicted covariance of returns.
 """
 struct MeanVariance <: AbstractMeanVariance
     predicted_mean::Array{Float64,1}
