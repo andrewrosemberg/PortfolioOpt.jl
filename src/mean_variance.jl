@@ -81,7 +81,7 @@ end
     po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R)
 
 Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
-Minimize limit worst case variance and limit worst case return in uncertainty set.
+Minimize worst case variance (MWV) and limit worst case return (MWR) in uncertainty set.
 
 $(_po_min_variance_limit_return_latex())
 """
@@ -120,7 +120,7 @@ end
     po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk)
 
 Mean-Variance Portfolio Alocation With risk free asset. Quadratic problem.
-Maximize worst case return in uncertainty set and limit worst case variance.
+Maximize worst case return (MWR) and limit worst case variance (MWV) in uncertainty set.
 
 $(_po_max_return_limit_variance_latex())
 """

@@ -1,9 +1,9 @@
 function _RobustDelague_latex()
     return """
         ```math
-        \\{r  \\; | \\\\
-        s.t.  \\quad (\\E \\[ r \\] - \\hat{r}) ' \\Sigma^{-1} (\\E \\[ r \\] - \\hat{r}) \\leq \\gamma_1 \\\\
-        \\quad \\quad \\E \\[ (r - \\hat{r}) ' (r - \\hat{r}) \\] \\leq \\gamma_2 \\Sigma \\\\
+        \\{ r  \\; | \\\\
+        s.t.  \\quad (\\mathbb{E} [r] - \\hat{r}) ' \\Sigma^{-1} (\\mathbb{E} [r] - \\hat{r}) \\leq \\gamma_1 \\\\
+        \\quad \\quad \\mathbb{E} [ (r - \\hat{r}) ' (r - \\hat{r}) ] \\leq \\gamma_2 \\Sigma \\\\
         \\} \\\\
         ```
         """
