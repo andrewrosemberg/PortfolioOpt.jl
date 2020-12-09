@@ -27,25 +27,50 @@ po_max_return_limit_variance!
 ```
 
 ### Bertsimas's Uncertainty Set
-The uncertainty set proposed by Bertsimas in [5] is defined by the following julia type:
+The uncertainty set proposed by Bertsimas in [5] is defined by the julia type ([`RobustBertsimas`](@ref)):
 
-```@docs
-RobustBertsimas <: AbstractMeanVariance
+```math
+\left\{ \mu \; \middle| \begin{array}{ll}
+s.t.  \quad \mu_i \leq \hat{r}_i + z_i \Delta_i \quad \forall i = 1:\mathcal{N} \\
+\quad \quad \mu_i \geq \hat{r}_i - z_i \Delta_i  \quad \forall i = 1:\mathcal{N} \\
+\quad \quad z_i \geq 0 \quad \forall i = 1:\mathcal{N} \\
+\quad \quad z_i \leq 1 \quad \forall i = 1:\mathcal{N} \\
+\quad \quad \sum_{i}^{\mathcal{N}} z_i \leq \Gamma \\
+\end{array}
+\right\} \\
 ```
 
-When the above functions are dispatched on this type (referred to as a formulation), the JuMP expression defining the worst case return is returned by the following function:
+where:
+- ``\hat{r}``: Predicted mean of returns.
+- ``\Delta``: Uncertainty around mean.
+- ``\Gamma``: Budjet (sometimes interpreted as number of assets in worst case).
+- ``\Sigma``: Predicted covariance of returns.
 
-```@docs
-portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
+When the previously described problem definition functions are dispatched on this type (referred to as a formulation), a JuMP expression defining the worst case return (WCR) is returned by the function ([`portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)`](@ref)). In this case, WCR in the described uncertainty set is defined by the following primal problem:  
+
+```math
+\min_{\mu, z} \mu ' w \\
+s.t.  \quad \mu_i \leq \hat{r}_i + z_i \Delta_i \quad \forall i = 1:\mathcal{N} \quad : \pi^-_i \\
+\quad \quad \mu_i \geq \hat{r}_i - z_i \Delta_i  \quad \forall i = 1:\mathcal{N} \quad : \pi^+_i \\
+\quad \quad z_i \geq 0 \quad \forall i = 1:\mathcal{N} \\
+\quad \quad z_i \leq 1 \quad \forall i = 1:\mathcal{N} \quad : \theta_i \\
+\quad \quad \sum_{i}^{\mathcal{N}} z_i \leq \Gamma \quad : \lambda \\
 ```
 
-While the worst case variance is calculated as in a usual Mean Variance PO since this uncertainty set does not imply any uncertainty to the covariance matrix:
+However, the above equations cannot be directly incorporated in the upper-level problem since no of-the-shelf solver can solve the resulting bi-level ("MinMax") optimization problem. Moreover, our case becomes even harder given the variable multiplication of the upper-level variabel (w) with the lower-level decision variable (``\mu``) in the objective function of the primal problem. The solution to this issue is to use of the following equivalent dual problem:
 
-```@docs
-portfolio_variance!(::JuMP.Model, w, ::RobustBertsimas)
+```math
+\max_{\lambda, \pi^-, \pi^+, \theta} \quad  \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i ) - \Gamma \lambda\\
+s.t.  \quad   w_i = \pi^+_i - \pi^-_i  \quad \forall i = 1:\mathcal{N} \\
+\quad \quad  \Delta_i (\pi^+_i + \pi^-_i) - \theta_i \leq \lambda \quad \forall i = 1:\mathcal{N} \\
+\quad \lambda \geq 0 , \; \pi^- \geq 0 , \; \pi^+ \geq 0 , \; \theta \geq 0 \\
 ```
 
-Finally, for instance, the Maximization of Returns problem becomes:
+Moreover, to avoid having a bi-level optimization problem, we replace the lower-level problem by its objective function expression and enforece the dual constraints in the upper-level problem, defining a lower bound for the optimal value (which will be exact if the upper-level problem requires). 
+
+In the meantime, the worst case variance, is calculated as in a usual Mean Variance PO since this uncertainty set does not imply any uncertainty about the covariance matrix ([`portfolio_variance!(::JuMP.Model, w, ::RobustBertsimas)`](@ref)): ``w ' \Sigma w``.
+
+Finally, for instance, the resulting "Maximization of Returns" problem ([`po_max_return_limit_variance!`](@ref)) becomes:
 
 ```math
 \max_{w, \lambda, \pi^-, \pi^+, \theta} \quad  WCR \\
@@ -56,8 +81,12 @@ s.t.  \quad WCR = \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i
 \quad \lambda \geq 0 , \; \pi^- \geq 0 , \; \pi^+ \geq 0 , \; \theta \geq 0 \\
 \quad \quad w \in \mathcal{X} \\
 ```
+### Vizualization and Special Case (Soyster's Uncertainty Set)
+Soyster
+![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_soyster.png?raw=true)
 
-
+Bertsimas
+![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_bertsimas.png?raw=true)
 ## References
 [1] Ben-Tal, A. e Nemirovski, A. (1999). Robust solutions of uncertain linear programs. Operations research letters, 25(1):1–13. 
 
