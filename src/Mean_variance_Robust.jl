@@ -1,16 +1,18 @@
 function _RobustBertsimas_latex()
     return """
         ```math
-        \\{\\mu \\; | \\\\
+        \\left\\{ \\mu \\; \\middle| \\begin{array}{ll}
         s.t.  \\quad \\mu_i \\leq \\hat{r}_i + z_i \\Delta_i \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad z_i \\leq 1 \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\quad \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\} \\\\
+        \\quad \\quad \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\\\
+        \\end{array}
+        \\right\\} \\\\
         ```
         """
 end
+
 """
     RobustBertsimas <: AbstractMeanVariance
 
@@ -61,7 +63,7 @@ function _portfolio_return_latex_RobustBertsimas_primal()
         \\quad \\quad \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\quad : \\pi^+_i \\\\
         \\quad \\quad z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
         \\quad \\quad z_i \\leq 1 \\quad \\forall i = 1:\\mathcal{N} \\quad : \\theta_i \\\\
-        \\quad \\quad \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\quad \\forall i = 1:\\mathcal{N} \\quad : \\lambda \\\\
+        \\quad \\quad \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\quad : \\lambda \\\\
         ```
         """
 end
@@ -130,9 +132,10 @@ end
 function _BenTal_latex()
     return """
         ```math
-        \\{\\mu \\; | \\\\
+        \\left\\{ \\mu \\; \\middle| \\begin{array}{ll}
         s.t.  \\quad \\sqrt{(\\hat{r} - \\mu) ' \\Sigma^{-1} (\\hat{r} - \\mu)} \\leq \\delta \\\\
-        \\} \\\\
+        \\end{array}
+        \\right\\} \\\\
         ```
         """
 end

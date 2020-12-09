@@ -14,10 +14,10 @@ module TestUtils
     using LinearAlgebra
     import Reexport
 
-    include("./auxilary_functions.jl")
-    include("./backtest.jl")
+    include("auxilary_functions.jl")
+    include("backtest.jl")
 
-    export reajust_volumes,
+    export readjust_volumes,
         backtest_po,
         base_model,
         compute_solution_backtest,
