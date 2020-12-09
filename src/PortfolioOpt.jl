@@ -6,16 +6,16 @@ using LinearAlgebra
 using LinearAlgebra: dot
 import Reexport
 
-include("./formulations.jl")
-include("./mean_variance.jl")
-include("./mean_variance_robust.jl")
-include("./mean_variance_dro.jl")
-include("./sample_based.jl")
-include("./sample_based_robust.jl")
-include("./sample_based_stochastic.jl")
-include("./simple_rules.jl")
-include("./forecasts.jl")
-include("./test_utils/Testutils.jl")
+include("formulations.jl")
+include("mean_variance.jl")
+include("mean_variance_robust.jl")
+include("mean_variance_dro.jl")
+include("sample_based.jl")
+include("sample_based_robust.jl")
+include("sample_based_stochastic.jl")
+include("simple_rules.jl")
+include("forecasts.jl")
+include("test_utils/Testutils.jl")
 
 export AbstractPortfolioFormulation,
     AbstractMeanVariance,
