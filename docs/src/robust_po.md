@@ -77,7 +77,7 @@ Finally, for instance, the resulting "Maximization of Returns" problem ([`po_max
 s.t.  \quad WCR = \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i ) - \Gamma \lambda \\
 \quad \quad w_i = \pi^+_i - \pi^-_i  \quad \forall i = 1:\mathcal{N} \\
 \quad \quad  \Delta_i (\pi^+_i + \pi^-_i) - \theta_i \leq \lambda \quad \forall i = 1:\mathcal{N} \\\\
-\quad \quad w ' \Sigma w  \leq MaxRisk * CurrentWealth \\
+\quad \quad w ' \Sigma w  \leq MaxRisk * W_0 \\
 \quad \lambda \geq 0 , \; \pi^- \geq 0 , \; \pi^+ \geq 0 , \; \theta \geq 0 \\
 \quad \quad w \in \mathcal{X} \\
 ```

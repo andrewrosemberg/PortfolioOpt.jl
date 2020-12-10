@@ -21,7 +21,7 @@ start_date = timestamp(returns_series)[100]
 
 wealth_strategy, returns_strategy =
     backtest_po(returns_series; start_date=start_date) 
-        do past_returns, current_wealth, risk_free_return
+        do past_returns, W_0, risk_free_return
 
         # Prep data provided by the backtest pipeline
         numD, numA = size(past_returns)
@@ -47,7 +47,7 @@ wealth_strategy, returns_strategy =
         x = compute_solution_backtest(model, w, solver)
 
         # return invested portfolio in used currency
-        return x * current_wealth
+        return x * W_0
 end
 
 ```

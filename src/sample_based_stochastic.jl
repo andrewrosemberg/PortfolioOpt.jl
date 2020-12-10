@@ -22,7 +22,7 @@ end
 
 
 function po_max_conditional_expectation_limit_predicted_return!(model::JuMP.Model, w, formulation::AbstractSampleBased, R;
-    current_wealth = 1.0, rf = 0, quantile = 0.95, kwargs... 
+    W_0 = 1.0, rf = 0, quantile = 0.95, kwargs... 
 )
     if !haskey(object_dictionary(model), :sum_invested)
         @variable(model, sum_invested)
@@ -32,7 +32,7 @@ function po_max_conditional_expectation_limit_predicted_return!(model::JuMP.Mode
     end
 
     # model
-    @constraint(model, predicted_portfolio_return!(model, w, formulation) + rf * (current_wealth - sum_invested) >= R * current_wealth)
+    @constraint(model, predicted_portfolio_return!(model, w, formulation) + rf * (W_0 - sum_invested) >= R * W_0)
 
     # objective function
     @objective(model, Max, conditional_expectation!(model, w, formulation; quantile = quantile, kwargs...))
@@ -41,7 +41,7 @@ function po_max_conditional_expectation_limit_predicted_return!(model::JuMP.Mode
 end
 
 function po_max_predicted_return_limit_conditional_expectation!(model::JuMP.Model, w, formulation::AbstractSampleBased, λ;
-    current_wealth = 1.0, rf = 0, quantile = 0.95, kwargs... 
+    W_0 = 1.0, rf = 0, quantile = 0.95, kwargs... 
 )
     if !haskey(object_dictionary(model), :sum_invested)
         @variable(model, sum_invested)
@@ -54,7 +54,7 @@ function po_max_predicted_return_limit_conditional_expectation!(model::JuMP.Mode
     @constraint(model, conditional_expectation!(model, w, formulation; quantile = quantile, kwargs...) >= λ)
 
     # objective function
-    @objective(model, Max, predicted_portfolio_return!(model, w, formulation) + rf * (current_wealth - sum_invested))
+    @objective(model, Max, predicted_portfolio_return!(model, w, formulation) + rf * (W_0 - sum_invested))
 
     return nothing
 end

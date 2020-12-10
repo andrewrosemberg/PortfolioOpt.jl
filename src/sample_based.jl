@@ -36,7 +36,7 @@ function portfolio_variance!(model::JuMP.Model, w, formulation::AbstractSampleBa
 end
 
 function po_max_predicted_return_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R;
-    current_wealth = 1.0, rf = 0, kwargs... 
+    W_0 = 1.0, rf = 0, kwargs... 
 )
     # auxilary variables
     @variable(model, E)
@@ -48,11 +48,11 @@ function po_max_predicted_return_limit_return!(model::JuMP.Model, w, formulation
     end
 
     # model
-    @constraint(model, E == portfolio_return!(model, w, formulation) + rf * (current_wealth - sum_invested))
-    @constraint(model, E >= R * current_wealth)
+    @constraint(model, E == portfolio_return!(model, w, formulation) + rf * (W_0 - sum_invested))
+    @constraint(model, E >= R * W_0)
 
     # objective function
-    @objective(model, Max, predicted_portfolio_return!(model, w, formulation; kwargs...) + rf * (current_wealth - sum_invested))
+    @objective(model, Max, predicted_portfolio_return!(model, w, formulation; kwargs...) + rf * (W_0 - sum_invested))
 
     return nothing
 end

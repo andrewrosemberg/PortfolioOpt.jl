@@ -69,11 +69,13 @@ end
 function _po_min_variance_limit_return_latex()
     return """
         ```math
-        \\min_{w} \\quad WCV \\\\
-        s.t. \\quad WCR = (\\min r'w \\; | \\; r \\in UncertaintySet) \\\\
-        \\quad \\quad WCV = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in UncertaintySet) \\\\
-        \\quad \\quad WCR \\geq R * CurrentWealth \\\\
-        \\quad \\quad w \\in \\mathcal{X} \\\\
+        \\begin{align*}
+        \\min_{w} \\quad V \\\\
+        s.t. & R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
+        & V = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in \\Omega) \\\\
+        & R \\geq R * W_0 \\\\
+        & w \\in \\mathcal{X} \\\\
+        \\end{align*}
         ```
         """
 end
@@ -82,20 +84,21 @@ end
     po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R)
 
 Mean-Variance Portfolio Alocation (with a risk free asset). Posed as a quadratic convex problem.
-Minimizes worst case portfolio variance (WCV) and limit worst case portfolio return (WCR) in uncertainty set.
+Minimizes worst case portfolio variance (``V``) and limit worst case portfolio return (``R``) in the uncertainty set (``\\Omega``)
+to a minimal return parameter (``R_0``) normalized by current wealth (``W_0``).
 
 $(_po_min_variance_limit_return_latex())
 
 Where ``\\mathcal{X}`` represents the additional constraints defined in the model by the user 
 (like maximum invested money).
 """
-function po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R; 
-    rf = 0, current_wealth = 1,
+function po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R_0; 
+    rf = 0, W_0 = 1,
     portfolio_return = portfolio_return!,
     portfolio_variance = portfolio_variance!
 )
     # auxilary variables
-    @variable(model, E)
+    @variable(model, R)
     if !haskey(object_dictionary(model), :sum_invested)
         @variable(model, sum_invested)
         @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
@@ -103,8 +106,8 @@ function po_min_variance_limit_return!(model::JuMP.Model, w, formulation::Abstra
         sum_invested = model[:sum_invested]
     end
     # model
-    @constraint(model, E == portfolio_return(model, w, formulation) + rf * (current_wealth - sum_invested))
-    @constraint(model, E >= R * current_wealth)
+    @constraint(model, R == portfolio_return(model, w, formulation) + rf * (W_0 - sum_invested))
+    @constraint(model, R >= R_0 * W_0)
     @objective(model, Min, portfolio_variance(model, w, formulation))
     return nothing
 end
@@ -112,33 +115,34 @@ end
 function _po_max_return_limit_variance_latex()
     return """
         ```math
-        \\max_{w} \\quad  WCR \\\\
-        s.t.  \\quad WCR = (\\min r'w \\; | \\; r \\in UncertaintySet) \\\\
-        \\quad \\quad WCV \\leq MaxRisk * CurrentWealth\\\\
-        \\quad \\quad WCV = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in UncertaintySet) \\\\
+        \\max_{w} \\quad  R \\\\
+        s.t.  \\quad R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
+        \\quad \\quad V \\leq MaxRisk * W_0\\\\
+        \\quad \\quad V = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in \\Omega) \\\\
         \\quad \\quad w \\in \\mathcal{X} \\\\
         ```
         """
 end
 
 """
-    po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk)
+    po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, V_0)
 
 Mean-Variance Portfolio Alocation (with a risk free asset). Posed as a quadratic convex problem.
-Maximizes worst case portfolio return (WCR) and limit worst case portfolio variance (WCV) in uncertainty set.
+Maximizes worst case portfolio return (``R``) and limit worst case portfolio variance (``V``) in the uncertainty set (``\\Omega``) 
+to a minimal risk parameter (``V_0``) normalized by current wealth (``W_0``).
 
 $(_po_max_return_limit_variance_latex())
 
 Where ``\\mathcal{X}`` represents the additional constraints defined in the model by the user 
 (like maximum invested money).
 """
-function po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, max_risk; 
-    rf = 0, current_wealth = 1,
+function po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, V_0; 
+    rf = 0, W_0 = 1,
     portfolio_return = portfolio_return!,
     portfolio_variance = portfolio_variance!
 )
     # auxilary variables
-    @variable(model, E)
+    @variable(model, R)
     if !haskey(object_dictionary(model), :sum_invested)
         @variable(model, sum_invested)
         @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
@@ -146,9 +150,9 @@ function po_max_return_limit_variance!(model::JuMP.Model, w, formulation::Abstra
         sum_invested = model[:sum_invested]
     end
     # model
-    @constraint(model, E == portfolio_return(model, w, formulation) + rf * (current_wealth - sum_invested))
-    @constraint(model, portfolio_variance(model, w, formulation) <= max_risk * current_wealth)
-    @objective(model, Max, E)
+    @constraint(model, R == portfolio_return(model, w, formulation) + rf * (W_0 - sum_invested))
+    @constraint(model, portfolio_variance(model, w, formulation) <= V_0 * W_0)
+    @objective(model, Max, R)
     return nothing
 end
 
@@ -156,7 +160,7 @@ end
 """
 Mean-Variance Portfolio Alocation With no risk free asset. Analytical solution.
 """
-function mean_variance_noRf_analytical(formulation::MeanVariance, R)
+function mean_variance_noRf_analytical(formulation::MeanVariance, R_0)
     # parameters
     r̄ = formulation.predicted_mean
     Σ = formulation.predicted_covariance
@@ -169,7 +173,7 @@ function mean_variance_noRf_analytical(formulation::MeanVariance, R)
     C = sum(invΣ)
     one = ones(size(r̄, 1))
     D = sum(r̄' * (invΣ'r̄))
-    mu = (R * C - A) / (C * D - A)
+    mu = (R_0 * C - A) / (C * D - A)
     x = (1 / C) * (invΣ * one) + mu * invΣ * (r̄ - one * (A / C))
     return x
 end

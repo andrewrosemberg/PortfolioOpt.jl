@@ -30,14 +30,14 @@ k_back = 60
 ############# backtest with limit R strategies #####################
 
 wealth_markowitz_limit_R, strategy_returns =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         
         # Parameters
-        R = 0.0015 / current_wealth
+        R = 0.0015 / W_0
         formulation = MeanVariance(;
             predicted_mean = r̄,
             predicted_covariance = Σ,
@@ -47,19 +47,19 @@ wealth_markowitz_limit_R, strategy_returns =
         model, w = base_model(numA; allow_borrow=false)
         po_min_variance_limit_return!(model, w, formulation, R; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_markowitz_limit_R, :markowitz_limit_R);
 
 wealth_markowitz_infeasible_limit_R, strategy_returns =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         
         # Parameters
-        R = 0.005 / current_wealth
+        R = 0.005 / W_0
         formulation = MeanVariance(;
             predicted_mean = r̄,
             predicted_covariance = Σ,
@@ -69,19 +69,19 @@ wealth_markowitz_infeasible_limit_R, strategy_returns =
         model, w = base_model(numA; allow_borrow=false)
         po_min_variance_limit_return!(model, w, formulation, R; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_markowitz_infeasible_limit_R, :markowitz_infeasible_limit_R);
 
 wealth_soyster_limit_R, strategy_returns =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         
         # Parameters
-        R = 0.0015 / current_wealth
+        R = 0.0015 / W_0
         formulation = RobustBertsimas(;
             predicted_mean = r̄,
             predicted_covariance = Σ,
@@ -93,19 +93,19 @@ wealth_soyster_limit_R, strategy_returns =
         model, w = base_model(numA; allow_borrow=false)
         po_min_variance_limit_return!(model, w, formulation, R; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_soyster_limit_R, :soyster_limit_R);
 
 wealth_bertsimas_limit_R, strategy_returns =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         
         # Parameters
-        R = 0.0015 / current_wealth
+        R = 0.0015 / W_0
         formulation = RobustBertsimas(;
             predicted_mean = r̄,
             predicted_covariance = Σ,
@@ -117,19 +117,19 @@ wealth_bertsimas_limit_R, strategy_returns =
         model, w = base_model(numA; allow_borrow=false)
         po_min_variance_limit_return!(model, w, formulation, R; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_bertsimas_limit_R, :bertsimas_limit_R);
 
 wealth_bental_limit_R, strategy_returns =
-backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         
         # Parameters
-        R = 0.0015 / current_wealth
+        R = 0.0015 / W_0
         formulation = RobustBenTal(;
             predicted_mean = r̄,
             predicted_covariance = Σ,
@@ -140,14 +140,14 @@ backtest_po(returns_series; start_date=start_date) do past_returns, current_weal
         model, w = base_model(numA; allow_borrow=false)
         po_min_variance_limit_return!(model, w, formulation, R; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_bental_limit_R, :bental_limit_R);
 
 ############# backtest with limit Var strategies #####################
 
 wealth_markowitz_limit_var, returns_markowitz_limit_var =
-backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -165,12 +165,12 @@ backtest_po(returns_series; start_date=start_date) do past_returns, current_weal
         model, w = base_model(numA; allow_borrow=false)
         po_max_return_limit_variance!(model, w, formulation, max_risk; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_markowitz_limit_var, :markowitz_limit_var);
 
 wealth_soyster_limit_var, returns_soyster_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -190,12 +190,12 @@ wealth_soyster_limit_var, returns_soyster_limit_var =
         model, w = base_model(numA; allow_borrow=false)
         po_max_return_limit_variance!(model, w, formulation, max_risk; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_soyster_limit_var, :soyster_limit_var);
 
 wealth_bertsimas_2_limit_var, returns_bertsimas_2_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -215,12 +215,12 @@ wealth_bertsimas_2_limit_var, returns_bertsimas_2_limit_var =
         model, w = base_model(numA; allow_borrow=false)
         po_max_return_limit_variance!(model, w, formulation, max_risk; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_bertsimas_2_limit_var, :bertsimas_2_limit_var);
 
 wealth_bertsimas_4_limit_var, returns_bertsimas_4_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -240,12 +240,12 @@ wealth_bertsimas_4_limit_var, returns_bertsimas_4_limit_var =
         model, w = base_model(numA; allow_borrow=false)
         po_max_return_limit_variance!(model, w, formulation, max_risk; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_bertsimas_4_limit_var, :bertsimas_4_limit_var);
 
 wealth_bental_limit_var, returns_bental_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -264,13 +264,13 @@ wealth_bental_limit_var, returns_bental_limit_var =
         model, w = base_model(numA; allow_borrow=false)
         po_max_return_limit_variance!(model, w, formulation, max_risk; rf = rf)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_bental_limit_var, :bental_limit_var);
 
 ############# backtest with Data-Driven RO strategies #####################
 wealth_betina, returns_betina =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -299,14 +299,14 @@ wealth_betina, returns_betina =
         model, w = base_model(numA; allow_borrow=false)
         po_max_predicted_return_limit_return!(model::JuMP.Model, w, formulation, R; predicted_mean = r_bar_t)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_betina, :betina);
 
 ############# backtest with DRO strategies #####################
 
 wealth_delague, returns_delague_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -329,31 +329,31 @@ wealth_delague, returns_delague_limit_var =
         model, w = base_model(numA; allow_borrow=false)
         po_max_utility_return!(model, w, formulation)
         x = compute_solution_backtest(model, w, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_delague, :delague);
 
 ############# extra strategies #####################
 
 wealth_sharpe, returns_sharpe =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         # Parameters
         x = max_sharpe(Σ, r̄, rf)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_sharpe, :sharpe);
 
 wealth_equal_weights, returns_equal =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_po(returns_series; start_date=start_date) do past_returns, W_0, rf
         # Prep
         numD, numA = size(past_returns)
         # Parameters
         x = equal_weights(numA)
-        return x * current_wealth
+        return x * W_0
     end;
 rename!(wealth_equal_weights, :equal_weights);
 
