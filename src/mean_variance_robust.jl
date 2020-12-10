@@ -58,12 +58,14 @@ end
 function _portfolio_return_latex_RobustBertsimas_primal()
     return """
         ```math
-        \\min_{\\mu, z} \\mu ' w \\\\
-        s.t.  \\quad \\mu_i \\leq \\hat{r}_i + z_i \\Delta_i \\quad \\forall i = 1:\\mathcal{N} \\quad : \\pi^-_i \\\\
-        \\quad \\quad \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\quad : \\pi^+_i \\\\
-        \\quad \\quad z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\quad z_i \\leq 1 \\quad \\forall i = 1:\\mathcal{N} \\quad : \\theta_i \\\\
-        \\quad \\quad \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\quad : \\lambda \\\\
+        \\begin{aligned}
+        \\min_{\\mu, z} \\quad & \\mu ' w \\\\
+        s.t. \\quad & \\mu_i \\leq \\hat{r}_i + z_i \\Delta_i \\quad \\forall i = 1:\\mathcal{N} \\quad &: \\pi^-_i \\\\
+        & \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\quad &: \\pi^+_i \\\\
+        & z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
+        & z_i \\leq 1 \\quad \\forall i = 1:\\mathcal{N} \\quad &: \\theta_i \\\\
+        & \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\quad : \\lambda \\\\
+        \\end{aligned}
         ```
         """
 end
@@ -71,10 +73,12 @@ end
 function _portfolio_return_latex_RobustBertsimas_dual()
     return """
         ```math
+        \\begin{aligned}
         \\max_{\\lambda, \\pi^-, \\pi^+, \\theta} \\quad  \\sum_{i}^{\\mathcal{N}} (\\hat{r}_i (\\pi^+_i \\pi^-_i) - \\theta_i ) - \\Gamma \\lambda\\\\
-        s.t.  \\quad   w_i = \\pi^+_i - \\pi^-_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\quad  \\Delta_i (\\pi^+_i + \\pi^-_i) - \\theta_i \\leq \\lambda \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\lambda \\geq 0 , \\; \\pi^- \\geq 0 , \\; \\pi^+ \\geq 0 , \\; \\theta \\geq 0 \\\\
+        s.t. \\quad &  w_i = \\pi^+_i - \\pi^-_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
+        &  \\Delta_i (\\pi^+_i + \\pi^-_i) - \\theta_i \\leq \\lambda \\quad \\forall i = 1:\\mathcal{N} \\\\
+        & \\lambda \\geq 0 , \\; \\pi^- \\geq 0 , \\; \\pi^+ \\geq 0 , \\; \\theta \\geq 0 \\\\
+        \\end{aligned}
         ```
         """
 end
@@ -178,8 +182,10 @@ end
 function _portfolio_return_latex_RobustBenTal_primal()
     return """
         ```math
-        \\min_{\\mu, z} \\mu ' w \\\\
-        s.t.  \\quad   ||Σ^{-\\frac{1}{2}} (\\mu - \\hat{r}) || \\leq \\delta \\quad : \\theta \\\\
+        \\begin{aligned}
+        \\min_{\\mu, z} \\quad & \\mu ' w \\\\
+        s.t. \\quad & ||Σ^{-\\frac{1}{2}} (\\mu - \\hat{r}) || \\leq \\delta \\quad &: \\theta \\\\
+        \\end{aligned}
         ```
         """
 end
@@ -187,8 +193,10 @@ end
 function _portfolio_return_latex_RobustBenTal_dual()
     return """
         ```math
-        \\max_{\\theta} \\quad  w ' \\hat{r} - \\theta ' \\delta \\\\
-        s.t.  \\quad   ||Σ^{\\frac{1}{2}}  w || \\leq \\theta \\\\
+        \\begin{aligned}
+        \\max_{\\theta} \\quad &  w ' \\hat{r} - \\theta ' \\delta \\\\
+        s.t. \\quad & ||Σ^{\\frac{1}{2}}  w || \\leq \\theta \\\\
+        \\end{aligned}
         ```
         """
 end
