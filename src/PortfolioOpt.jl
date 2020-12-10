@@ -15,7 +15,7 @@ include("sample_based_robust.jl")
 include("sample_based_stochastic.jl")
 include("simple_rules.jl")
 include("forecasts.jl")
-include("test_utils/Testutils.jl")
+include("test_utils/testutils.jl")
 
 export AbstractPortfolioFormulation,
     AbstractMeanVariance,
