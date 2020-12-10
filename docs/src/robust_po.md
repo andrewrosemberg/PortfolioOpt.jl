@@ -81,11 +81,13 @@ s.t.  \quad WCR = \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i
 \quad \lambda \geq 0 , \; \pi^- \geq 0 , \; \pi^+ \geq 0 , \; \theta \geq 0 \\
 \quad \quad w \in \mathcal{X} \\
 ```
-### Vizualization and Special Case (Soyster's Uncertainty Set)
+#### Vizualization and Special Case (Soyster's Uncertainty Set)
 In order to visualize Bertsimas's uncertainty set, it's useful to plot the case with only two assets. For instance, when the budjet parameter is equal to one (``\Gamma = 1``) the resulting feasible region of the uncertaity set only allows one asset to be in its extreme value:
+
 ![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_bertsimas.png?raw=true)
 
-On the other hand, when the budjet parameter is equal to the number of assets (``\Gamma = 2``), the uncertainty set becomes similar to the one proposed by Soyster in [1], i.e. box uncertainty: 
+On the other hand, when the budjet parameter is equal to the number of assets (``\Gamma = 2``), the uncertainty set becomes similar to the one proposed by Soyster in [1], i.e. box uncertainty:
+
 ![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_soyster.png?raw=true)
 
 ## References
