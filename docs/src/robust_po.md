@@ -30,7 +30,7 @@ po_max_return_limit_variance!
 The uncertainty set proposed by Bertsimas in [6] is defined by the julia type ([`RobustBertsimas`](@ref)):
 
 ```math
-\left\{ \mu \; \middle| \begin{array}{ll}
+\Omega = \left\{ \mu \; \middle| \begin{array}{ll}
 s.t.  \quad \mu_i \leq \hat{r}_i + z_i \Delta_i \quad \forall i = 1:\mathcal{N} \\
 \quad \quad \mu_i \geq \hat{r}_i - z_i \Delta_i  \quad \forall i = 1:\mathcal{N} \\
 \quad \quad z_i \geq 0 \quad \forall i = 1:\mathcal{N} \\
