@@ -69,13 +69,13 @@ end
 function _po_min_variance_limit_return_latex()
     return """
         ```math
-        \\begin{align*}
-        \\min_{w} \\quad V \\\\
+        \\begin{aligned}
+        \\min_{w} & V \\\\
         s.t. & R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
         & V = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in \\Omega) \\\\
         & R \\geq R * W_0 \\\\
         & w \\in \\mathcal{X} \\\\
-        \\end{align*}
+        \\end{aligned}
         ```
         """
 end
