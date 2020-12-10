@@ -70,8 +70,8 @@ function _po_min_variance_limit_return_latex()
     return """
         ```math
         \\begin{aligned}
-        \\min_{w} & V \\\\
-        s.t. & R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
+        \\min_{w} \\quad & V \\\\
+        s.t. \\quad & R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
         & V = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in \\Omega) \\\\
         & R \\geq R * W_0 \\\\
         & w \\in \\mathcal{X} \\\\
@@ -115,11 +115,13 @@ end
 function _po_max_return_limit_variance_latex()
     return """
         ```math
-        \\max_{w} \\quad  R \\\\
-        s.t.  \\quad R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
-        \\quad \\quad V \\leq MaxRisk * W_0\\\\
-        \\quad \\quad V = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in \\Omega) \\\\
-        \\quad \\quad w \\in \\mathcal{X} \\\\
+        \\begin{aligned}
+        \\max_{w} \\quad & R \\\\
+        s.t. \\quad & R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
+        & V \\leq MaxRisk * W_0\\\\
+        & V = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in \\Omega) \\\\
+        & w \\in \\mathcal{X} \\\\
+        \\end{aligned}
         ```
         """
 end
