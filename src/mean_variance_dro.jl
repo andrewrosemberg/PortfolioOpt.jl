@@ -9,6 +9,7 @@ function _RobustDelague_latex()
         ```
         """
 end
+
 """
     RobustDelague <: AbstractMeanVariance
 
@@ -67,7 +68,11 @@ end
 Maximize expected utility of portfolio return under distribution uncertainty defined by
 Delague's ambiguity set ([`RobustDelague`](@ref)).
 """
-function po_max_utility_return!(model::JuMP.Model, w, formulation::RobustDelague)
+function po_max_utility_return(formulation::RobustDelague;
+    current_wealth::Real = 1.0,
+    model::JuMP.Model = base_model(formulation.number_of_assets; current_wealth=current_wealth),
+    w = model[:w],
+)
     # parameters
     r̄ = formulation.predicted_mean
     Σ = formulation.predicted_covariance
@@ -100,5 +105,5 @@ function po_max_utility_return!(model::JuMP.Model, w, formulation::RobustDelague
         γ2 * dot(Σ, Q) - sum(r̄'Q * r̄) + r + dot(Σ, P) - 2 * dot(r̄, p) + γ1 * s
     )
 
-    return nothing
+    return model
 end

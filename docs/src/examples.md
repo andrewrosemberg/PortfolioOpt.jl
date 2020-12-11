@@ -2,11 +2,13 @@
 
 ## Backtest Example
 
+Simple example of backtest with a available strategy.
+
 ```julia
 using COSMO
 using PortfolioOpt
 using PortfolioOpt.TestUtils: 
-    backtest_po, compute_solution_backtest, get_test_data, mean_variance, base_model, 
+    backtest_po, get_test_data, mean_variance, 
     percentchange, timestamp, rename!
 
 prices = get_test_data()
@@ -21,7 +23,7 @@ start_date = timestamp(returns_series)[100]
 
 wealth_strategy, returns_strategy =
     backtest_po(returns_series; start_date=start_date) 
-        do past_returns, W_0, risk_free_return
+        do past_returns, current_wealth, risk_free_return
 
         # Prep data provided by the backtest pipeline
         numD, numA = size(past_returns)
@@ -33,21 +35,18 @@ wealth_strategy, returns_strategy =
         # maximum acceptable normalized variance for our portfolio
         max_risk = 0.8
         formulation = MeanVariance(;
-            predicted_mean = r̄_s,
+            predicted_mean = r̄,
             predicted_covariance = Σ,
         )
 
-        # Build model 
-        # creates jump model with portfolio weights variable w
-        model, w = base_model(numA; allow_borrow=false)
-        # modifies the problem to add fromulation variable and constraints
-        po_max_return_limit_variance!(model, w, formulation, max_risk; rf = rf)
+        # Build PO model
+        model = po_max_return_limit_variance!(formulation, max_risk; rf = risk_free_return)
 
-        # Optimize model and retrieve solution (x = optimal w value)
-        x = compute_solution_backtest(model, w, solver)
+        # Optimize model and retrieve solution
+        x = compute_solution(model, solver)
 
         # return invested portfolio in used currency
-        return x * W_0
+        return x * current_wealth
 end
 
 ```

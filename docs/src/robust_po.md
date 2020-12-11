@@ -63,7 +63,7 @@ However, the above equations cannot be directly incorporated in the upper-level 
 
 ```math
 \begin{aligned}
-\max_{\lambda, \pi^-, \pi^+, \theta} \quad &  \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i ) - \Gamma \lambda\\
+\max_{\lambda, \pi^-, \pi^+, \theta} \quad &  \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i - \pi^-_i) - \theta_i ) - \Gamma \lambda\\
 s.t.  \quad & w_i = \pi^+_i - \pi^-_i  \quad \forall i = 1:\mathcal{N} \\
 &  \Delta_i (\pi^+_i + \pi^-_i) - \theta_i \leq \lambda \quad \forall i = 1:\mathcal{N} \\
 & \lambda \geq 0 , \; \pi^- \geq 0 , \; \pi^+ \geq 0 , \; \theta \geq 0 \\

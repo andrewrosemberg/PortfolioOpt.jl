@@ -17,45 +17,11 @@ end
 """
 Mean and Variance of returns
 """
-function mean_variance(returns)
+function mean_variance(returns; digits::Union{Nothing,Int}=nothing)
     r̄ = mean(returns; dims=1)'[:,1]
     Σ = cov(returns)
-    return Σ, r̄
-end
-
-"""
-Basic solution
-"""
-function compute_solution_backtest(
-    model::JuMP.Model, w, solver; max_wealth=1
-)
-    set_optimizer(model, solver)
-    optimize!(model)
-    status = termination_status(model)
-    status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
-    w_values = value.(w)
-    w_values = readjust_volumes(w_values, max_wealth)
-    return w_values
-end
-
-"""
-    base_model(numA) -> model, w
-
-Creates a JuMP model with generic PO variable and constraints:
-    - Investment vector of variables `w` (portfolio weights if budget is 1).
-    - Invested monney should be lower than a budget.
-
-Returns the model and a reference to the decision variable `w`.
-"""
-function base_model(numA::Integer; allow_borrow=true, budget=1)
-    model = Model()
-    w = @variable(model, w[i=1:numA])
-    @variable(model, sum_invested)
-    if allow_borrow
-        @constraint(model, sum_invested == sum(w))
-    else
-        @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
+    if !isnothing(digits)
+        return round.(Σ, digits=digits), round.(r̄, digits=digits)
     end
-    @constraint(model, sum_invested <= budget)
-    return model, w
+    return Σ, r̄
 end

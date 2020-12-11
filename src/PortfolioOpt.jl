@@ -14,24 +14,28 @@ include("sample_based.jl")
 include("sample_based_robust.jl")
 include("sample_based_stochastic.jl")
 include("simple_rules.jl")
+include("utils.jl")
 include("forecasts.jl")
 include("test_utils/testutils.jl")
 
 export AbstractPortfolioFormulation,
     AbstractMeanVariance,
     AbstractSampleBased,
+    base_model,
+    compute_solution,
     MeanVariance,
     mixed_signals_predict_return,
     portfolio_return!,
     portfolio_variance!,
-    po_max_conditional_expectation_limit_predicted_return!,
-    po_max_predicted_return_limit_conditional_expectation!,
-    po_max_predicted_return_limit_return!,
-    po_max_return_limit_variance!,
-    po_max_utility_return!,
-    po_min_variance_limit_return!,
+    po_max_conditional_expectation_limit_predicted_return,
+    po_max_predicted_return_limit_conditional_expectation,
+    po_max_predicted_return_limit_return,
+    po_max_return_limit_variance,
+    po_max_utility_return,
+    po_min_variance_limit_return,
     predicted_portfolio_return!,
     predicted_portfolio_variance!,
+    readjust_volumes!,
     RobustBenTal,
     RobustBertsimas,
     RobustDelague,

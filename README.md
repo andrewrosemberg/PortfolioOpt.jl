@@ -18,13 +18,13 @@ julia> ] add https://github.com/andrewrosemberg/PortfolioOpt.jl.git
 ## PO Strategies
 
 There are two types of strategies implemented in this package: 
- - Modifying functions (identifiable by a `!` at the end of the function) that receive a `JuMP` model, a reference to the investment variable present in this model, the formulation and parameters of the strategy as inputs, and modifies the model by adding the necessary variables and constraints. Currently implemented ones are: 
-    - `po_max_conditional_expectation_limit_predicted_return!` 
-    - `po_max_predicted_return_limit_conditional_expectation!`
-    - `po_max_predicted_return_limit_return!`
-    - `po_max_return_limit_variance!`
-    - `po_max_utility_return!`
-    - `po_min_variance_limit_return!`
+ - Optimization model creation functions that receive the formulation and parameters of the strategy as inputs, and returns a problem with the necessary variables and constraints. Solutions to the resulting optimization model can be computed using (`compute_solution`). Currently implemented ones are: 
+    - `po_max_conditional_expectation_limit_predicted_return` 
+    - `po_max_predicted_return_limit_conditional_expectation`
+    - `po_max_predicted_return_limit_return`
+    - `po_max_return_limit_variance`
+    - `po_max_utility_return`
+    - `po_min_variance_limit_return`
 
  - "End-to-End" functions that receive parameters as inputs and output the weights of a portfolio summing up to the maximum wealth defined in the parameters. These are mainly simple rules or analytical solutions to simple PO formulations: 
     - `max_sharpe` 
@@ -40,19 +40,20 @@ As an extra, some testing utilities are available through the submodule called `
 Mainly:
  - `get_test_data` that returns a TimeArray of Prices for 6 assets.
  - `backtest_po` that provides a basic backtest using provided strategy and returns data.
+
 But also:
  - `readjust_volumes`
- - `base_model`
- - `compute_solution_backtest`
  - `mean_variance`
 
 ## Example
+
+Simple example of backtest with a available strategy.
 
 ```julia
 using COSMO
 using PortfolioOpt
 using PortfolioOpt.TestUtils: 
-    backtest_po, compute_solution_backtest, get_test_data, mean_variance, base_model, 
+    backtest_po, get_test_data, mean_variance, 
     percentchange, timestamp, rename!
 
 prices = get_test_data()
@@ -79,18 +80,15 @@ wealth_strategy, returns_strategy =
         # maximum acceptable normalized variance for our portfolio
         max_risk = 0.8
         formulation = MeanVariance(;
-            predicted_mean = r̄_s,
+            predicted_mean = r̄,
             predicted_covariance = Σ,
         )
 
-        # Build model 
-        # creates jump model with portfolio weights variable w
-        model, w = base_model(numA; allow_borrow=false)
-        # modifies the problem to add fromulation variable and constraints
-        po_max_return_limit_variance!(model, w, formulation, max_risk; rf = rf)
+        # Build PO model
+        model = po_max_return_limit_variance!(formulation, max_risk; rf = risk_free_return)
 
-        # Optimize model and retrieve solution (x = optimal w value)
-        x = compute_solution_backtest(model, w, solver)
+        # Optimize model and retrieve solution
+        x = compute_solution(model, solver)
 
         # return invested portfolio in used currency
         return x * current_wealth
