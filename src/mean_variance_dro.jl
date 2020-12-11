@@ -63,7 +63,7 @@ function RobustDelague(;
 end
 
 """
-    po_max_utility_return!(model::JuMP.Model, w, formulation::RobustDelague)
+    po_max_utility_return(formulation::RobustDelague)
 
 Maximize expected utility of portfolio return under distribution uncertainty defined by
 Delague's ambiguity set ([`RobustDelague`](@ref)).

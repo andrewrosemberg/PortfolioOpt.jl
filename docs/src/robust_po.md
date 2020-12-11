@@ -19,11 +19,11 @@ A collection of recent contributions to robust portfolio strategies was made in 
 Simple versions of the Mean-Variance PO problem with robust uncertainty around the estimated mean returns are implemented by the following functions:
 
 ```@docs
-po_min_variance_limit_return!
+po_min_variance_limit_return
 ```
 
 ```@docs
-po_max_return_limit_variance!
+po_max_return_limit_variance
 ```
 
 ### Bertsimas's Uncertainty Set
@@ -74,7 +74,7 @@ Moreover, to avoid having a bi-level optimization problem, we replace the lower-
 
 In the meantime, the worst case variance, is calculated as in a usual Mean Variance PO since this uncertainty set does not imply any uncertainty about the covariance matrix ([`portfolio_variance!(::JuMP.Model, w, ::RobustBertsimas)`](@ref)): ``w ' \Sigma w``.
 
-Finally, for instance, the resulting "Maximization of Returns" problem ([`po_max_return_limit_variance!`](@ref)) becomes:
+Finally, for instance, the resulting "Maximization of Returns" problem ([`po_max_return_limit_variance`](@ref)) becomes:
 
 ```math
 \begin{aligned}
