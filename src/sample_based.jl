@@ -35,24 +35,22 @@ function portfolio_variance!(model::JuMP.Model, w, formulation::AbstractSampleBa
     return predicted_portfolio_variance!(model, w, formulation)
 end
 
-function po_max_predicted_return_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R;
-    W_0 = 1.0, rf = 0, kwargs... 
+function po_max_predicted_return_limit_return(formulation::AbstractPortfolioFormulation, minimal_return; 
+    rf::Real = 0.0, current_wealth::Real = 1.0,
+    model::JuMP.Model = base_model(formulation.number_of_assets; current_wealth=current_wealth),
+    w = model[:w],
+    kwargs... 
 )
     # auxilary variables
-    @variable(model, E)
-    if !haskey(object_dictionary(model), :sum_invested)
-        @variable(model, sum_invested)
-        @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
-    else
-        sum_invested = model[:sum_invested]
-    end
+    @variable(model, R)
+    sum_invested = create_sum_invested_variable(model, w)
 
     # model
-    @constraint(model, E == portfolio_return!(model, w, formulation) + rf * (W_0 - sum_invested))
-    @constraint(model, E >= R * W_0)
+    @constraint(model, R == portfolio_return!(model, w, formulation) + rf * (current_wealth - sum_invested))
+    @constraint(model, R >= minimal_return * current_wealth)
 
     # objective function
-    @objective(model, Max, predicted_portfolio_return!(model, w, formulation; kwargs...) + rf * (W_0 - sum_invested))
+    @objective(model, Max, predicted_portfolio_return!(model, w, formulation; kwargs...) + rf * (current_wealth - sum_invested))
 
-    return nothing
+    return model
 end

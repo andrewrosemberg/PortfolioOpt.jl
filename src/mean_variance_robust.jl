@@ -74,7 +74,7 @@ function _portfolio_return_latex_RobustBertsimas_dual()
     return """
         ```math
         \\begin{aligned}
-        \\max_{\\lambda, \\pi^-, \\pi^+, \\theta} \\quad  \\sum_{i}^{\\mathcal{N}} (\\hat{r}_i (\\pi^+_i \\pi^-_i) - \\theta_i ) - \\Gamma \\lambda\\\\
+        \\max_{\\lambda, \\pi^-, \\pi^+, \\theta} \\quad  \\sum_{i}^{\\mathcal{N}} (\\hat{r}_i (\\pi^+_i - \\pi^-_i) - \\theta_i ) - \\Gamma \\lambda\\\\
         s.t. \\quad &  w_i = \\pi^+_i - \\pi^-_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
         &  \\Delta_i (\\pi^+_i + \\pi^-_i) - \\theta_i \\leq \\lambda \\quad \\forall i = 1:\\mathcal{N} \\\\
         & \\lambda \\geq 0 , \\; \\pi^- \\geq 0 , \\; \\pi^+ \\geq 0 , \\; \\theta \\geq 0 \\\\
@@ -129,7 +129,7 @@ function portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
         end
     )
 
-    return sum(r̄[i] * (π_pos[i] - π_neg[i]) for i in 1:numA) - sum(θ[i] for i in 1:numA)
+    return sum(r̄[i] * (π_pos[i] - π_neg[i]) for i in 1:numA) - sum(θ[i] for i in 1:numA) - λ * Λ
 end
 
 ##################################
@@ -194,7 +194,7 @@ function _portfolio_return_latex_RobustBenTal_dual()
     return """
         ```math
         \\begin{aligned}
-        \\max_{\\theta} \\quad &  w ' \\hat{r} - \\theta ' \\delta \\\\
+        \\max_{\\theta} \\quad &  w ' \\hat{r} - \\theta \\delta \\\\
         s.t. \\quad & ||Σ^{\\frac{1}{2}}  w || \\leq \\theta \\\\
         \\end{aligned}
         ```
@@ -231,9 +231,7 @@ function portfolio_return!(model::JuMP.Model, w, formulation::RobustBenTal)
     # dual variables
     @variable(model, θ)
     # constraints: from duality
-    norm_2_pi = @variable(model)
-    @constraint(model, [norm_2_pi; sqrt_Σ * w] in JuMP.SecondOrderCone())
-    @constraint(model, norm_2_pi <= θ)
+    @constraint(model, [θ; sqrt_Σ * w] in JuMP.SecondOrderCone())
 
     return dot(w, r̄) - θ * δ
 end

@@ -33,7 +33,11 @@ end
 """
     predicted_portfolio_return!(model::JuMP.Model, w, formulation::AbstractMeanVariance)
 
-Return predicted return used in the formulation.
+Return predicted portfolio return used in the formulation.
+
+Arguments:
+ - `model::JuMP.Model`: JuMP upper level portfolio optimization model.
+ - `w`: Portfolio optimization investment variable ("weights").
 """
 function predicted_portfolio_return!(::JuMP.Model, w, formulation::AbstractMeanVariance)
     return sum(formulation.predicted_mean'w)
@@ -42,7 +46,11 @@ end
 """
     portfolio_return!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
 
-Return worst case return of the Uncertainty set defined by the formulation.
+Return worst case portfolio return of the Uncertainty set defined by the formulation.
+
+Arguments:
+ - `model::JuMP.Model`: JuMP upper level portfolio optimization model.
+ - `w`: Portfolio optimization investment variable ("weights").
 """
 function portfolio_return!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
     return predicted_portfolio_return!(model, w, formulation; kwargs...)
@@ -51,7 +59,11 @@ end
 """
     predicted_portfolio_variance!(model::JuMP.Model, w, formulation::AbstractMeanVariance)
 
-Return predicted variance used in the formulation.
+Return predicted portfolio variance used in the formulation: 
+
+Arguments:
+ - `model::JuMP.Model`: JuMP upper level portfolio optimization model.
+ - `w`: Portfolio optimization investment variable ("weights").
 """
 function predicted_portfolio_variance!(::JuMP.Model, w, formulation::AbstractMeanVariance)
     return sum(w'formulation.predicted_covariance * w)
@@ -60,7 +72,11 @@ end
 """
     portfolio_variance!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
 
-Return worst case variance of the Uncertainty set defined by the formulation.
+Return worst case portfolio variance of the Uncertainty set defined by the formulation.
+
+Arguments:
+ - `model::JuMP.Model`: JuMP upper level portfolio optimization model.
+ - `w`: Portfolio optimization investment variable ("weights").
 """
 function portfolio_variance!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
     return predicted_portfolio_variance!(model, w, formulation; kwargs...)
@@ -81,7 +97,7 @@ function _po_min_variance_limit_return_latex()
 end
 
 """
-    po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R)
+    po_min_variance_limit_return(formulation::AbstractPortfolioFormulation, R)
 
 Mean-Variance Portfolio Alocation (with a risk free asset). Posed as a quadratic convex problem.
 Minimizes worst case portfolio variance (``V``) and limit worst case portfolio return (``R``) in the uncertainty set (``\\Omega``)
@@ -90,26 +106,36 @@ to a minimal return parameter (``R_0``) normalized by current wealth (``W_0``).
 $(_po_min_variance_limit_return_latex())
 
 Where ``\\mathcal{X}`` represents the additional constraints defined in the model by the user 
-(like maximum invested money).
+(e.g. a limit on maximum invested money).
+
+Arguments:
+ - `formulation::AbstractPortfolioFormulation`: Struct containing atributes of formulation.
+ - `minimal_return::Real`: Minimal normalized return accepted.
+
+Optional Keywork Arguments:
+ - `rf::Real = 0.0`: Risk-free return of money not invested.
+ - `current_wealth::Real = 1.0`: Current available wealth to be invested.
+ - `model::JuMP.Model = base_model(...)`: JuMP upper level portfolio optimization model. Defaults to a generic market specification.
+ - `w`: Portfolio optimization investment variable reference ("weights").
+ - `portfolio_return::Function = portfolio_return!`: Function that calculates ``R``. 
+ - `portfolio_variance::Function = portfolio_variance!`: Function that calculates ``V``. 
 """
-function po_min_variance_limit_return!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, R_0; 
-    rf = 0, W_0 = 1,
-    portfolio_return = portfolio_return!,
-    portfolio_variance = portfolio_variance!
+function po_min_variance_limit_return(formulation::AbstractPortfolioFormulation, minimal_return::Real;
+    rf::Real = 0.0, current_wealth::Real = 1.0,
+    model::JuMP.Model = base_model(formulation.number_of_assets; current_wealth=current_wealth), 
+    w=model[:w],
+    portfolio_return::Function = portfolio_return!,
+    portfolio_variance::Function = portfolio_variance!
 )
     # auxilary variables
     @variable(model, R)
-    if !haskey(object_dictionary(model), :sum_invested)
-        @variable(model, sum_invested)
-        @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
-    else
-        sum_invested = model[:sum_invested]
-    end
+    sum_invested = create_sum_invested_variable(model, w)
+
     # model
-    @constraint(model, R == portfolio_return(model, w, formulation) + rf * (W_0 - sum_invested))
-    @constraint(model, R >= R_0 * W_0)
+    @constraint(model, R == portfolio_return(model, w, formulation) + rf * (current_wealth - sum_invested))
+    @constraint(model, R >= minimal_return * current_wealth)
     @objective(model, Min, portfolio_variance(model, w, formulation))
-    return nothing
+    return model
 end
 
 function _po_max_return_limit_variance_latex()
@@ -118,7 +144,7 @@ function _po_max_return_limit_variance_latex()
         \\begin{aligned}
         \\max_{w} \\quad & R \\\\
         s.t. \\quad & R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
-        & V \\leq MaxRisk * W_0\\\\
+        & V \\leq V_0 * W_0\\\\
         & V = (\\max w ' \\Sigma w  \\; | \\; \\Sigma \\in \\Omega) \\\\
         & w \\in \\mathcal{X} \\\\
         \\end{aligned}
@@ -127,35 +153,45 @@ function _po_max_return_limit_variance_latex()
 end
 
 """
-    po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, V_0)
+    po_max_return_limit_variance(formulation::AbstractPortfolioFormulation, V_0)
 
 Mean-Variance Portfolio Alocation (with a risk free asset). Posed as a quadratic convex problem.
 Maximizes worst case portfolio return (``R``) and limit worst case portfolio variance (``V``) in the uncertainty set (``\\Omega``) 
-to a minimal risk parameter (``V_0``) normalized by current wealth (``W_0``).
+to a maximal risk parameter (``V_0``) normalized by current wealth (``W_0``).
 
 $(_po_max_return_limit_variance_latex())
 
 Where ``\\mathcal{X}`` represents the additional constraints defined in the model by the user 
-(like maximum invested money).
+(e.g. a limit on maximum invested money).
+
+Arguments:
+ - `formulation::AbstractPortfolioFormulation`: Struct containing atributes of formulation.
+ - `max_risk::Real`: Maximal normalized variance accepted.
+
+Optional Keywork Arguments:
+ - `rf::Real = 0.0`: Risk-free return of money not invested.
+ - `current_wealth::Real = 1.0`: Current available wealth to be invested.
+ - `model::JuMP.Model = base_model(...)`: JuMP upper level portfolio optimization model. Defaults to a generic market specification.
+ - `w`: Portfolio optimization investment variable reference ("weights").
+ - `portfolio_return::Function = portfolio_return!`: Function that calculates ``R``. 
+ - `portfolio_variance::Function = portfolio_variance!`: Function that calculates ``V``. 
 """
-function po_max_return_limit_variance!(model::JuMP.Model, w, formulation::AbstractPortfolioFormulation, V_0; 
-    rf = 0, W_0 = 1,
-    portfolio_return = portfolio_return!,
-    portfolio_variance = portfolio_variance!
+function po_max_return_limit_variance(formulation::AbstractPortfolioFormulation, max_risk::Real;
+    rf::Real = 0.0, current_wealth::Real = 1.0,
+    model::JuMP.Model = base_model(formulation.number_of_assets; current_wealth=current_wealth), 
+    w=model[:w],
+    portfolio_return::Function = portfolio_return!,
+    portfolio_variance::Function = portfolio_variance!
 )
     # auxilary variables
     @variable(model, R)
-    if !haskey(object_dictionary(model), :sum_invested)
-        @variable(model, sum_invested)
-        @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
-    else
-        sum_invested = model[:sum_invested]
-    end
+    sum_invested = create_sum_invested_variable(model, w)
+
     # model
-    @constraint(model, R == portfolio_return(model, w, formulation) + rf * (W_0 - sum_invested))
-    @constraint(model, portfolio_variance(model, w, formulation) <= V_0 * W_0)
+    @constraint(model, R == portfolio_return(model, w, formulation) + rf * (current_wealth - sum_invested))
+    @constraint(model, portfolio_variance(model, w, formulation) <= max_risk * current_wealth)
     @objective(model, Max, R)
-    return nothing
+    return model
 end
 
 ###################### Not updated ######################

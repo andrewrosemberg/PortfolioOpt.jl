@@ -19,8 +19,6 @@ module TestUtils
 
     export readjust_volumes,
         backtest_po,
-        base_model,
-        compute_solution_backtest,
         get_test_data,
         mean_variance,
         returns_montecarlo
