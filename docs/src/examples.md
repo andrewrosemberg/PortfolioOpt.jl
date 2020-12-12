@@ -4,8 +4,9 @@
 
 Simple example of backtest with a available strategy.
 
-```julia
+```@example
 using COSMO
+using Plots
 using PortfolioOpt
 using PortfolioOpt.TestUtils: 
     backtest_po, get_test_data, mean_variance, 
@@ -49,12 +50,6 @@ wealth_strategy, returns_strategy =
         return x * current_wealth
 end
 
-```
-
-### Plot Results
-```
-using Plots
-
 plot(
     wealth_strategy;
     title="Culmulative Wealth",
@@ -62,5 +57,5 @@ plot(
     ylabel="Wealth",
     legend=:outertopright,
 )
+
 ```
-![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/cumwealth.png?raw=true)

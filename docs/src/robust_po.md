@@ -87,7 +87,7 @@ s.t. \quad & R = \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i 
 & w \in \mathcal{X} \\
 \end{aligned}
 ```
-#### Vizualization and Special Case (Soyster's Uncertainty Set)
+#### Uncertainty Set Vizualization and Special Case (Soyster's Uncertainty Set)
 In order to visualize Bertsimas's uncertainty set, it's useful to plot the case with only two assets. For instance, when the budget parameter is equal to one (``\Gamma = 1``) the resulting feasible region of the uncertaity set only allows one asset to be in its extreme value:
 
 ![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_bertsimas.png?raw=true)
@@ -95,6 +95,32 @@ In order to visualize Bertsimas's uncertainty set, it's useful to plot the case 
 On the other hand, when the budget parameter is equal to the number of assets (``\Gamma = 2``), the uncertainty set becomes similar to the one proposed by Soyster in [1], i.e. box uncertainty:
 
 ![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_soyster.png?raw=true)
+
+#### Building Intuition with Efficient Frontiers
+Understanding the impacts on the final optimal portfolio given the uncertainty set is not trivial, but some easy analysis can help. One useful analysis is to plot the Efficient Frontier (EF) (a.k.a Pareto Frontier) for our optimization problems, which shows what are the optimal porfolios given our objective and constraints.
+
+If we plot the EF for the classic mean-variance problem (Markoviz) as well as the closest robust portfolios (e.g. Bertsimas and Soyster), we can see that by expanding our uncertainty set (and consequently restricting further our problem), we get sub-optimal solutions for the non-robust problem:
+
+![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/pareto_markowitz.png?raw=true)
+
+Its also useful to see the EF for the respective robust problems since they have their own efficient frontier:
+
+![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/pareto_robust.png?raw=true)
+
+Notwithstanding the importance of looking at EF for specific objectives, its more useful to see the possible returns the portfolio from a certain strategy might have if we allow the asset returns to vary inside the uncertainty sets. For instance, lets allow returns to vary inside Bertsimas' uncertainty set and see the consequences for Markowitz optimal portfolios and Bertsimas' optimal portfolios:
+
+![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/uncertain_pareto_bertsimas.png?raw=true)
+
+Now we can cleary see the trade-off the robust portfolio is providing: a lower avarage return for a smaller range of possible portfolio return that is contained in the range of the non-robust counterpart.
+
+Moreover, if we allow returns to vary inside Soyster's uncertainty set, we get the following frontiers:
+
+![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/uncertain_pareto_soyster.png?raw=true)
+
+Once again we get a lower avarage return for a smaller range of possible portfolio return that is contained in the range of the less-robust counterpart.
+
+### Comming Soon
+TODO: Ben-Tal's uncertainty set robust problems ([`RobustBenTal`](@ref))
 
 ## References
 
