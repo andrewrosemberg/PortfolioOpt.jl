@@ -99,8 +99,8 @@ end
 """
     po_min_variance_limit_return(formulation::AbstractPortfolioFormulation, R)
 
-Mean-Variance Portfolio Alocation (with a risk free asset). Posed as a quadratic convex problem.
-Minimizes worst case portfolio variance (``V``) and limit worst case portfolio return (``R``) in the uncertainty set (``\\Omega``)
+Mean-Variance Portfolio Allocation (with a risk free asset). Posed as a quadratic convex problem.
+Minimizes the worst case portfolio variance (``V``) and limits the worst case portfolio return (``R``) in the uncertainty set (``\\Omega``)
 to a minimal return parameter (``R_0``) normalized by current wealth (``W_0``).
 
 $(_po_min_variance_limit_return_latex())
@@ -109,7 +109,7 @@ Where ``\\mathcal{X}`` represents the additional constraints defined in the mode
 (e.g. a limit on maximum invested money).
 
 Arguments:
- - `formulation::AbstractPortfolioFormulation`: Struct containing atributes of formulation.
+ - `formulation::AbstractPortfolioFormulation`: Struct containing attributes of the formulation.
  - `minimal_return::Real`: Minimal normalized return accepted.
 
 Optional Keywork Arguments:
@@ -155,8 +155,8 @@ end
 """
     po_max_return_limit_variance(formulation::AbstractPortfolioFormulation, V_0)
 
-Mean-Variance Portfolio Alocation (with a risk free asset). Posed as a quadratic convex problem.
-Maximizes worst case portfolio return (``R``) and limit worst case portfolio variance (``V``) in the uncertainty set (``\\Omega``) 
+Mean-Variance Portfolio Allocation (with a risk free asset). Posed as a quadratic convex problem.
+Maximizes the worst case portfolio return (``R``) and limits the worst case portfolio variance (``V``) in the uncertainty set (``\\Omega``) 
 to a maximal risk parameter (``V_0``) normalized by current wealth (``W_0``).
 
 $(_po_max_return_limit_variance_latex())
@@ -165,7 +165,7 @@ Where ``\\mathcal{X}`` represents the additional constraints defined in the mode
 (e.g. a limit on maximum invested money).
 
 Arguments:
- - `formulation::AbstractPortfolioFormulation`: Struct containing atributes of formulation.
+ - `formulation::AbstractPortfolioFormulation`: Struct containing attributes of formulation.
  - `max_risk::Real`: Maximal normalized variance accepted.
 
 Optional Keywork Arguments:
@@ -196,7 +196,7 @@ end
 
 ###################### Not updated ######################
 """
-Mean-Variance Portfolio Alocation With no risk free asset. Analytical solution.
+Mean-Variance Portfolio Allocation With no risk free asset. Analytical solution.
 """
 function mean_variance_noRf_analytical(formulation::MeanVariance, R_0)
     # parameters
