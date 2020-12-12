@@ -119,6 +119,7 @@ Moreover, if we allow returns to vary inside Soyster's uncertainty set, we get t
 
 Once again we get a lower avarage return for a smaller range of possible portfolio return that is contained in the range of the less-robust counterpart.
 
+PS.: Code in `examples/test_effi_robust.jl`.
 ### Comming Soon
 TODO: Ben-Tal's uncertainty set robust problems ([`RobustBenTal`](@ref))
 
