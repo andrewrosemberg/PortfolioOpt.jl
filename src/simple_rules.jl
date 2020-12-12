@@ -1,5 +1,5 @@
 """
-Maximize sharp coeficient alocation.
+Maximize sharp coefficient allocation.
 """
 function max_sharpe(Σ, r̄, rf)
     one = ones(size(r̄, 1))

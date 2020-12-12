@@ -84,7 +84,7 @@ wealth_soyster_limit_R, strategy_returns =
             predicted_mean = r̄,
             predicted_covariance = Σ,
             uncertainty_delta = std(returns[(end - k_back):end, :]; dims=1)'[:,1] / 5,
-            bertsimas_budjet = Float64(numA),
+            bertsimas_budget = Float64(numA),
         )
         
         # model
@@ -107,7 +107,7 @@ wealth_bertsimas_limit_R, strategy_returns =
             predicted_mean = r̄,
             predicted_covariance = Σ,
             uncertainty_delta = std(returns[(end - k_back):end, :]; dims=1)'[:,1] / 5,
-            bertsimas_budjet = 3.0,
+            bertsimas_budget = 3.0,
         )
         
         # model
@@ -177,7 +177,7 @@ wealth_soyster_limit_var, returns_soyster_limit_var =
             predicted_mean = r̄_s,
             predicted_covariance = Σ,
             uncertainty_delta = std(returns[(end - k_back):end, :]; dims=1)'[:,1] / 3,
-            bertsimas_budjet = Float64(numA),
+            bertsimas_budget = Float64(numA),
         )
         
         # model
@@ -201,7 +201,7 @@ wealth_bertsimas_2_limit_var, returns_bertsimas_2_limit_var =
             predicted_mean = r̄_s,
             predicted_covariance = Σ,
             uncertainty_delta = std(returns[(end - k_back):end, :]; dims=1)'[:,1] / 3,
-            bertsimas_budjet = 2.0,
+            bertsimas_budget = 2.0,
         )
         
         # model
@@ -225,7 +225,7 @@ wealth_bertsimas_4_limit_var, returns_bertsimas_4_limit_var =
             predicted_mean = r̄_s,
             predicted_covariance = Σ,
             uncertainty_delta = std(returns[(end - k_back):end, :]; dims=1)'[:,1] / 3,
-            bertsimas_budjet = 4.0,
+            bertsimas_budget = 4.0,
         )
         
         # model

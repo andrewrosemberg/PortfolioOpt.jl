@@ -23,14 +23,14 @@ $(_RobustBertsimas_latex())
 Atributes:
 - `predicted_mean::Array{Float64,1}` (latex notation ``\\hat{r}``): Predicted mean of returns.
 - `uncertainty_delta::Array{Float64,1}` (latex notation ``\\Delta``): Uncertainty around mean.
-- `bertsimas_budjet::Array{Float64,1}` (latex notation ``\\Gamma``): Number of assets in worst case.
+- `bertsimas_budget::Array{Float64,1}` (latex notation ``\\Gamma``): Number of assets in worst case.
 - `predicted_covariance::Array{Float64,2}`: Predicted covariance of returns.
 """
 struct RobustBertsimas <: AbstractMeanVariance
     predicted_mean::Array{Float64,1}
     predicted_covariance::Array{Float64,2}
     uncertainty_delta::Array{Float64,1}
-    bertsimas_budjet::Float64
+    bertsimas_budget::Float64
     number_of_assets::Int
 end
 
@@ -38,7 +38,7 @@ function RobustBertsimas(;
     predicted_mean::Array{Float64,1},
     predicted_covariance::Array{Float64,2},
     uncertainty_delta::Array{Float64,1},
-    bertsimas_budjet::Float64,
+    bertsimas_budget::Float64,
 )
     number_of_assets = size(predicted_mean, 1)
     if number_of_assets != size(predicted_covariance, 1)
@@ -51,7 +51,7 @@ function RobustBertsimas(;
     @assert prod(uncertainty_delta .>= 0)
     @assert issymmetric(predicted_covariance)
     return RobustBertsimas(
-        predicted_mean, predicted_covariance, uncertainty_delta, bertsimas_budjet, number_of_assets
+        predicted_mean, predicted_covariance, uncertainty_delta, bertsimas_budget, number_of_assets
     )
 end
 
@@ -109,7 +109,7 @@ function portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)
     r̄ = formulation.predicted_mean
     numA = formulation.number_of_assets
     Δ = formulation.uncertainty_delta
-    Λ = formulation.bertsimas_budjet
+    Λ = formulation.bertsimas_budget
     # dual variables
     @variable(model, λ >= 0)
     @variable(model, π_neg[i=1:numA] >= 0)
