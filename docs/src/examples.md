@@ -51,7 +51,7 @@ end
 
 ```
 
-## Plot Results
+### Plot Results
 ```
 using Plots
 
