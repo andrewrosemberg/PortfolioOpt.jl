@@ -2,9 +2,9 @@
 
 ## Backtest Example
 
-Simple example of backtest with a available strategy.
+Simple example of backtest with an available strategy.
 
-```@example
+```@example MeanVariance
 using COSMO
 using Plots
 using PortfolioOpt
@@ -23,8 +23,8 @@ solver = optimizer_with_attributes(
 start_date = timestamp(returns_series)[100]
 
 wealth_strategy, returns_strategy =
-    backtest_po(returns_series; start_date=start_date) 
-        do past_returns, current_wealth, risk_free_return
+    backtest_po(returns_series; start_date=start_date
+    ) do past_returns, current_wealth, risk_free_return
 
         # Prep data provided by the backtest pipeline
         numD, numA = size(past_returns)
@@ -41,7 +41,7 @@ wealth_strategy, returns_strategy =
         )
 
         # Build PO model
-        model = po_max_return_limit_variance!(formulation, max_risk; rf = risk_free_return)
+        model = po_max_return_limit_variance(formulation, max_risk; rf = risk_free_return)
 
         # Optimize model and retrieve solution
         x = compute_solution(model, solver)
@@ -50,12 +50,11 @@ wealth_strategy, returns_strategy =
         return x * current_wealth
 end
 
-plot(
+plt = plot(
     wealth_strategy;
     title="Culmulative Wealth",
     xlabel="Time",
     ylabel="Wealth",
     legend=:outertopright,
 )
-
 ```
