@@ -82,7 +82,7 @@ function mixed_signals_predict_return(asset_rtn_sgn, num_t, kst_a, klt_a, kmom, 
     # signal features extraction train (from klt+1 to klt+num_train)
     #kst = max(min(numD-num_train-10,kst_a),0)
     #klt = max(min(numD-num_train-10,klt_a),0)
-    sig_features = zeros(num_train, 9) #each line is the i-element's featurs
+    sig_features = zeros(num_train, 9) #each line is the i'th-element's features
     for i in 1:num_train
         #kst = max(min(numD-i-2,kst_a),0)
         klt = max(min(numD - i - 2, klt_a), 0)

@@ -39,13 +39,13 @@ formulation_soyster = RobustBertsimas(;
     predicted_mean = r̄,
     predicted_covariance = Σ,
     uncertainty_delta = Δ,
-    bertsimas_budjet = 6.0,
+    bertsimas_budget = 6.0,
 )
 formulation_bertsimas = RobustBertsimas(;
     predicted_mean = r̄,
     predicted_covariance = Σ,
     uncertainty_delta = Δ,
-    bertsimas_budjet = 2.8,
+    bertsimas_budget = 3.0,
 )
 formulation_bental = RobustBenTal(;
     predicted_mean = r̄,

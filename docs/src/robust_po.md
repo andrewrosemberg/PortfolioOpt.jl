@@ -11,9 +11,9 @@ One alternative approach is Robust Optimization.
 ## Background
 Robust Optimization (RO) problems belong to the class of optimization under uncertainty problems where some problem data is uncertain (either because the decision is taken before the realization of the random event or because its observation is not available). Usual application cases for RO are when there isn’t sufficient information to derive probability distributions, but this isn’t strictly necessary. RO focuses on guaranteeing solution feasibility for any possible value of the uncertain data inside a defined Uncertainty Set. In the case where the uncertainty impacts the objective function, it guarantees optimality for the works case scenario considered in the Uncertainty Set.
 
-Many uncertainty sets have been proposed to accommodate different levels of conservatism and data structures ([1]-[7]). A comparison of uncertainty sets to usual risk measures used in finance was made in [4] and [11].
+Many uncertainty sets have been proposed to accommodate different levels of conservatism and data structures ([1]-[7]). A comparison of uncertainty sets to usual risk measures used in finance are included in [4] and [11].
 
-A collection of recent contributions to robust portfolio strategies was made in [7 - 10]. Data-driven approaches to robust PO also gained interest in recent years and can be found in [12] - for a portfolio of stocks - and [13] - for a portfolio of future contracts. The results in those studies indicate promising alternatives for the integration between uncertain data and PO.
+A collection of recent contributions to robust portfolio strategies are outlined in [7 - 10]. Data-driven approaches to robust PO has also gained interest in recent years and can be found in [12] - for a portfolio of stocks - and [13] - for a portfolio of future contracts. The results of these studies indicate promising alternatives for the integration of uncertain data in PO.
 
 ## Problem Definition
 Simple versions of the Mean-Variance PO problem with robust uncertainty around the estimated mean returns are implemented by the following functions:
@@ -43,7 +43,7 @@ s.t.  \quad \mu_i \leq \hat{r}_i + z_i \Delta_i \quad \forall i = 1:\mathcal{N} 
 where:
 - ``\hat{r}``: Predicted mean of returns.
 - ``\Delta``: Uncertainty around mean.
-- ``\Gamma``: Budjet (sometimes interpreted as number of assets in worst case).
+- ``\Gamma``: Budget (sometimes interpreted as number of assets in worst case).
 - ``\Sigma``: Predicted covariance of returns.
 
 When the previously described problem definition functions are dispatched on this type (referred to as a formulation), a JuMP expression defining the worst case return (``R``) is returned by the function ([`portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)`](@ref)). In this case, ``R`` in the described uncertainty set is defined by the following primal problem:  
@@ -59,7 +59,7 @@ s.t. \quad & \mu_i \leq \hat{r}_i + z_i \Delta_i \quad \forall i = 1:\mathcal{N}
 \end{aligned}
 ```
 
-However, the above equations cannot be directly incorporated in the upper-level problem since no of-the-shelf solver can solve the resulting bi-level ("MinMax") optimization problem. Moreover, our case becomes even harder given the variable multiplication of the upper-level variabel (``w``) with the lower-level decision variable (``\mu``) in the objective function of the primal problem. The solution to this issue is to use of the following equivalent dual problem:
+However, the above equations cannot be directly incorporated in the upper-level problem since no of-the-shelf solver can solve the resulting bi-level ("MinMax") optimization problem. Moreover, our case becomes even harder given the variable multiplication of the upper-level variable (``w``) with the lower-level decision variable (``\mu``) in the objective function of the primal problem. The solution to this issue is to use of the following equivalent dual problem:
 
 ```math
 \begin{aligned}
@@ -70,7 +70,7 @@ s.t.  \quad & w_i = \pi^+_i - \pi^-_i  \quad \forall i = 1:\mathcal{N} \\
 \end{aligned}
 ```
 
-Moreover, to avoid having a bi-level optimization problem, we replace the lower-level problem by its objective function expression and enforece the dual constraints in the upper-level problem, defining a lower bound for the optimal value (which will be exact if the upper-level problem requires). 
+Moreover, to avoid having a bi-level optimization problem, we replace the lower-level problem by its objective function expression and enforce the dual constraints in the upper-level problem, defining a lower bound for the optimal value (which will be exact if the upper-level problem requires). 
 
 In the meantime, the worst case variance, is calculated as in a usual Mean Variance PO since this uncertainty set does not imply any uncertainty about the covariance matrix ([`portfolio_variance!(::JuMP.Model, w, ::RobustBertsimas)`](@ref)): ``w ' \Sigma w``.
 
@@ -88,11 +88,11 @@ s.t. \quad & R = \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i 
 \end{aligned}
 ```
 #### Vizualization and Special Case (Soyster's Uncertainty Set)
-In order to visualize Bertsimas's uncertainty set, it's useful to plot the case with only two assets. For instance, when the budjet parameter is equal to one (``\Gamma = 1``) the resulting feasible region of the uncertaity set only allows one asset to be in its extreme value:
+In order to visualize Bertsimas's uncertainty set, it's useful to plot the case with only two assets. For instance, when the budget parameter is equal to one (``\Gamma = 1``) the resulting feasible region of the uncertaity set only allows one asset to be in its extreme value:
 
 ![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_bertsimas.png?raw=true)
 
-On the other hand, when the budjet parameter is equal to the number of assets (``\Gamma = 2``), the uncertainty set becomes similar to the one proposed by Soyster in [1], i.e. box uncertainty:
+On the other hand, when the budget parameter is equal to the number of assets (``\Gamma = 2``), the uncertainty set becomes similar to the one proposed by Soyster in [1], i.e. box uncertainty:
 
 ![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_soyster.png?raw=true)
 

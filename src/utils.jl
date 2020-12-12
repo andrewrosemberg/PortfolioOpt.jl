@@ -49,7 +49,7 @@ end
 """
     readjust_volumes(decision_values::Array{Float64,1}; current_wealth::Real = 1.0)
 
-Ajust volumes to be feasible under current wealth.
+Adjust volumes to be feasible under current wealth.
 
 Arguments:
  - `decision_values::Array{Float64,1}`: Decided values to be invested.
@@ -58,17 +58,17 @@ Optional Keywork Arguments:
  - `current_wealth::Real = 1.0`: Current available wealth to be invested.
 """
 function readjust_volumes!(decision_values::Array{Float64,1}; current_wealth::Real = 1.0)
-    decision_values_ajusted = deepcopy(decision_values)
+    decision_values_adjusted = deepcopy(decision_values)
     if norm(decision_values, 1) > current_wealth
-        decision_values_ajusted = decision_values / norm(decision_values, 1)
+        decision_values_adjusted = decision_values / norm(decision_values, 1)
     end
-    return decision_values_ajusted
+    return decision_values_adjusted
 end
 
 """
     compute_solution(model, solver) -> Array{Float64,1}
 
-Solves optimization model using provides solver and returns solutions ajusted to current wealth.
+Solves optimization model using provides solver and returns solutions adjusted to current wealth.
 
 Arguments:
  - `model::JuMP.Model`: JuMP portfolio optimization model.
