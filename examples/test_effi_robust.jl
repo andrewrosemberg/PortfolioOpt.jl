@@ -201,3 +201,24 @@ plot!(plt, σ_soy, (R_soy+max_return_soyester)/2;
     ribbon=((R_soy+max_return_soyester)/2-R_soy,max_return_soyester - (R_soy+max_return_soyester)/2)
 );
 plt
+
+# plot frontier regret bental
+min_return_noR_bental = [worst_case_return(x_noR[i, :], formulation_bental, DEFAULT_SOLVER) for i = 1:length(R_noR)]
+max_return_noR_bental = [best_case_return(x_noR[i, :], formulation_bental, DEFAULT_SOLVER) for i = 1:length(R_noR)]
+max_return_bental = [best_case_return(x_ben_tal[i, :], formulation_bental, DEFAULT_SOLVER) for i = 1:length(R_ben_tal)]
+
+plt = plot(
+    σ_noR,
+    R_noR;
+    title="Uncertain Efficient Frontier Mean-Variance (Ben-Tal)",
+    xlabel="Standard Deviation",
+    ylabel="Return",
+    label="Markowitz",
+    legend=:outertopright,
+    ribbon=(R_noR-min_return_noR_bental,max_return_noR_bental - R_noR),
+);
+plot!(plt, σ_ben_tal, (R_ben_tal+max_return_bental)/2; 
+    label="Ben-Tal",
+    ribbon=((R_ben_tal+max_return_bental)/2-R_ben_tal,max_return_bental - (R_ben_tal+max_return_bental)/2)
+);
+plt

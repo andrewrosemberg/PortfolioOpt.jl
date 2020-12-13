@@ -183,7 +183,7 @@ function _portfolio_return_latex_RobustBenTal_primal()
     return """
         ```math
         \\begin{aligned}
-        \\min_{\\mu, z} \\quad & \\mu ' w \\\\
+        \\min_{\\mu} \\quad & \\mu ' w \\\\
         s.t. \\quad & ||Σ^{-\\frac{1}{2}} (\\mu - \\hat{r}) || \\leq \\delta \\quad &: \\theta \\\\
         \\end{aligned}
         ```

@@ -52,6 +52,50 @@ function best_case_return(decision::Array{Float64,1}, formulation::PortfolioOpt.
     return objective_value(model)
 end
 
+"""
+    worst_case_return(decision::Array{Float64,1}, formulation::PortfolioOpt.RobustBenTal, solver)
+
+Returns worst case return (WCR) in BenTal's uncertainty set ([`RobustBenTal`](@ref)) for a defined decision:
+
+$(PortfolioOpt._portfolio_return_latex_RobustBenTal_primal())
+
+"""
+function worst_case_return(decision::Array{Float64,1}, formulation::PortfolioOpt.RobustBenTal, solver)
+    r̄ = formulation.predicted_mean
+    sqrt_Σ_inv = inv(sqrt(formulation.predicted_covariance))
+    numA = formulation.number_of_assets
+    δ = formulation.uncertainty_delta
+
+    model = Model(solver)
+    @variable(model, μ[i=1:numA])
+    @constraint(model, [δ; sqrt_Σ_inv * (μ - r̄)] in JuMP.SecondOrderCone())
+    @objective(model, Min, decision'μ)
+
+    optimize!(model)
+    status = termination_status(model)
+    status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
+
+    return objective_value(model)
+end
+
+function best_case_return(decision::Array{Float64,1}, formulation::PortfolioOpt.RobustBenTal, solver)
+    r̄ = formulation.predicted_mean
+    sqrt_Σ_inv = inv(sqrt(formulation.predicted_covariance))
+    numA = formulation.number_of_assets
+    δ = formulation.uncertainty_delta
+
+    model = Model(solver)
+    @variable(model, μ[i=1:numA])
+    @constraint(model, [δ; sqrt_Σ_inv * (μ - r̄)] in JuMP.SecondOrderCone())
+    @objective(model, Max, decision'μ)
+
+    optimize!(model)
+    status = termination_status(model)
+    status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
+
+    return objective_value(model)
+end
+
 ################################### To be Updated #####################################
 function returns_montecarlo(Σ, r̄, numS)
     d = MvNormal(r̄, Σ)
