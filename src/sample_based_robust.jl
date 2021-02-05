@@ -1,4 +1,10 @@
-"""Betina Robust Sampled based Formulation"""
+"""
+Betina Robust Sampled based Formulation
+
+Further information:
+  - Fernandes, B., Street, A., ValladA˜ £o, D., e Fernandes, C. (2016). An adaptive robust portfolio optimization model with loss constraints based on data-driven polyhedral uncertainty sets. European Journal of Operational Research, 255(3):961 – 970. ISSN 0377-2217. URL.
+
+"""
 struct RobustBetina <: AbstractSampleBased
     sampled_returns::Array{Float64,2}
     number_of_assets::Int

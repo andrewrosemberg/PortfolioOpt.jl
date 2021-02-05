@@ -20,6 +20,9 @@ Bertsimas's uncertainty set:
 
 $(_RobustBertsimas_latex())
 
+Further information:
+  - Bertsimas, D. e Sim, M. (2004). The price of robustness. Operations research, 52(1):35–53.
+
 Atributes:
 - `predicted_mean::Array{Float64,1}` (latex notation ``\\hat{r}``): Predicted mean of returns.
 - `uncertainty_delta::Array{Float64,1}` (latex notation ``\\Delta``): Uncertainty around mean.
@@ -149,6 +152,9 @@ end
 BenTal's uncertainty set:
 
 $(_BenTal_latex())
+
+Further information:
+  - Ben-Tal, A. e Nemirovski, A. (2000). Robust solutions of linear programming problems contaminated with uncertain data. Mathematical programming, 88(3):411–424.
 
 Atributes:
 - `predicted_mean::Array{Float64,1}` (latex notation ``\\hat{r}``): Predicted mean of returns.
