@@ -1,7 +1,6 @@
 """conditional_expectation = -cvar = -expected_shortfall"""
-function conditional_expectation!(model, w, formulation::AbstractSampleBased; 
+function conditional_expectation!(w, formulation::AbstractSampleBased; 
     sample_probability = fill(1/formulation.number_of_samples,formulation.number_of_samples),
-    quantile = 0.95
 )
     # parameters
     numA = formulation.number_of_assets

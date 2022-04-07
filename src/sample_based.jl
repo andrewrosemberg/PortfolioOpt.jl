@@ -1,41 +1,28 @@
-"""Betina Robust Sampled based Formulation"""
-struct SampleBased <: AbstractSampleBased
-    sampled_returns::Array{Float64,2}
-    number_of_assets::Int
-    number_of_samples::Int
+struct DeterministicSamples{T<:Real} <: ContinuousMultivariateSampleable
+    samples::Array{T,2}
 end
 
-function SampleBased(;
-    sampled_returns::Array{Float64,2}
-)
-    number_of_samples, number_of_assets = size(sampled_returns)
+Base.length(s::DeterministicSamples) = size(s.samples, 2)
 
-    return SampleBased(
-        sampled_returns, number_of_assets, number_of_samples
-    )
+function Distributions.rand(
+    rng::AbstractRNG, s::DeterministicSamples{T}, num_requested_samples::Int
+) where {T<:Real}
+    samples = s.samples
+    x = Array{T, 2}(undef, length(s), num_requested_samples)
+    num_samples = size(samples, 1)
+    num_first_samples = min(num_requested_samples, num_samples)
+    x[:, 1:num_first_samples] = samples[1:num_first_samples, :]'
+    num_last_samples = num_requested_samples - num_first_samples
+    if num_last_samples > 0
+        x[:, num_first_samples+1:end] = samples[rand(rng, 1:num_samples, num_last_samples), :]'
+    end
+    return x
 end
 
-function predicted_portfolio_return!(::JuMP.Model, w, formulation::AbstractSampleBased; 
-    predicted_mean = mean(formulation.sampled_returns, dims=1)'[:,1]
-)
-    return sum(w'predicted_mean)
-end
+mean(s::DeterministicSamples) = Statistics.mean(s.samples, dims=1)'[:,1]
+cov(s::DeterministicSamples) = Statistics.cov(s.samples, dims=1)
 
-function portfolio_return!(model::JuMP.Model, w, formulation::AbstractSampleBased; kwargs...)
-    return predicted_portfolio_return!(model, w, formulation; kwargs...)
-end
-
-function predicted_portfolio_variance!(::JuMP.Model, w, formulation::AbstractSampleBased; 
-    predicted_covariance = cov(formulation.sampled_returns, dims=1)
-)
-    return sum(w'predicted_covariance * w)
-end
-
-function portfolio_variance!(model::JuMP.Model, w, formulation::AbstractSampleBased; kwargs...)
-    return predicted_portfolio_variance!(model, w, formulation)
-end
-
-function po_max_predicted_return_limit_return(formulation::AbstractPortfolioFormulation, minimal_return; 
+function po_max_predicted_return_limit_return(formulation::AmbiguitySet, minimal_return; 
     rf::Real = 0.0, current_wealth::Real = 1.0,
     model::JuMP.Model = base_model(formulation.number_of_assets; current_wealth=current_wealth),
     w = model[:w],

@@ -305,7 +305,7 @@ wealth_delague, returns_delague_limit_var =
         # a =  [0.020646446303211906; 0.01456965970660176; 0.011268181574938444; 0.009189943838602721; 0.007760228688512961; 0.006716054241470283; 0.005919840492702679; 0.005292563196132596; 0.004785576102825234; 0.004367285293323039; 0.004367285293323039]
         # b = [12351.417663268794; 11949.933298064285; 11797.83904955914; 11743.66244416854; 11734.986173090612; 11749.533056761096; 11776.549758689594; 11810.379744602318; 11847.862045043921; 11887.152715141867; 11887.152715141867]
 
-        formulation = RobustDelague(;
+        formulation = MomentUncertainty(;
             predicted_mean = r̄_s,
             predicted_covariance = Σ,
             γ1 = 0.0065,
@@ -410,7 +410,7 @@ scatter!(
     plt,
     [std(returns_delague_limit_var)],
     [mean(returns_delague_limit_var)];
-    label="Delague",
+    label="Delage",
 );
 scatter!(plt, [std(returns_betina)], [mean(returns_betina)]; label="Betina");
 plt

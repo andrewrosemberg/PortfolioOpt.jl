@@ -1,62 +1,46 @@
-function _RobustBertsimas_latex()
-    return """
-        ```math
-        \\left\\{ \\mu \\; \\middle| \\begin{array}{ll}
-        s.t.  \\quad \\mu_i \\leq \\hat{r}_i + z_i \\Delta_i \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\quad \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\quad z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\quad z_i \\leq 1 \\quad \\forall i = 1:\\mathcal{N} \\\\
-        \\quad \\quad \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\\\
-        \\end{array}
-        \\right\\} \\\\
-        ```
-        """
-end
-
 """
-    RobustBertsimas <: AbstractMeanVariance
+    BudgetSet <: DROSet
 
 Bertsimas's uncertainty set:
 
-$(_RobustBertsimas_latex())
+```math
+\\left\\{ \\mu \\; \\middle| \\begin{array}{ll}
+s.t.  \\quad \\mu_i \\leq \\hat{r}_i + z_i \\Delta_i \\quad \\forall i = 1:\\mathcal{N} \\\\
+\\quad \\quad \\mu_i \\geq \\hat{r}_i - z_i \\Delta_i  \\quad \\forall i = 1:\\mathcal{N} \\\\
+\\quad \\quad z_i \\geq 0 \\quad \\forall i = 1:\\mathcal{N} \\\\
+\\quad \\quad z_i \\leq 1 \\quad \\forall i = 1:\\mathcal{N} \\\\
+\\quad \\quad \\sum_{i}^{\\mathcal{N}} z_i \\leq \\Gamma \\\\
+\\end{array}
+\\right\\} \\\\
+```
 
-Further information:
-  - Bertsimas, D. e Sim, M. (2004). The price of robustness. Operations research, 52(1):35–53.
+Attributes:
+- `d::Sampleable{Multivariate, Continous}`: The parent distribution with an uncertain mean
+- `Δ::Array{Float64,1}`: Uncertainty around mean. (default: std(d) / 5)
+- `Γ::Float64`: Number of assets in worst case. (default: 0.1 * length(d))
 
-Atributes:
-- `predicted_mean::Array{Float64,1}` (latex notation ``\\hat{r}``): Predicted mean of returns.
-- `uncertainty_delta::Array{Float64,1}` (latex notation ``\\Delta``): Uncertainty around mean.
-- `bertsimas_budget::Array{Float64,1}` (latex notation ``\\Gamma``): Number of assets in worst case.
-- `predicted_covariance::Array{Float64,2}`: Predicted covariance of returns.
+References:
+- Bertsimas, D. e Sim, M. (2004). The price of robustness. Operations research, 52(1):35–53.
+
 """
-struct RobustBertsimas <: AbstractMeanVariance
-    predicted_mean::Array{Float64,1}
-    predicted_covariance::Array{Float64,2}
-    uncertainty_delta::Array{Float64,1}
-    bertsimas_budget::Float64
-    number_of_assets::Int
+struct BudgetSet{T<:Real, D<:ContinuousMultivariateSampleable} <: DROSet
+    d::D
+    Δ::Vector{T}
+    Γ::T
+    # Inner constructor for validating arguments
+    function BudgetSet{T, D}(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:ContinuousMultivariateSampleable}
+        length(d) == length(Δ) || throw(ArgumentError(
+            "Distribution ($(length(d))) and Δ ($(length(Δ))) are not the same length"
+        ))
+        all(>=(0), Δ) || throw(ArgumentError("All uncertainty deltas must be >= 0"))
+        Γ >= 0 || throw(ArgumentError("Budget must be >= 0"))
+        Γ <= length(d) || @warn "Budget should not exceed the distribution length"
+        return new{T, D}(d, Δ, Γ)
+    end
 end
 
-function RobustBertsimas(;
-    predicted_mean::Array{Float64,1},
-    predicted_covariance::Array{Float64,2},
-    uncertainty_delta::Array{Float64,1},
-    bertsimas_budget::Float64,
-)
-    number_of_assets = size(predicted_mean, 1)
-    if number_of_assets != size(predicted_covariance, 1)
-        error("size of predicted mean ($number_of_assets) different to size of predicted covariance ($(size(predicted_covariance, 1)))")
-    end
-    if number_of_assets != size(uncertainty_delta, 1)
-        error("size of predicted mean ($number_of_assets) different to size of uncertainty deltas ($(size(uncertainty_delta,1)))")
-    end
-
-    @assert prod(uncertainty_delta .>= 0)
-    @assert issymmetric(predicted_covariance)
-    return RobustBertsimas(
-        predicted_mean, predicted_covariance, uncertainty_delta, bertsimas_budget, number_of_assets
-    )
-end
+# Default outer constructor
+BudgetSet(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:ContinuousMultivariateSampleable} = BudgetSet{T, D}(d, Δ, Γ)
 
 function _portfolio_return_latex_RobustBertsimas_primal()
     return """

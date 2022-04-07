@@ -1,85 +1,24 @@
-"""
-    MeanVariance <: AbstractMeanVariance
 
-Mean Variance Formulation (Markowitz). 
-
-PS.: Equivalent to a single point uncertainty set.
-
-Atributes:
-- `predicted_mean::Array{Float64,1}`: Predicted mean of returns.
-- `predicted_covariance::Array{Float64,2}`: Predicted covariance of returns.
-"""
-struct MeanVariance <: AbstractMeanVariance
-    predicted_mean::Array{Float64,1}
-    predicted_covariance::Array{Float64,2}
-    number_of_assets::Int
+function calculate_measure!(w, measure::ExpectedReturn{AmbiguitySet,EstimatedCase})
+    return dot(mean(measure.ambiguity_set), w)
 end
 
-function MeanVariance(;
-    predicted_mean::Array{Float64,1},
-    predicted_covariance::Array{Float64,2},
-)
-    number_of_assets = size(predicted_mean, 1)
-    if number_of_assets != size(predicted_covariance, 1)
-        error("size of predicted mean ($number_of_assets) different to size of predicted covariance ($(size(predicted_covariance, 1)))")
-    end
-
-    @assert issymmetric(predicted_covariance)
-    return MeanVariance(
-        predicted_mean, predicted_covariance, number_of_assets
-    )
+function calculate_measure!(w::Union{Vector{VariableRef},Real}, measure::Variance{AmbiguitySet,EstimatedCase})
+    return dot(cov(measure.ambiguity_set) * w, w)
 end
 
-"""
-    predicted_portfolio_return!(model::JuMP.Model, w, formulation::AbstractMeanVariance)
+function calculate_measure!(w::Vector{AffExpr}, measure::Variance{AmbiguitySet,EstimatedCase})
+    model = first(keys(first(w).terms)).model
+    
+    # Cholesky decomposition of the covariance matrix
+    Σ = PDMat(Symmetric(cov(measure.ambiguity_set)))
+    sqrt_Σ = collect(Σ.chol.U)
 
-Return predicted portfolio return used in the formulation.
+    # Extra dimention to represent the portfolio variance
+    @variable(model, risk);
+    @constraint(model, [risk; 0.5; sqrt_Σ * w] in JuMP.RotatedSecondOrderCone())
 
-Arguments:
- - `model::JuMP.Model`: JuMP upper level portfolio optimization model.
- - `w`: Portfolio optimization investment variable ("weights").
-"""
-function predicted_portfolio_return!(::JuMP.Model, w, formulation::AbstractMeanVariance)
-    return sum(formulation.predicted_mean'w)
-end
-
-"""
-    portfolio_return!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
-
-Return worst case portfolio return of the Uncertainty set defined by the formulation.
-
-Arguments:
- - `model::JuMP.Model`: JuMP upper level portfolio optimization model.
- - `w`: Portfolio optimization investment variable ("weights").
-"""
-function portfolio_return!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
-    return predicted_portfolio_return!(model, w, formulation; kwargs...)
-end
-
-"""
-    predicted_portfolio_variance!(model::JuMP.Model, w, formulation::AbstractMeanVariance)
-
-Return predicted portfolio variance used in the formulation: 
-
-Arguments:
- - `model::JuMP.Model`: JuMP upper level portfolio optimization model.
- - `w`: Portfolio optimization investment variable ("weights").
-"""
-function predicted_portfolio_variance!(::JuMP.Model, w, formulation::AbstractMeanVariance)
-    return sum(w'formulation.predicted_covariance * w)
-end
-
-"""
-    portfolio_variance!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
-
-Return worst case portfolio variance of the Uncertainty set defined by the formulation.
-
-Arguments:
- - `model::JuMP.Model`: JuMP upper level portfolio optimization model.
- - `w`: Portfolio optimization investment variable ("weights").
-"""
-function portfolio_variance!(model::JuMP.Model, w, formulation::AbstractMeanVariance; kwargs...)
-    return predicted_portfolio_variance!(model, w, formulation; kwargs...)
+    return risk
 end
 
 function _po_min_variance_limit_return_latex()
@@ -97,7 +36,7 @@ function _po_min_variance_limit_return_latex()
 end
 
 """
-    po_min_variance_limit_return(formulation::AbstractPortfolioFormulation, R)
+    po_min_variance_limit_return(formulation::AmbiguitySet, R)
 
 Mean-Variance Portfolio Allocation (with a risk free asset). Posed as a quadratic convex problem.
 Minimizes the worst case portfolio variance (``V``) and limits the worst case portfolio return (``R``) in the uncertainty set (``\\Omega``)
@@ -109,7 +48,7 @@ Where ``\\mathcal{X}`` represents the additional constraints defined in the mode
 (e.g. a limit on maximum invested money).
 
 Arguments:
- - `formulation::AbstractPortfolioFormulation`: Struct containing attributes of the formulation.
+ - `formulation::AmbiguitySet`: Struct containing attributes of the formulation.
  - `minimal_return::Real`: Minimal normalized return accepted.
 
 Optional Keywork Arguments:
@@ -120,7 +59,7 @@ Optional Keywork Arguments:
  - `portfolio_return::Function = portfolio_return!`: Function that calculates ``R``. 
  - `portfolio_variance::Function = portfolio_variance!`: Function that calculates ``V``. 
 """
-function po_min_variance_limit_return(formulation::AbstractPortfolioFormulation, minimal_return::Real;
+function po_min_variance_limit_return(formulation::AmbiguitySet, minimal_return::Real;
     rf::Real = 0.0, current_wealth::Real = 1.0,
     model::JuMP.Model = base_model(formulation.number_of_assets; current_wealth=current_wealth), 
     w=model[:w],
@@ -153,7 +92,7 @@ function _po_max_return_limit_variance_latex()
 end
 
 """
-    po_max_return_limit_variance(formulation::AbstractPortfolioFormulation, V_0)
+    po_max_return_limit_variance(formulation::AmbiguitySet, V_0)
 
 Mean-Variance Portfolio Allocation (with a risk free asset). Posed as a quadratic convex problem.
 Maximizes the worst case portfolio return (``R``) and limits the worst case portfolio variance (``V``) in the uncertainty set (``\\Omega``) 
@@ -165,7 +104,7 @@ Where ``\\mathcal{X}`` represents the additional constraints defined in the mode
 (e.g. a limit on maximum invested money).
 
 Arguments:
- - `formulation::AbstractPortfolioFormulation`: Struct containing attributes of formulation.
+ - `formulation::AmbiguitySet`: Struct containing attributes of formulation.
  - `max_risk::Real`: Maximal normalized variance accepted.
 
 Optional Keywork Arguments:
@@ -176,7 +115,7 @@ Optional Keywork Arguments:
  - `portfolio_return::Function = portfolio_return!`: Function that calculates ``R``. 
  - `portfolio_variance::Function = portfolio_variance!`: Function that calculates ``V``. 
 """
-function po_max_return_limit_variance(formulation::AbstractPortfolioFormulation, max_risk::Real;
+function po_max_return_limit_variance(formulation::AmbiguitySet, max_risk::Real;
     rf::Real = 0.0, current_wealth::Real = 1.0,
     model::JuMP.Model = base_model(formulation.number_of_assets; current_wealth=current_wealth), 
     w=model[:w],

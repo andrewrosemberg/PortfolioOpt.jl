@@ -1,10 +1,15 @@
 module PortfolioOpt
 
+import Base: size, length
 using Distributions
 using JuMP
 using LinearAlgebra
 using LinearAlgebra: dot
+using MathOptInterface: LessThan, EqualTo, GreaterThan, constant
+using PDMats
+using Random
 import Reexport
+using Statistics
 
 include("formulations.jl")
 include("mean_variance.jl")
@@ -18,7 +23,7 @@ include("utils.jl")
 include("forecasts.jl")
 include("test_utils/testutils.jl")
 
-export AbstractPortfolioFormulation,
+export AmbiguitySet,
     AbstractMeanVariance,
     AbstractSampleBased,
     base_model,
@@ -38,7 +43,7 @@ export AbstractPortfolioFormulation,
     readjust_volumes!,
     RobustBenTal,
     RobustBertsimas,
-    RobustDelague,
+    MomentUncertainty,
     RobustBetina,
     SampleBased,
     # end-to-end
@@ -46,6 +51,8 @@ export AbstractPortfolioFormulation,
     max_sharpe,
     equal_weights
 
-    Reexport.@reexport using JuMP
+Reexport.@reexport using JuMP
+
+Reexport.@reexport using MathOptInterface: LessThan, EqualTo, GreaterThan
 
 end
