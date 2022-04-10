@@ -9,7 +9,7 @@ using MathOptInterface: LessThan, EqualTo, GreaterThan, constant
 using PDMats
 using Random
 import Reexport
-using Statistics
+import Statistics
 
 include("formulations.jl")
 include("mean_variance.jl")

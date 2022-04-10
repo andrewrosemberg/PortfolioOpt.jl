@@ -1,4 +1,8 @@
 
+JuMP.owner_model(w::Vector{VariableRef}) = owner_model(first(w))
+JuMP.owner_model(w::AffExpr) = owner_model(first(keys(w.terms)))
+JuMP.owner_model(w::Vector{AffExpr}) = owner_model(first(w))
+
 function calculate_measure!(w, measure::ExpectedReturn{AmbiguitySet,EstimatedCase})
     return dot(mean(measure.ambiguity_set), w)
 end
@@ -8,7 +12,7 @@ function calculate_measure!(w::Union{Vector{VariableRef},Real}, measure::Varianc
 end
 
 function calculate_measure!(w::Vector{AffExpr}, measure::Variance{AmbiguitySet,EstimatedCase})
-    model = first(keys(first(w).terms)).model
+    model = owner_model(w)
     
     # Cholesky decomposition of the covariance matrix
     Σ = PDMat(Symmetric(cov(measure.ambiguity_set)))
@@ -131,26 +135,4 @@ function po_max_return_limit_variance(formulation::AmbiguitySet, max_risk::Real;
     @constraint(model, portfolio_variance(model, w, formulation) <= max_risk * current_wealth)
     @objective(model, Max, R)
     return model
-end
-
-###################### Not updated ######################
-"""
-Mean-Variance Portfolio Allocation With no risk free asset. Analytical solution.
-"""
-function mean_variance_noRf_analytical(formulation::MeanVariance, R_0)
-    # parameters
-    r̄ = formulation.predicted_mean
-    Σ = formulation.predicted_covariance
-    numA = formulation.number_of_assets
-    # model
-    invΣ = pinv(Σ, 1E-25)
-    x = zeros(numA)
-    A = sum(invΣ'r̄)
-    B = sum(r̄'r̄)
-    C = sum(invΣ)
-    one = ones(size(r̄, 1))
-    D = sum(r̄' * (invΣ'r̄))
-    mu = (R_0 * C - A) / (C * D - A)
-    x = (1 / C) * (invΣ * one) + mu * invΣ * (r̄ - one * (A / C))
-    return x
 end

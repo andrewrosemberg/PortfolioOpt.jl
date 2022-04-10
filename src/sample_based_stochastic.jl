@@ -1,11 +1,13 @@
 """conditional_expectation = -cvar = -expected_shortfall"""
-function conditional_expectation!(w, formulation::AbstractSampleBased; 
-    sample_probability = fill(1/formulation.number_of_samples,formulation.number_of_samples),
-)
+function calculate_measure!(w, measure::ConditionalExpectedReturn{α,N,ContinuousMultivariateSampleable,EstimatedCase}) where {N}
+    model = owner_model(w)
+    s = ambiguityset(measure)
+
     # parameters
-    numA = formulation.number_of_assets
-    numS = formulation.number_of_samples
-    α = quantile
+    numS = sample_size(measure)
+    samples = rand(s, numS)
+    sample_probability = fill(1/numS,numS)
+
     # dual variables
     @variable(model, z)
     @variable(model, y[i=1:numS] >= 0)
@@ -13,10 +15,10 @@ function conditional_expectation!(w, formulation::AbstractSampleBased;
     @constraints(
         model,
         begin
-            ys[s=1:numS], y[s] >= z - sum(formulation.sampled_returns[s, :]'w)
+            ys[s=1:numS], y[s] >= z - sum(dot(samples[:, s], w))
         end
     )
-    return z - sum(sample_probability'y) / (1.0 - α)
+    return z - dot(sample_probability,y) / (1.0 - α)
 end
 
 
