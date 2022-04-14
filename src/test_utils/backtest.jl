@@ -1,23 +1,4 @@
 """
-    readjust_volumes(decision_values::Array{Float64,1}; current_wealth::Real = 1.0)
-
-Adjust volumes to be feasible under current wealth.
-
-Arguments:
- - `decision_values::Array{Float64,1}`: Decided values to be invested.
-
-Optional Keywork Arguments:
- - `current_wealth::Real = 1.0`: Current available wealth to be invested.
-"""
-function readjust_volumes!(decision_values::Array{Float64,1}; current_wealth::Real = 1.0)
-    decision_values_adjusted = deepcopy(decision_values)
-    if norm(decision_values, 1) > current_wealth
-        decision_values_adjusted = decision_values / norm(decision_values, 1)
-    end
-    return decision_values_adjusted
-end
-
-"""
     backtest_po(strategy_logic::Function, returns_series::TimeArray) -> TimeArray, Array{Float64}
 
 Simple backtest functionality for strategies that return an array of invested money per asset.

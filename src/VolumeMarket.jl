@@ -94,3 +94,11 @@ end
 JuMP.owner_model(decision_variables::Vector{VariableRef}) = owner_model(first(decision_variables))
 JuMP.owner_model(decision_variables::AffExpr) = owner_model(first(keys(decision_variables.terms)))
 JuMP.owner_model(decision_variables::Vector{AffExpr}) = owner_model(first(decision_variables))
+
+struct MarketHistory{VolumeMarket,T<:Real}
+    history_clearing_prices::Array{T, 2}
+    history_risk_free_rates::Vector{T}
+end
+
+past_prices(hist::MarketHistory{VolumeMarket, Real}, t::Int) = hist.history_clearing_prices[1:t-1, :]
+risk_free_rate(hist::MarketHistory{VolumeMarket, Real}, t::Int) = hist[t, :]
