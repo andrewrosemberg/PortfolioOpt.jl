@@ -47,7 +47,7 @@ distribution(s::BudgetSet) = s.d
 BudgetSet(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:ContinuousMultivariateSampleable} = BudgetSet{T, D}(d, Δ, Γ)
 
 """
-    calculate_measure!(w, measure::ExpectedReturn{BudgetSet,WorstCase})
+    calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase})
 
 Returns worst case return (WCR) in BudgetSet's uncertainty set ([`BudgetSet`](@ref)).
 
@@ -86,7 +86,7 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `s::BudgetSet`: Struct containing atributes of BudgetSet's uncertainty set.
 """
-function calculate_measure!(w, measure::ExpectedReturn{BudgetSet,WorstCase})
+function calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase}, w)
     model = owner_model(w)
     s = ambiguityset(measure)
 
@@ -156,7 +156,7 @@ EllipticalSet(d::D, Δ::T) where {T<:Real, D<:ContinuousMultivariateSampleable} 
 distribution(s::EllipticalSet) = s.d
 
 """
-    calculate_measure!(w, measure::ExpectedReturn{EllipticalSet,WorstCase})
+    calculate_measure!(measure::ExpectedReturn{EllipticalSet,WorstCase})
 
 Returns worst case return (WCR) in EllipticalSet's uncertainty set ([`EllipticalSet`](@ref)).
 
@@ -185,7 +185,7 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `s:: EllipticalSet `: Struct containing atributes of EllipticalSet's uncertainty set.
 """
-function calculate_measure!(w, measure::ExpectedReturn{EllipticalSet,WorstCase})
+function calculate_measure!(measure::ExpectedReturn{EllipticalSet,WorstCase}, w)
     model = owner_model(w)
     s = ambiguityset(measure)
 

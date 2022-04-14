@@ -75,22 +75,54 @@ struct RiskConstraint{C<:Union{EqualTo, GreaterThan, LessThan}}
     risk_measure::PortfolioStatisticalMeasure
     constraint_type::C
 end
-measure(c::RiskConstraint) = c.risk_measure
-type(c::RiskConstraint) = c.constraint_type
+risk_measure(c::RiskConstraint) = c.risk_measure
+constant(c::RiskConstraint) = constant(c.constraint_type)
+
+function constraint!(model::JuMP.Model, r::RiskConstraint{LessThan}, decision_variables)
+    @constraint(model, calculate_measure!(risk_measure(r), decision_variables) <= constant(r))
+end
 
 struct ConeRegularizer{T<:Real}
     weight_matrix::Array{T,2}
     norm_cone::AbstractVectorSet
 end
 
+cone(m::ConeRegularizer) = m.norm_cone
+weights(m::ConeRegularizer) = m.weight_matrix
+
+function calculate_measure!(m::ConeRegularizer, w)
+    model = owner_model(w)
+    norm_value = @variable(model)
+    @constraint(model, [norm_value; weights(m) * w] in cone(m)())
+    return norm_value
+end
+
 struct ObjectiveTerm{T<:Real}
     term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}
     weight::T
 end
+
 term(o::ObjectiveTerm) = o.term
 weight(o::ObjectiveTerm) = o.weight
 
 struct PortfolioFormulation
-    objective::Vector{ObjectiveTerm}
+    objective_terms::Vector{ObjectiveTerm}
     risk_constraints::Vector{RiskConstraint}
+end
+
+function portfolio_model!(model::JuMP.Model, formulation::PortfolioFormulation, decision_variables; record_measures::Bool=false)
+    # objective
+    obj = objective_function(model)
+    for obj_term in formulation.objective_terms
+        obj += calculate_measure!(term(obj_term), decision_variables) .* weight(obj_term)
+    end
+    drop_zeros!(obj)
+    set_objective(model, objective_sense(model), obj)
+
+    # risk constraints
+    for risk_constraint in formulation.risk_constraints
+        constraint!(model, risk_constraint, decision_variables)
+    end
+
+    return nothing
 end

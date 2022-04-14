@@ -44,7 +44,7 @@ end
 distribution(s::MomentUncertainty) = s.d
 
 """
-    calculate_measure!(w, measure::ExpectedReturn{MomentUncertainty,WorstCase})
+    calculate_measure!(measure::ExpectedReturn{MomentUncertainty,WorstCase}, w)
 
 Returns worst case utility return (WCR) under distribution uncertainty defined by MomentUncertainty ambiguity set ([`MomentUncertainty`](@ref)).
 
@@ -52,7 +52,7 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `s::MomentUncertainty`: Struct containing atributes of MomentUncertainty ambiguity set.
 """
-function calculate_measure!(w, m::ExpectedUtility{PieceWiseUtility,MomentUncertainty,WorstCase})
+function calculate_measure!(m::ExpectedUtility{PieceWiseUtility,MomentUncertainty,WorstCase}, w)
     model = owner_model(w)
     s = ambiguityset(m)
     utility_function = utility(m)

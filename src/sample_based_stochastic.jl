@@ -1,5 +1,5 @@
 """conditional_expectation = -cvar = -expected_shortfall"""
-function calculate_measure!(w, measure::ConditionalExpectedReturn{α,N,ContinuousMultivariateSampleable,EstimatedCase}) where {N}
+function calculate_measure!(measure::ConditionalExpectedReturn{α,N,ContinuousMultivariateSampleable,EstimatedCase}, w) where {N}
     model = owner_model(w)
     s = ambiguityset(measure)
 

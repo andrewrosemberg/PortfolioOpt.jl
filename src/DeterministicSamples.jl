@@ -27,24 +27,3 @@ end
 
 mean(s::DeterministicSamples) = Statistics.mean(s.samples, dims=1)'[:,1]
 cov(s::DeterministicSamples) = Statistics.cov(s.samples, dims=1)
-
-# TODO
-function po_max_predicted_return_limit_return(formulation::AmbiguitySet, minimal_return; 
-    rf::Real = 0.0, current_wealth::Real = 1.0,
-    model::JuMP.Model = base_model(formulation.number_of_assets; current_wealth=current_wealth),
-    w = model[:w],
-    kwargs... 
-)
-    # auxilary variables
-    @variable(model, R)
-    sum_invested = create_sum_invested_variable(model, w)
-
-    # model
-    @constraint(model, R == portfolio_return!(model, w, formulation) + rf * (current_wealth - sum_invested))
-    @constraint(model, R >= minimal_return * current_wealth)
-
-    # objective function
-    @objective(model, Max, predicted_portfolio_return!(model, w, formulation; kwargs...) + rf * (current_wealth - sum_invested))
-
-    return model
-end
