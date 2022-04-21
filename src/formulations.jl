@@ -1,34 +1,15 @@
-"""
-    CenteredAmbiguitySet
-
-Defines the ambiguity related to the distribution of a random variable, often used in
-Robust Optimization (RO) and Distributionally Robust Optimization (DRO) problems.
-It represents a bounded infinite set of distributions.
-"""
-abstract type CenteredAmbiguitySet{T<:Real, D<:ContinuousMultivariateSampleable} end
-
-Base.length(s::CenteredAmbiguitySet) = length(distribution(s))
-
-mean(s::CenteredAmbiguitySet) = mean(distribution(s))
-cov(s::CenteredAmbiguitySet) = cov(distribution(s))
-
-const ContinuousMultivariateSampleable = Sampleable{Multivariate, Continuous}
-
-distribution(d::ContinuousMultivariateSampleable) = d
-
-"""
-    AmbiguitySet
-
-Alias for Union{CenteredAmbiguitySet, ContinuousMultivariateSampleable}
-"""
-AmbiguitySet = Union{CenteredAmbiguitySet, ContinuousMultivariateSampleable}
-
 abstract type ConcaveUtilityFunction end
 
 struct PieceWiseUtility{T<:Real} <: ConcaveUtilityFunction
-    c::Array{T,1}
-    b::Array{T,1}
+    c::Vector{T,1}
+    b::Vector{T,1}
 end
+
+function PieceWiseUtility(c::Array{T,1}, b::Array{T,1}) where {T<:Real}
+    @assert length(c) == length(b)
+    return PieceWiseUtility(c, b)
+end
+
 coeficients(u::PieceWiseUtility) = u.c
 intercepts(u::PieceWiseUtility) = u.b
 
@@ -40,17 +21,33 @@ intercepts(u::PieceWiseUtility) = u.b
 end
 
 abstract type PortfolioStatisticalMeasure{S<:AmbiguitySet,R<:Robustness} end
+
 struct ExpectedReturn{S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
     ambiguity_set::S
 end
+
+function ExpectedReturn(ambiguity_set::S, R::Robustness=EstimatedCase) where {S<:AmbiguitySet}
+    return ExpectedReturn{S,R}(ambiguity_set)
+end
 ambiguityset(m::ExpectedReturn) = m.ambiguity_set
+
 struct Variance{S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
     ambiguity_set::S
 end
+
+function Variance(ambiguity_set::S, R::Robustness=EstimatedCase) where {S<:AmbiguitySet}
+    return Variance{S,R}(ambiguity_set)
+end
 ambiguityset(m::Variance) = m.ambiguity_set
+
 struct SqrtVariance{S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
     ambiguity_set::S
 end
+
+function SqrtVariance(ambiguity_set::S, R::Robustness=EstimatedCase) where {S<:AmbiguitySet}
+    return SqrtVariance{S,R}(ambiguity_set)
+end
+
 ambiguityset(m::SqrtVariance) = m.ambiguity_set
 struct ConditionalExpectedReturn{α,N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
     ambiguity_set::S
@@ -75,11 +72,24 @@ struct RiskConstraint{C<:Union{EqualTo, GreaterThan, LessThan}}
     risk_measure::PortfolioStatisticalMeasure
     constraint_type::C
 end
+
+function RiskConstraint(risk_measure::PortfolioStatisticalMeasure, constraint_type::C) where {C<:Union{EqualTo, GreaterThan, LessThan}}
+    return RiskConstraint{C}(risk_measure, constraint_type)
+end
+
 risk_measure(c::RiskConstraint) = c.risk_measure
 constant(c::RiskConstraint) = constant(c.constraint_type)
 
 function constraint!(model::JuMP.Model, r::RiskConstraint{LessThan}, decision_variables)
     @constraint(model, calculate_measure!(risk_measure(r), decision_variables) <= constant(r))
+end
+
+function constraint!(model::JuMP.Model, r::RiskConstraint{GreaterThan}, decision_variables)
+    @constraint(model, calculate_measure!(risk_measure(r), decision_variables) >= constant(r))
+end
+
+function constraint!(model::JuMP.Model, r::RiskConstraint{EqualTo}, decision_variables)
+    @constraint(model, calculate_measure!(risk_measure(r), decision_variables) == constant(r))
 end
 
 struct ConeRegularizer{T<:Real}
@@ -102,6 +112,10 @@ struct ObjectiveTerm{T<:Real}
     weight::T
 end
 
+function ObjectiveTerm(term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}, weight::T=1.0) where {T<:Real}
+    return ObjectiveTerm{T}(term, weight)
+end
+
 term(o::ObjectiveTerm) = o.term
 weight(o::ObjectiveTerm) = o.weight
 
@@ -109,6 +123,8 @@ struct PortfolioFormulation
     objective_terms::Vector{ObjectiveTerm}
     risk_constraints::Vector{RiskConstraint}
 end
+
+PortfolioFormulation(O::ObjectiveTerm, R::risk_constraints) = PortfolioFormulation([O], [R])
 
 function portfolio_model!(model::JuMP.Model, formulation::PortfolioFormulation, decision_variables; record_measures::Bool=false)
     # objective

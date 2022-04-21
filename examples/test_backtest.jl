@@ -14,14 +14,17 @@ numD, numA = size(prices) # A: Assets    D: Days
 returns_series = percentchange(prices)
 
 # risk free asset
-# rf =  fill(3.2e-4, numD)
+rf = zeros(numD) # fill(3.2e-4, numD)
+
+market = VolumeMarket(numA)
+market_history = VolumeMarketHistory(market, returns_series)
 
 ############# backtest Parameters #####################
 DEFAULT_SOLVER = optimizer_with_attributes(
     COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
 )
 
-start_date = timestamp(returns_series)[100]
+date_range = timestamp(returns_series)[100:end]
 
 ## Strategies
 # Look back days
@@ -29,26 +32,31 @@ k_back = 60
 
 ############# backtest with limit return strategies #####################
 
-wealth_markowitz_limit_R, strategy_returns =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
-        # Prep
-        numD, numA = size(past_returns)
-        returns = values(past_returns)
-        Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
-        
-        # Parameters
-        R = 0.0015 / current_wealth
-        formulation = MeanVariance(;
-            predicted_mean = r̄,
-            predicted_covariance = Σ,
-        )
-        
-        # model
-        model = po_min_variance_limit_return(formulation, R; rf = rf)
-        x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
-    end;
-rename!(wealth_markowitz_limit_R, :markowitz_limit_R);
+wealth_markowitz_limit_R, strategy_returns = backtest_po(
+    market_history; date_range=date_range
+) do market, past_returns
+    # Prep
+    numD, numA = size(past_returns)
+    returns = values(past_returns)
+    Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
+    
+    # Parameters
+    d = MvNormal(r̄, Σ)
+    R = - 0.0015 / current_wealth
+
+    formulation = PortfolioFormulation(
+        ObjectiveTerm(SqrtVariance(d)),
+        RiskConstraint(ExpectedReturn(d), GreaterThan(R))
+    )
+    
+    # model
+    model = market_model(market, DEFAULT_SOLVER; sense=MIN_SENSE)
+    portfolio_model!(model, formulation, decision_variables)
+
+    x = compute_solution(model, DEFAULT_SOLVER)
+    return x * current_wealth
+end;
+wealth_markowitz_limit_R = Dict(date_range .=> wealth_markowitz_limit_R);
 
 wealth_markowitz_infeasible_limit_R, strategy_returns =
     backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
