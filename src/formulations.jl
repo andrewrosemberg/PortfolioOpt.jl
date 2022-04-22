@@ -10,11 +10,6 @@ struct PieceWiseUtility{T<:Real} <: ConcaveUtilityFunction
     end
 end
 
-# function PieceWiseUtility(c::Vector{T}, b::Vector{T}) where {T<:Real}
-#     @assert length(c) == length(b)
-#     return PieceWiseUtility(c, b)
-# end
-
 coeficients(u::PieceWiseUtility) = u.c
 intercepts(u::PieceWiseUtility) = u.b
 
@@ -30,7 +25,7 @@ struct ExpectedReturn{S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeas
     ambiguity_set::S
 end
 
-function ExpectedReturn(ambiguity_set::S, R::Robustness=EstimatedCase) where {S<:AmbiguitySet}
+function ExpectedReturn(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) where {S<:AmbiguitySet}
     return ExpectedReturn{S,R}(ambiguity_set)
 end
 ambiguityset(m::ExpectedReturn) = m.ambiguity_set
@@ -39,7 +34,7 @@ struct Variance{S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,
     ambiguity_set::S
 end
 
-function Variance(ambiguity_set::S, R::Robustness=EstimatedCase) where {S<:AmbiguitySet}
+function Variance(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) where {S<:AmbiguitySet}
     return Variance{S,R}(ambiguity_set)
 end
 ambiguityset(m::Variance) = m.ambiguity_set
@@ -48,7 +43,7 @@ struct SqrtVariance{S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasur
     ambiguity_set::S
 end
 
-function SqrtVariance(ambiguity_set::S, R::Robustness=EstimatedCase) where {S<:AmbiguitySet}
+function SqrtVariance(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) where {S<:AmbiguitySet}
     return SqrtVariance{S,R}(ambiguity_set)
 end
 
@@ -86,15 +81,15 @@ end
 risk_measure(c::RiskConstraint) = c.risk_measure
 constant(c::RiskConstraint) = constant(c.constraint_type)
 
-function constraint!(model::JuMP.Model, r::RiskConstraint{LessThan}, decision_variables)
+function constraint!(model::JuMP.Model, r::RiskConstraint{LessThan{T}}, decision_variables) where {T}
     @constraint(model, calculate_measure!(risk_measure(r), decision_variables) <= constant(r))
 end
 
-function constraint!(model::JuMP.Model, r::RiskConstraint{GreaterThan}, decision_variables)
+function constraint!(model::JuMP.Model, r::RiskConstraint{GreaterThan{T}}, decision_variables) where {T}
     @constraint(model, calculate_measure!(risk_measure(r), decision_variables) >= constant(r))
 end
 
-function constraint!(model::JuMP.Model, r::RiskConstraint{EqualTo}, decision_variables)
+function constraint!(model::JuMP.Model, r::RiskConstraint{EqualTo{T}}, decision_variables) where {T}
     @constraint(model, calculate_measure!(risk_measure(r), decision_variables) == constant(r))
 end
 
@@ -116,6 +111,10 @@ end
 struct ObjectiveTerm{T<:Real}
     term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}
     weight::T
+
+    function ObjectiveTerm(term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}, weight::T=1.0) where {T}
+        return new{T}(term, weight)
+    end
 end
 
 # function ObjectiveTerm(term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}, weight::T=1.0) where {T<:Real}

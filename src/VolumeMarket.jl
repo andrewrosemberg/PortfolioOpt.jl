@@ -12,7 +12,17 @@ function VolumeMarket(N::Int, budget::T, volume_fee::T, allow_short_selling::Boo
 end
 
 function VolumeMarket(N::Int; budget::T=1.0, volume_fee::T=0.0, allow_short_selling::Bool=false, risk_free_rate::T=0.0) where {T<:Real}
-    VolumeMarket(budget, volume_fee, allow_short_selling, risk_free_rate, N)
+    VolumeMarket(N, budget, volume_fee, allow_short_selling, risk_free_rate)
+end
+
+market_budget(market::VolumeMarket) = market.budget
+function set_market_budget(market::VolumeMarket{T,N}, val::T) where {T,N}
+    market.budget = val
+end
+market_volume_fee(market::VolumeMarket) = market.volume_fee
+
+function eltype(::VolumeMarket{T,N}) where {T,N}
+    return T
 end
 
 function change_bids!(market::VolumeMarket{T, N}, new_bids::Vector{T}) where {T<:Real,N}
@@ -42,14 +52,14 @@ function calculate_profit(market::VolumeMarket)
     return (;
         cleared_volumes=market.volume_bids,
         clearing_prices=market.clearing_prices,
-        profit=dot(cleared_volumes, clearing_prices),
-        risk_free_profit=market.risk_free_rate * (market.budget - norm(cleared_volumes, 1))
+        profit=dot(market.volume_bids, market.clearing_prices),
+        risk_free_profit=market.risk_free_rate * (market.budget - norm(market.volume_bids, 1))
     )
 end
 
 function total_profit(market::VolumeMarket)
     profits = calculate_profit(market)
-    return sum(profits.profit) + risk_free_profit
+    return sum(profits.profit) + profits.risk_free_profit
 end
 
 function length(::VolumeMarket{T, N}) where {T, N}
@@ -68,7 +78,7 @@ Returns the model and the reference to the vector of decision variables (length 
 Aditional arguments:
  - `optimizer_factory`: callable with zero arguments and return an empty `MathOptInterface.AbstractOptimizer``.
 """
-function market_model(market::VolumeMarket{T,N}, optimizer_factory::Function; 
+function market_model(market::VolumeMarket{T,N}, optimizer_factory::Any; 
     sense::MOI.OptimizationSense=MAX_SENSE, model::JuMP.Model=Model(optimizer_factory)
 ) where {T,N}
     w = @variable(model, [1:N])
@@ -79,7 +89,7 @@ function market_model(market::VolumeMarket{T,N}, optimizer_factory::Function;
     else
         @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
     end
-    @constraint(model, sum_invested <= current_wealth)
+    @constraint(model, sum_invested <= market_budget(market))
     if sense === MAX_SENSE
         @objective(model, sense, sum_invested * market.risk_free_rate)
     else
@@ -96,9 +106,12 @@ Solves optimization model and set new bids to optimal values of the `decision_va
 function change_bids!(market::VolumeMarket, model::JuMP.Model, decision_variables)
     optimize!(model)
     status = termination_status(model)
-    status !== MOI.OPTIMAL && @warn "Did not find an optimal solution: status=$status"
-    new_bids = value.(decision_variables)
-    change_bids!(market, new_bids)
+    if status !== MOI.OPTIMAL
+        @warn "Did not find an optimal solution: status=$status"
+    else
+        new_bids = value.(decision_variables)
+        change_bids!(market, new_bids)
+    end
 
     return nothing
 end
@@ -107,27 +120,50 @@ JuMP.owner_model(decision_variables::Vector{VariableRef}) = owner_model(first(de
 JuMP.owner_model(decision_variables::AffExpr) = owner_model(first(keys(decision_variables.terms)))
 JuMP.owner_model(decision_variables::Vector{AffExpr}) = owner_model(first(decision_variables))
 
-abstract type MarketHistory end
+abstract type MarketHistory{T<:Real,N} end
 
-eachindex(hist::MarketHistory) = eachindex(hist.history_clearing_prices)
-past_prices(hist::MarketHistory, t) = hist.history_clearing_prices[first(eachindex(market_history)):step(eachindex(market_history)):t]
-current_prices(hist::MarketHistory, t) = hist.history_clearing_prices[t]
+function eltype(::MarketHistory{T,N}) where {T,N}
+    return T
+end
 
-struct VolumeMarketHistory <: MarketHistory
-    market::VolumeMarket
+struct VolumeMarketHistory{T<:Real,N} <: MarketHistory{T,N}
+    market::VolumeMarket{T,N}
     history_clearing_prices::Any
     history_risk_free_rates::Any
+    timestamp::Any
+
+    function VolumeMarketHistory{T,N}(market::VolumeMarket{T,N}, history_clearing_prices, history_risk_free_rates, timestamp) where {T,N}
+        @assert eltype(values(history_clearing_prices)) === T
+        @assert eltype(values(history_risk_free_rates)) === T
+        @assert issetequal(keys(history_risk_free_rates), timestamp)
+        @assert issetequal(keys(history_clearing_prices), timestamp)
+
+        return new(market, history_clearing_prices, history_risk_free_rates, timestamp)
+    end
 end
 
-function VolumeMarketHistory(market::VolumeMarket, history_clearing_prices)
-    rf = Dict(eachindex(market_history) .=> market.risk_free_rate)
-    return VolumeMarketHistory(market, history_clearing_prices, rf)
+function VolumeMarketHistory(market::VolumeMarket{T,N}, history_clearing_prices) where {T<:Real,N}
+    rf = Dict(keys(history_clearing_prices) .=> market.risk_free_rate)
+    return VolumeMarketHistory{T,N}(market, history_clearing_prices, rf, sort(unique(keys(history_clearing_prices))))
 end
 
-risk_free_rate(hist::VolumeMarket, t) = hist.history_risk_free_rates[t]
+timestamp(hist::VolumeMarketHistory) = hist.timestamp
+keys(hist::VolumeMarketHistory) = timestamp(hist)
+function past_prices(hist::VolumeMarketHistory, t)
+    timestamps = timestamp(hist)
+    idx = findfirst(x -> x == t, timestamps)
+    hist.history_clearing_prices[timestamps[1:idx-1]]
+end
+current_prices(hist::VolumeMarketHistory, t) = values(hist.history_clearing_prices[t])[1,:]
+risk_free_rate(hist::VolumeMarketHistory, t) = first(values(hist.history_risk_free_rates[t]))
+function size(hist::VolumeMarketHistory{T,N}) where {T,N}
+    return (length(eachindex(hist.history_risk_free_rates)), N)
+end
 
-market_template(hist::VolumeMarket) = hist.market
+market_template(hist::VolumeMarketHistory) = hist.market
+
 function market_template(hist, t)
+    market = hist.market
     market.risk_free_rate = risk_free_rate(hist, t)
-    return hist.market
+    return market
 end

@@ -2,7 +2,7 @@ using COSMO
 using Plots
 using PortfolioOpt
 using PortfolioOpt.TestUtils: 
-    backtest_market, get_test_data, mean_variance, 
+    sequential_backtest_market, get_test_data, mean_variance, 
     percentchange, timestamp, rename!
 using Statistics
 

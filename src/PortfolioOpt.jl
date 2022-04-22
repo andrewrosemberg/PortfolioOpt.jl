@@ -12,7 +12,9 @@ import OptimalBids: Market, change_bids!, clear_market!, calculate_profit
 using PDMats
 using Random
 import Reexport
-import Statistics
+using Statistics
+import Statistics: mean, cov
+import Base: eachindex, eltype, size, keys
 
 include("AmbiguitySet.jl")
 include("formulations.jl")
@@ -46,9 +48,16 @@ export AmbiguitySet,
     EllipticalSet,
     # VolumeMarket
     VolumeMarket,
+    change_bids!,
+    clear_market!,
+    market_budget,
+    market_volume_fee,
     market_model,
     MarketHistory,
     VolumeMarketHistory,
+    market_template,
+    current_prices,
+    risk_free_rate,
     # end-to-end
     max_sharpe,
     equal_weights

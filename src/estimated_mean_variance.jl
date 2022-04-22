@@ -1,13 +1,13 @@
 
-function calculate_measure!(measure::ExpectedReturn{AmbiguitySet,EstimatedCase}, w)
+function calculate_measure!(measure::ExpectedReturn{S,EstimatedCase}, w) where {S<:AmbiguitySet}
     return dot(mean(measure.ambiguity_set), w)
 end
 
-function calculate_measure!(measure::Variance{AmbiguitySet,EstimatedCase}, w::Union{Vector{VariableRef},Real})
+function calculate_measure!(measure::Variance{S,EstimatedCase}, w::Union{Vector{VariableRef},Real}) where {S<:AmbiguitySet}
     return dot(cov(measure.ambiguity_set) * w, w)
 end
 
-function calculate_measure!(measure::Variance{AmbiguitySet,EstimatedCase}, w::Vector{AffExpr})
+function calculate_measure!(measure::Variance{S,EstimatedCase}, w::Vector{AffExpr}) where {S<:AmbiguitySet}
     model = owner_model(w)
     
     # Cholesky decomposition of the covariance matrix
@@ -21,7 +21,7 @@ function calculate_measure!(measure::Variance{AmbiguitySet,EstimatedCase}, w::Ve
     return risk
 end
 
-function calculate_measure!(measure::SqrtVariance{AmbiguitySet,EstimatedCase}, w::Vector{AffExpr})
+function calculate_measure!(measure::SqrtVariance{S,EstimatedCase}, w) where {S<:AmbiguitySet}
     model = owner_model(w)
     
     # Cholesky decomposition of the covariance matrix

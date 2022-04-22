@@ -2,9 +2,7 @@ using COSMO
 using Distributions
 using Plots
 using PortfolioOpt
-using PortfolioOpt.TestUtils: 
-    backtest_market, get_test_data, mean_variance, 
-    percentchange, timestamp
+using PortfolioOpt.TestUtils
 
 ############ Read Prices #############
 prices = get_test_data()
@@ -14,7 +12,7 @@ numD, numA = size(prices) # A: Assets    D: Days
 returns_series = percentchange(prices)
 
 # risk free asset
-rf = zeros(numD) # fill(3.2e-4, numD)
+# rf = fill(3.2e-4, numD)
 
 market = VolumeMarket(numA)
 market_history = VolumeMarketHistory(market, returns_series)
@@ -32,7 +30,7 @@ k_back = 60
 
 ############# backtest with limit return strategies #####################
 
-wealth_markowitz_limit_R, strategy_returns = backtest_market(
+wealth_markowitz_limit_R, strategy_returns = sequential_backtest_market(
     market_history; date_range=date_range
 ) do market, past_returns
     # Prep
@@ -42,7 +40,7 @@ wealth_markowitz_limit_R, strategy_returns = backtest_market(
     
     # Parameters
     d = MvNormal(r̄, Σ)
-    R = - 0.0015 / current_wealth
+    R = 0.0015 / market_budget(market)
 
     formulation = PortfolioFormulation(
         ObjectiveTerm(SqrtVariance(d)),
@@ -57,15 +55,23 @@ wealth_markowitz_limit_R, strategy_returns = backtest_market(
     return nothing
 end;
 
+plt = plot(
+    collect(keys(wealth_markowitz_limit_R)), collect(values(wealth_markowitz_limit_R));
+    title="Culmulative Wealth",
+    xlabel="Time",
+    ylabel="Wealth",
+    legend=:outertopright,
+)
+
 wealth_markowitz_infeasible_limit_R, strategy_returns =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         
         # Parameters
-        R = 0.005 / current_wealth
+        R = 0.005 / market_budget(market)
         formulation = MeanVariance(;
             predicted_mean = r̄,
             predicted_covariance = Σ,
@@ -74,19 +80,19 @@ wealth_markowitz_infeasible_limit_R, strategy_returns =
         # model
         model = po_min_variance_limit_return(formulation, R; rf = rf)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_markowitz_infeasible_limit_R, :markowitz_infeasible_limit_R);
 
 wealth_soyster_limit_R, strategy_returns =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         
         # Parameters
-        R = 0.0015 / current_wealth
+        R = 0.0015 / market_budget(market)
         formulation = RobustBertsimas(;
             predicted_mean = r̄,
             predicted_covariance = Σ,
@@ -97,19 +103,19 @@ wealth_soyster_limit_R, strategy_returns =
         # model
         model = po_min_variance_limit_return(formulation, R; rf = rf)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_soyster_limit_R, :soyster_limit_R);
 
 wealth_bertsimas_limit_R, strategy_returns =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         
         # Parameters
-        R = 0.0015 / current_wealth
+        R = 0.0015 / market_budget(market)
         formulation = RobustBertsimas(;
             predicted_mean = r̄,
             predicted_covariance = Σ,
@@ -120,19 +126,19 @@ wealth_bertsimas_limit_R, strategy_returns =
         # model
         model = po_min_variance_limit_return(formulation, R; rf = rf)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_bertsimas_limit_R, :bertsimas_limit_R);
 
 wealth_bental_limit_R, strategy_returns =
-backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         
         # Parameters
-        R = 0.0015 / current_wealth
+        R = 0.0015 / market_budget(market)
         formulation = RobustBenTal(;
             predicted_mean = r̄,
             predicted_covariance = Σ,
@@ -142,14 +148,14 @@ backtest_market(returns_series; start_date=start_date) do past_returns, current_
         # model
         model = po_min_variance_limit_return(formulation, R; rf = rf)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_bental_limit_R, :bental_limit_R);
 
 ############# backtest with limit variance strategies #####################
 
 wealth_markowitz_limit_var, returns_markowitz_limit_var =
-backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -166,12 +172,12 @@ backtest_market(returns_series; start_date=start_date) do past_returns, current_
         # model
         model = po_max_return_limit_variance(formulation, max_risk; rf = rf)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_markowitz_limit_var, :markowitz_limit_var);
 
 wealth_soyster_limit_var, returns_soyster_limit_var =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -190,12 +196,12 @@ wealth_soyster_limit_var, returns_soyster_limit_var =
         # model
         model = po_max_return_limit_variance(formulation, max_risk; rf = rf)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_soyster_limit_var, :soyster_limit_var);
 
 wealth_bertsimas_2_limit_var, returns_bertsimas_2_limit_var =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -214,12 +220,12 @@ wealth_bertsimas_2_limit_var, returns_bertsimas_2_limit_var =
         # model
         model = po_max_return_limit_variance(formulation, max_risk; rf = rf)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_bertsimas_2_limit_var, :bertsimas_2_limit_var);
 
 wealth_bertsimas_4_limit_var, returns_bertsimas_4_limit_var =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -238,12 +244,12 @@ wealth_bertsimas_4_limit_var, returns_bertsimas_4_limit_var =
         # model
         model = po_max_return_limit_variance(formulation, max_risk; rf = rf)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_bertsimas_4_limit_var, :bertsimas_4_limit_var);
 
 wealth_bental_limit_var, returns_bental_limit_var =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -261,19 +267,19 @@ wealth_bental_limit_var, returns_bental_limit_var =
         # model
         model = po_max_return_limit_variance(formulation, max_risk; rf = rf)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_bental_limit_var, :bental_limit_var);
 
 ############# backtest with Data-Driven RO strategies #####################
 wealth_betina, returns_betina =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         # Parameters
         j_robust = 25
-        R = -0.015 / current_wealth
+        R = -0.015 / market_budget(market)
         num_train = 20
         kst = 14
         klt = 30
@@ -295,14 +301,14 @@ wealth_betina, returns_betina =
         # model
         model = po_max_predicted_return_limit_return(formulation, R; predicted_mean = r_bar_t)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_betina, :betina);
 
 ############# backtest with DRO strategies #####################
 
 wealth_delague, returns_delague_limit_var =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -323,31 +329,31 @@ wealth_delague, returns_delague_limit_var =
 
         model = po_max_utility_return(formulation)
         x = compute_solution(model, DEFAULT_SOLVER)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_delague, :delague);
 
 ############# extra strategies #####################
 
 wealth_sharpe, returns_sharpe =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
         Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
         # Parameters
         x = max_sharpe(Σ, r̄, rf)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_sharpe, :sharpe);
 
 wealth_equal_weights, returns_equal =
-    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
         # Prep
         numD, numA = size(past_returns)
         # Parameters
         x = equal_weights(numA)
-        return x * current_wealth
+        return x * market_budget(market)
     end;
 rename!(wealth_equal_weights, :equal_weights);
 
