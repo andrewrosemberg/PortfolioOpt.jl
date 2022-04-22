@@ -1,3 +1,7 @@
+const ContinuousMultivariateSampleable = Sampleable{Multivariate, Continuous}
+
+distribution(d::ContinuousMultivariateSampleable) = d
+
 """
     CenteredAmbiguitySet
 
@@ -11,10 +15,6 @@ Base.length(s::CenteredAmbiguitySet) = length(distribution(s))
 
 mean(s::CenteredAmbiguitySet) = mean(distribution(s))
 cov(s::CenteredAmbiguitySet) = cov(distribution(s))
-
-const ContinuousMultivariateSampleable = Sampleable{Multivariate, Continuous}
-
-distribution(d::ContinuousMultivariateSampleable) = d
 
 """
     AmbiguitySet

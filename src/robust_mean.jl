@@ -1,7 +1,7 @@
 Distributions.rand(rng::AbstractRNG, d::Dirac, n::Int) = hcat(fill(d.value, n)...)
 
 """
-    BudgetSet <: CenteredAmbiguitySet
+    BudgetSet{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
 
 Bertsimas's uncertainty set:
 
@@ -25,7 +25,7 @@ References:
 - Bertsimas, D. e Sim, M. (2004). The price of robustness. Operations research, 52(1):35–53.
 
 """
-struct BudgetSet{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet
+struct BudgetSet{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
     d::D
     Δ::Vector{T}
     Γ::T
@@ -120,7 +120,7 @@ end
 ##################################
 
 """
-    EllipticalSet <: CenteredAmbiguitySet
+    EllipticalSet <: CenteredAmbiguitySet{T,D}
 
 ```math
 \\left\\{ \\mu \\; \\middle| \\begin{array}{ll}
@@ -139,7 +139,7 @@ References:
 For more information on how BenTal uncertainty sets are used for RO, please review
 the PortfolioOptimization.jl [docs](https://invenia.pages.invenia.ca/PortfolioOptimization.jl/).
 """
-struct EllipticalSet{T<:Real, D<:ContinuousMultivariateSampleable} <: AmbiguitySet{T, D}
+struct EllipticalSet{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
     d::D
     Δ::T
 

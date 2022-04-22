@@ -5,28 +5,51 @@ using Distributions
 using JuMP
 using LinearAlgebra
 using LinearAlgebra: dot
-using MathOptInterface: LessThan, EqualTo, GreaterThan, constant, MAX_SENSE, MIN_SENSE
+using MathOptInterface
+using OptimalBids
+import MathOptInterface: LessThan, EqualTo, GreaterThan, constant, MAX_SENSE, MIN_SENSE
+import OptimalBids: Market, change_bids!, clear_market!, calculate_profit
 using PDMats
 using Random
 import Reexport
 import Statistics
 
+include("AmbiguitySet.jl")
 include("formulations.jl")
-include("mean_variance.jl")
-include("mean_variance_robust.jl")
-include("mean_variance_dro.jl")
-include("sample_based.jl")
-include("sample_based_robust.jl")
-include("sample_based_stochastic.jl")
-include("simple_rules.jl")
-include("utils.jl")
+include("VolumeMarket.jl")
+include("DeterministicSamples.jl")
+include("estimated_mean_variance.jl")
+include("conditional_mean.jl")
+include("robust_mean.jl")
+include("dro_mean.jl")
+include("simple_decision_rules.jl")
 include("forecasts.jl")
 include("test_utils/testutils.jl")
 
 export AmbiguitySet,
-    
+    CenteredAmbiguitySet,
+    PieceWiseUtility,
+    Robustness,
+    ExpectedReturn,
+    Variance,
+    SqrtVariance,
+    ConditionalExpectedReturn,
+    ExpectedUtility,
+    RiskConstraint,
+    ConeRegularizer,
+    ObjectiveTerm,
+    PortfolioFormulation,
+    portfolio_model!,
+    DeterministicSamples,
+    MomentUncertainty,
+    BudgetSet,
+    EllipticalSet,
+    # VolumeMarket
+    VolumeMarket,
+    market_model,
+    MarketHistory,
+    VolumeMarketHistory,
     # end-to-end
-    mean_variance_noRf_analytical,
     max_sharpe,
     equal_weights
 
@@ -34,4 +57,5 @@ Reexport.@reexport using JuMP
 
 Reexport.@reexport using MathOptInterface: LessThan, EqualTo, GreaterThan
 
+Reexport.@reexport using OptimalBids
 end

@@ -39,7 +39,7 @@ Normally this package won't focus nor make available forecasting functionalities
 As an extra, some testing utilities are available through the submodule called `TestUtils`. 
 Mainly:
  - `get_test_data` that returns a TimeArray of Prices for 6 assets.
- - `backtest_po` that provides a basic backtest using provided strategy and returns data.
+ - `backtest_market` that provides a basic backtest using provided strategy and returns data.
 
 But also:
  - `readjust_volumes`
@@ -53,7 +53,7 @@ Simple example of backtest with an available strategy.
 using COSMO
 using PortfolioOpt
 using PortfolioOpt.TestUtils: 
-    backtest_po, get_test_data, mean_variance, 
+    backtest_market, get_test_data, mean_variance, 
     percentchange, timestamp, rename!
 
 prices = get_test_data()
@@ -67,7 +67,7 @@ solver = optimizer_with_attributes(
 start_date = timestamp(returns_series)[100]
 
 wealth_strategy, returns_strategy =
-    backtest_po(returns_series; start_date=start_date
+    backtest_market(returns_series; start_date=start_date
     ) do past_returns, current_wealth, risk_free_return
 
         # Prep data provided by the backtest pipeline

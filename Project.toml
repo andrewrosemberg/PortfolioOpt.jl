@@ -11,7 +11,9 @@ MarketData = "945b72a4-3b13-509d-9b46-1525bb5c06de"
 MathOptInterface = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
 OptimalBids = "54ed2464-0158-49e7-9a8e-1c1697a616e3"
 PDMats = "90014a1f-27ba-587c-ab20-58faa44d9150"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 JuMP = "~1"

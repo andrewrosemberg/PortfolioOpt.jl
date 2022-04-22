@@ -3,8 +3,8 @@ using Distributions
 using Plots
 using PortfolioOpt
 using PortfolioOpt.TestUtils: 
-    backtest_po, get_test_data, mean_variance, 
-    percentchange, timestamp, rename!
+    backtest_market, get_test_data, mean_variance, 
+    percentchange, timestamp
 
 ############ Read Prices #############
 prices = get_test_data()
@@ -32,7 +32,7 @@ k_back = 60
 
 ############# backtest with limit return strategies #####################
 
-wealth_markowitz_limit_R, strategy_returns = backtest_po(
+wealth_markowitz_limit_R, strategy_returns = backtest_market(
     market_history; date_range=date_range
 ) do market, past_returns
     # Prep
@@ -50,16 +50,15 @@ wealth_markowitz_limit_R, strategy_returns = backtest_po(
     )
     
     # model
-    model = market_model(market, DEFAULT_SOLVER; sense=MIN_SENSE)
+    model, decision_variables = market_model(market, DEFAULT_SOLVER; sense=MIN_SENSE)
     portfolio_model!(model, formulation, decision_variables)
 
-    x = compute_solution(model, DEFAULT_SOLVER)
-    return x * current_wealth
+    change_bids!(market, model, decision_variables)
+    return nothing
 end;
-wealth_markowitz_limit_R = Dict(date_range .=> wealth_markowitz_limit_R);
 
 wealth_markowitz_infeasible_limit_R, strategy_returns =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -80,7 +79,7 @@ wealth_markowitz_infeasible_limit_R, strategy_returns =
 rename!(wealth_markowitz_infeasible_limit_R, :markowitz_infeasible_limit_R);
 
 wealth_soyster_limit_R, strategy_returns =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -103,7 +102,7 @@ wealth_soyster_limit_R, strategy_returns =
 rename!(wealth_soyster_limit_R, :soyster_limit_R);
 
 wealth_bertsimas_limit_R, strategy_returns =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -126,7 +125,7 @@ wealth_bertsimas_limit_R, strategy_returns =
 rename!(wealth_bertsimas_limit_R, :bertsimas_limit_R);
 
 wealth_bental_limit_R, strategy_returns =
-backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -150,7 +149,7 @@ rename!(wealth_bental_limit_R, :bental_limit_R);
 ############# backtest with limit variance strategies #####################
 
 wealth_markowitz_limit_var, returns_markowitz_limit_var =
-backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -172,7 +171,7 @@ backtest_po(returns_series; start_date=start_date) do past_returns, current_weal
 rename!(wealth_markowitz_limit_var, :markowitz_limit_var);
 
 wealth_soyster_limit_var, returns_soyster_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -196,7 +195,7 @@ wealth_soyster_limit_var, returns_soyster_limit_var =
 rename!(wealth_soyster_limit_var, :soyster_limit_var);
 
 wealth_bertsimas_2_limit_var, returns_bertsimas_2_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -220,7 +219,7 @@ wealth_bertsimas_2_limit_var, returns_bertsimas_2_limit_var =
 rename!(wealth_bertsimas_2_limit_var, :bertsimas_2_limit_var);
 
 wealth_bertsimas_4_limit_var, returns_bertsimas_4_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -244,7 +243,7 @@ wealth_bertsimas_4_limit_var, returns_bertsimas_4_limit_var =
 rename!(wealth_bertsimas_4_limit_var, :bertsimas_4_limit_var);
 
 wealth_bental_limit_var, returns_bental_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -268,7 +267,7 @@ rename!(wealth_bental_limit_var, :bental_limit_var);
 
 ############# backtest with Data-Driven RO strategies #####################
 wealth_betina, returns_betina =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -303,7 +302,7 @@ rename!(wealth_betina, :betina);
 ############# backtest with DRO strategies #####################
 
 wealth_delague, returns_delague_limit_var =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -331,7 +330,7 @@ rename!(wealth_delague, :delague);
 ############# extra strategies #####################
 
 wealth_sharpe, returns_sharpe =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         returns = values(past_returns)
@@ -343,7 +342,7 @@ wealth_sharpe, returns_sharpe =
 rename!(wealth_sharpe, :sharpe);
 
 wealth_equal_weights, returns_equal =
-    backtest_po(returns_series; start_date=start_date) do past_returns, current_wealth, rf
+    backtest_market(returns_series; start_date=start_date) do past_returns, current_wealth, rf
         # Prep
         numD, numA = size(past_returns)
         # Parameters

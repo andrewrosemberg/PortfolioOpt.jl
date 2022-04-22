@@ -1,5 +1,3 @@
-import OptimalBids: Market, change_bids!, clear_market!, calculate_profit
-
 mutable struct VolumeMarket{T<:Real,N} <: OptimalBids.Market
     budget::T
     volume_fee::T
@@ -54,7 +52,9 @@ function total_profit(market::VolumeMarket)
     return sum(profits.profit) + risk_free_profit
 end
 
-length(::VolumeMarket{T, N}) = N
+function length(::VolumeMarket{T, N}) where {T, N}
+    return N
+end
 
 """
     market_model(market::VolumeMarket{T,N}, optimizer_factory::Function) -> JuMP.Model, Vector{VariableRef}

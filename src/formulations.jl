@@ -1,24 +1,28 @@
 abstract type ConcaveUtilityFunction end
 
 struct PieceWiseUtility{T<:Real} <: ConcaveUtilityFunction
-    c::Vector{T,1}
-    b::Vector{T,1}
+    c::Vector{T}
+    b::Vector{T}
+
+    function PieceWiseUtility{T}(c, b) where {T}
+        @assert length(c) == length(b)
+        return PieceWiseUtility(c, b)
+    end
 end
 
-function PieceWiseUtility(c::Array{T,1}, b::Array{T,1}) where {T<:Real}
-    @assert length(c) == length(b)
-    return PieceWiseUtility(c, b)
-end
+# function PieceWiseUtility(c::Vector{T}, b::Vector{T}) where {T<:Real}
+#     @assert length(c) == length(b)
+#     return PieceWiseUtility(c, b)
+# end
 
 coeficients(u::PieceWiseUtility) = u.c
 intercepts(u::PieceWiseUtility) = u.b
 
 # TODO: Implement other useful utility functions
 
-@enum Robustness begin
-    EstimatedCase = 1
-    WorstCase = 2
-end
+abstract type Robustness end
+abstract type EstimatedCase <: Robustness end
+abstract type WorstCase <: Robustness end
 
 abstract type PortfolioStatisticalMeasure{S<:AmbiguitySet,R<:Robustness} end
 
@@ -59,7 +63,9 @@ function ConditionalExpectedReturn{R}(α::T, ambiguity_set::S, num_samples::N) w
 end
 ambiguityset(m::ConditionalExpectedReturn) = m.ambiguity_set
 sample_size(m::ConditionalExpectedReturn) = m.num_samples
-alpha_quantile(::ConditionalExpectedReturn{α,N,S,R}) = α
+function alpha_quantile(::ConditionalExpectedReturn{α,N,S,R}) where {α,N,S,R}
+    return α
+end
 
 struct ExpectedUtility{C<:ConcaveUtilityFunction,S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
     ambiguity_set::S
@@ -73,9 +79,9 @@ struct RiskConstraint{C<:Union{EqualTo, GreaterThan, LessThan}}
     constraint_type::C
 end
 
-function RiskConstraint(risk_measure::PortfolioStatisticalMeasure, constraint_type::C) where {C<:Union{EqualTo, GreaterThan, LessThan}}
-    return RiskConstraint{C}(risk_measure, constraint_type)
-end
+# function RiskConstraint(risk_measure::PortfolioStatisticalMeasure, constraint_type::C) where {C<:Union{EqualTo, GreaterThan, LessThan}}
+#     return RiskConstraint{C}(risk_measure, constraint_type)
+# end
 
 risk_measure(c::RiskConstraint) = c.risk_measure
 constant(c::RiskConstraint) = constant(c.constraint_type)
@@ -112,9 +118,9 @@ struct ObjectiveTerm{T<:Real}
     weight::T
 end
 
-function ObjectiveTerm(term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}, weight::T=1.0) where {T<:Real}
-    return ObjectiveTerm{T}(term, weight)
-end
+# function ObjectiveTerm(term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}, weight::T=1.0) where {T<:Real}
+#     return ObjectiveTerm{T}(term, weight)
+# end
 
 term(o::ObjectiveTerm) = o.term
 weight(o::ObjectiveTerm) = o.weight
@@ -124,7 +130,7 @@ struct PortfolioFormulation
     risk_constraints::Vector{RiskConstraint}
 end
 
-PortfolioFormulation(O::ObjectiveTerm, R::risk_constraints) = PortfolioFormulation([O], [R])
+PortfolioFormulation(O::ObjectiveTerm, R::RiskConstraint) = PortfolioFormulation([O], [R])
 
 function portfolio_model!(model::JuMP.Model, formulation::PortfolioFormulation, decision_variables; record_measures::Bool=false)
     # objective

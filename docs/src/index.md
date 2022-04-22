@@ -47,7 +47,7 @@ Normally this package won't focus nor make available forecasting functionalities
 As an extra, some testing utilities are available through the submodule called `TestUtils`. 
 Mainly:
  - `get_test_data` that returns a TimeArray of prices for 6 assets.
- - [`PortfolioOpt.TestUtils.backtest_po`](@ref) that provides a basic backtest using provided strategy and returns data.
+ - [`PortfolioOpt.TestUtils.backtest_market`](@ref) that provides a basic backtest using provided strategy and returns data.
 
 But also:
  - `readjust_volumes`

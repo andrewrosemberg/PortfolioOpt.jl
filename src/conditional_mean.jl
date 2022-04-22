@@ -24,3 +24,27 @@ function calculate_measure!(measure::ConditionalExpectedReturn{Inf,N,ContinuousM
 
     return θ
 end
+
+"""conditional_expectation = -cvar = -expected_shortfall"""
+function calculate_measure!(measure::ConditionalExpectedReturn{α,N,ContinuousMultivariateSampleable,EstimatedCase}, w) where {α,N}
+    model = owner_model(w)
+    s = ambiguityset(measure)
+
+    # parameters
+    numS = sample_size(measure)
+    samples = rand(s, numS)
+    sample_probability = fill(1/numS,numS)
+
+    # dual variables
+    @variable(model, z)
+    @variable(model, y[i=1:numS] >= 0)
+
+    @constraints(
+        model,
+        begin
+            ys[s=1:numS], y[s] >= z - sum(dot(samples[:, s], w))
+        end
+    )
+    return z - dot(sample_probability,y) / (1.0 - α)
+end
+
