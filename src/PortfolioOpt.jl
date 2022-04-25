@@ -49,6 +49,8 @@ export AmbiguitySet,
     MomentUncertainty,
     BudgetSet,
     EllipticalSet,
+    EstimatedCase,
+    WorstCase,
     # VolumeMarket
     VolumeMarket,
     change_bids!,
@@ -63,6 +65,7 @@ export AmbiguitySet,
     risk_free_rate,
     # backtest
     sequential_backtest_market,
+    get_records,
     # end-to-end
     max_sharpe,
     equal_weights

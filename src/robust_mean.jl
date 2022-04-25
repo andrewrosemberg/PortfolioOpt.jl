@@ -86,7 +86,7 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `s::BudgetSet`: Struct containing atributes of BudgetSet's uncertainty set.
 """
-function calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase}, w)
+function calculate_measure!(measure::ExpectedReturn{S,WorstCase}, w)  where {S<:BudgetSet}
     model = owner_model(w)
     s = ambiguityset(measure)
 
@@ -185,7 +185,7 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `s:: EllipticalSet `: Struct containing atributes of EllipticalSet's uncertainty set.
 """
-function calculate_measure!(measure::ExpectedReturn{EllipticalSet,WorstCase}, w)
+function calculate_measure!(measure::ExpectedReturn{S,WorstCase}, w)   where {S<:EllipticalSet}
     model = owner_model(w)
     s = ambiguityset(measure)
 

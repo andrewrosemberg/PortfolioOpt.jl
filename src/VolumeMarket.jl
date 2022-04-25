@@ -148,7 +148,11 @@ function VolumeMarketHistory(market::VolumeMarket{T,N}, history_clearing_prices)
     return VolumeMarketHistory{T,N}(market, history_clearing_prices, rf, sort(unique(keys(history_clearing_prices))))
 end
 
-number_assets(hist::VolumeMarketHistory{T,N}) where {T,N} = N 
+function VolumeMarketHistory(history_clearing_prices; kwards...)
+    return VolumeMarketHistory(VolumeMarket(length(values(first(history_clearing_prices))); kwards...), history_clearing_prices)
+end
+
+number_assets(::VolumeMarketHistory{T,N}) where {T,N} = N 
 
 timestamp(hist::VolumeMarketHistory) = hist.timestamp
 keys(hist::VolumeMarketHistory) = timestamp(hist)
