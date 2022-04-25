@@ -15,6 +15,8 @@ import Reexport
 using Statistics
 import Statistics: mean, cov
 import Base: eachindex, eltype, size, keys
+using UUIDs
+using JuMP.Containers: DenseAxisArray
 
 include("AmbiguitySet.jl")
 include("formulations.jl")
@@ -24,6 +26,7 @@ include("estimated_mean_variance.jl")
 include("conditional_mean.jl")
 include("robust_mean.jl")
 include("dro_mean.jl")
+include("backtest.jl")
 include("simple_decision_rules.jl")
 include("forecasts.jl")
 include("test_utils/testutils.jl")
@@ -58,6 +61,8 @@ export AmbiguitySet,
     market_template,
     current_prices,
     risk_free_rate,
+    # backtest
+    sequential_backtest_market,
     # end-to-end
     max_sharpe,
     equal_weights

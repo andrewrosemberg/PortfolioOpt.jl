@@ -79,7 +79,7 @@ Aditional arguments:
  - `optimizer_factory`: callable with zero arguments and return an empty `MathOptInterface.AbstractOptimizer``.
 """
 function market_model(market::VolumeMarket{T,N}, optimizer_factory::Any; 
-    sense::MOI.OptimizationSense=MAX_SENSE, model::JuMP.Model=Model(optimizer_factory)
+    sense::MOI.OptimizationSense, model::JuMP.Model=Model(optimizer_factory)
 ) where {T,N}
     w = @variable(model, [1:N])
     sum_invested = @variable(model)
@@ -108,6 +108,7 @@ function change_bids!(market::VolumeMarket, model::JuMP.Model, decision_variable
     status = termination_status(model)
     if status !== MOI.OPTIMAL
         @warn "Did not find an optimal solution: status=$status"
+        change_bids!(market, zeros(length(decision_variables)))
     else
         new_bids = value.(decision_variables)
         change_bids!(market, new_bids)
@@ -146,6 +147,8 @@ function VolumeMarketHistory(market::VolumeMarket{T,N}, history_clearing_prices)
     rf = Dict(keys(history_clearing_prices) .=> market.risk_free_rate)
     return VolumeMarketHistory{T,N}(market, history_clearing_prices, rf, sort(unique(keys(history_clearing_prices))))
 end
+
+number_assets(hist::VolumeMarketHistory{T,N}) where {T,N} = N 
 
 timestamp(hist::VolumeMarketHistory) = hist.timestamp
 keys(hist::VolumeMarketHistory) = timestamp(hist)

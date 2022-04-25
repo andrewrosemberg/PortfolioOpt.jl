@@ -24,15 +24,17 @@ DEFAULT_SOLVER = optimizer_with_attributes(
 
 date_range = timestamp(returns_series)[100:end]
 
-## Strategies
+## Strategies parameters
 # Look back days
 k_back = 60
+# results
+backtest_results = Dict()
 
 ############# backtest with limit return strategies #####################
 
-wealth_markowitz_limit_R, strategy_returns = sequential_backtest_market(
-    market_history; date_range=date_range
-) do market, past_returns
+backtest_results["markowitz_limit_R"], _ = sequential_backtest_market(
+    market_history, date_range,
+) do market, past_returns, ext
     # Prep
     numD, numA = size(past_returns)
     returns = values(past_returns)
@@ -44,24 +46,25 @@ wealth_markowitz_limit_R, strategy_returns = sequential_backtest_market(
 
     formulation = PortfolioFormulation(
         ObjectiveTerm(SqrtVariance(d)),
-        RiskConstraint(ExpectedReturn(d), GreaterThan(R))
+        RiskConstraint(ExpectedReturn(d), GreaterThan(R)),
+        MIN_SENSE
     )
     
-    # model
-    model, decision_variables = market_model(market, DEFAULT_SOLVER; sense=MIN_SENSE)
-    portfolio_model!(model, formulation, decision_variables)
-
-    change_bids!(market, model, decision_variables)
-    return nothing
+    pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
+    return pointers
 end;
 
-plt = plot(
-    collect(keys(wealth_markowitz_limit_R)), collect(values(wealth_markowitz_limit_R));
-    title="Culmulative Wealth",
+plt = plot(title="Culmulative Wealth",
     xlabel="Time",
     ylabel="Wealth",
     legend=:outertopright,
 )
+for (strategy_name, recorders) in backtest_results
+    plot!(plt, 
+        axes(get_records(recorders[:wealth]), 1), get_records(recorders[:wealth]).data;
+        label=strategy_name,
+    )
+end
 
 wealth_markowitz_infeasible_limit_R, strategy_returns =
     sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf

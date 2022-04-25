@@ -72,25 +72,33 @@ utility(m::ExpectedUtility) = m.utility
 struct RiskConstraint{C<:Union{EqualTo, GreaterThan, LessThan}}
     risk_measure::PortfolioStatisticalMeasure
     constraint_type::C
+    uid::UUID
+
+    function RiskConstraint(risk_measure::PortfolioStatisticalMeasure, constraint_type::C, uid::UUID=uuid1()) where {C}
+        return new{C}(risk_measure, constraint_type, uid)
+    end
 end
 
-# function RiskConstraint(risk_measure::PortfolioStatisticalMeasure, constraint_type::C) where {C<:Union{EqualTo, GreaterThan, LessThan}}
-#     return RiskConstraint{C}(risk_measure, constraint_type)
-# end
-
+uid(c::RiskConstraint) = c.uid
 risk_measure(c::RiskConstraint) = c.risk_measure
 constant(c::RiskConstraint) = constant(c.constraint_type)
 
 function constraint!(model::JuMP.Model, r::RiskConstraint{LessThan{T}}, decision_variables) where {T}
-    @constraint(model, calculate_measure!(risk_measure(r), decision_variables) <= constant(r))
+    pointer_term = calculate_measure!(risk_measure(r), decision_variables)
+    @constraint(model, pointer_term <= constant(r))
+    return pointer_term
 end
 
 function constraint!(model::JuMP.Model, r::RiskConstraint{GreaterThan{T}}, decision_variables) where {T}
-    @constraint(model, calculate_measure!(risk_measure(r), decision_variables) >= constant(r))
+    pointer_term = calculate_measure!(risk_measure(r), decision_variables)
+    @constraint(model, pointer_term >= constant(r))
+    return pointer_term
 end
 
 function constraint!(model::JuMP.Model, r::RiskConstraint{EqualTo{T}}, decision_variables) where {T}
-    @constraint(model, calculate_measure!(risk_measure(r), decision_variables) == constant(r))
+    pointer_term = calculate_measure!(risk_measure(r), decision_variables)
+    @constraint(model, pointer_term == constant(r))
+    return pointer_term
 end
 
 struct ConeRegularizer{T<:Real}
@@ -111,39 +119,55 @@ end
 struct ObjectiveTerm{T<:Real}
     term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}
     weight::T
+    uid::UUID
 
-    function ObjectiveTerm(term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}, weight::T=1.0) where {T}
-        return new{T}(term, weight)
+    function ObjectiveTerm(term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}, weight::T=1.0, uid::UUID=uuid1()) where {T}
+        return new{T}(term, weight, uid)
     end
 end
 
-# function ObjectiveTerm(term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}, weight::T=1.0) where {T<:Real}
-#     return ObjectiveTerm{T}(term, weight)
-# end
-
+uid(c::ObjectiveTerm) = c.uid
 term(o::ObjectiveTerm) = o.term
 weight(o::ObjectiveTerm) = o.weight
 
 struct PortfolioFormulation
     objective_terms::Vector{ObjectiveTerm}
     risk_constraints::Vector{RiskConstraint}
+    sense::MOI.OptimizationSense
 end
 
-PortfolioFormulation(O::ObjectiveTerm, R::RiskConstraint) = PortfolioFormulation([O], [R])
+PortfolioFormulation(O::ObjectiveTerm, R::RiskConstraint, sense::MOI.OptimizationSense) = PortfolioFormulation([O], [R], sense)
+sense(formulation::PortfolioFormulation) = formulation.sense
 
 function portfolio_model!(model::JuMP.Model, formulation::PortfolioFormulation, decision_variables; record_measures::Bool=false)
+    pointers = if record_measures
+        Dict()
+    else
+        nothing
+    end
+
     # objective
     obj = objective_function(model)
     for obj_term in formulation.objective_terms
-        obj += calculate_measure!(term(obj_term), decision_variables) .* weight(obj_term)
+        pointer_term = calculate_measure!(term(obj_term), decision_variables)
+        obj += pointer_term .* weight(obj_term)
+
+        if record_measures
+            pointers[uid(obj_term)] = pointer_term
+        end
     end
+
     drop_zeros!(obj)
-    set_objective(model, objective_sense(model), obj)
+    set_objective(model, sense(formulation), obj)
 
     # risk constraints
     for risk_constraint in formulation.risk_constraints
-        constraint!(model, risk_constraint, decision_variables)
+        pointer_term = constraint!(model, risk_constraint, decision_variables)
+        
+        if record_measures
+            pointers[uid(risk_constraint)] = pointer_term
+        end
     end
 
-    return nothing
+    return pointers
 end

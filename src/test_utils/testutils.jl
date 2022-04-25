@@ -18,10 +18,8 @@ module TestUtils
     using OrderedCollections
 
     include("auxilary_functions.jl")
-    include("backtest.jl")
 
-    export sequential_backtest_market,
-        get_test_data,
+    export get_test_data,
         mean_variance,
         keys
 
