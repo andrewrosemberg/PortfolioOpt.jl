@@ -27,7 +27,7 @@ k_back = 60
 # results
 backtest_results = Dict()
 
-############# backtest strategies #####################
+############# backtest stochastic strategies #####################
 
 backtest_results["markowitz_limit_R"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
@@ -72,6 +72,8 @@ backtest_results["markowitz_limit_var"], _ = sequential_backtest_market(
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
     return pointers
 end
+
+############# backtest with RO strategies #####################
 
 backtest_results["normal_limit_soyster"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
@@ -138,7 +140,7 @@ backtest_results["normal_limit_bertsimas_60"], _ = sequential_backtest_market(
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
     return pointers
 end
-#TODO
+
 backtest_results["normal_limit_bental"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
 ) do market, past_returns, ext
@@ -161,6 +163,42 @@ backtest_results["normal_limit_bental"], _ = sequential_backtest_market(
     return pointers
 end
 
+############# backtest with Data-Driven RO strategies #####################
+
+backtest_results["mixed_signals_limit_betina"], _ = sequential_backtest_market(
+    VolumeMarketHistory(returns_series), date_range,
+) do market, past_returns, ext
+    # Prep
+    numD, numA = size(past_returns)
+    returns = values(past_returns)
+    
+    # Parameters
+    j_robust = 25
+    R = -0.015 / market_budget(market)
+    num_train = 20
+    kst = 14
+    klt = 30
+    kmom = 20
+    Q = 2
+
+    # Predict return 
+    r̄ = zeros(numA)
+    for i in 1:numA
+        r̄[i] = mixed_signals_predict_return(
+            returns[:, i], num_train, kst, klt, kmom, Q
+        )
+    end
+
+    formulation = PortfolioFormulation(
+        ObjectiveTerm(ExpectedReturn(Dirac(r̄))),
+        RiskConstraint(ConditionalExpectedReturn{WorstCase}(Inf, DeterministicSamples(returns'[:,:]), j_robust), GreaterThan(R)),
+        MAX_SENSE
+    )
+    
+    pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
+    return pointers
+end
+
 plt = plot(;title="Culmulative Wealth",
     xlabel="Time",
     ylabel="Wealth",
@@ -173,63 +211,6 @@ for (strategy_name, recorders) in backtest_results
     )
 end
 plt
-
-wealth_bental_limit_var, returns_bental_limit_var =
-    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
-        # Prep
-        numD, numA = size(past_returns)
-        returns = values(past_returns)
-        Σ_s, r̄_s = mean_variance(returns[(end - 14):end, :])
-        Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
-        
-        # Parameters
-        max_risk = 0.8
-        formulation = RobustBenTal(;
-            predicted_mean = r̄_s,
-            predicted_covariance = Σ,
-            uncertainty_delta = 0.028
-        )
-        
-        # model
-        model = po_max_return_limit_variance(formulation, max_risk; rf = rf)
-        x = compute_solution(model, DEFAULT_SOLVER)
-        return x * market_budget(market)
-    end;
-rename!(wealth_bental_limit_var, :bental_limit_var);
-
-############# backtest with Data-Driven RO strategies #####################
-wealth_betina, returns_betina =
-    sequential_backtest_market(returns_series; start_date=start_date) do past_returns, market_budget(market), rf
-        # Prep
-        numD, numA = size(past_returns)
-        returns = values(past_returns)
-        # Parameters
-        j_robust = 25
-        R = -0.015 / market_budget(market)
-        num_train = 20
-        kst = 14
-        klt = 30
-        kmom = 20
-        Q = 2
-
-        formulation = RobustBetina(;
-            sampled_returns = returns[(end - j_robust):end, :]
-        )
-
-        # Predict return 
-        r_bar_t = zeros(numA)
-        for i in 1:numA
-            r_bar_t[i] = mixed_signals_predict_return(
-                returns[:, i], num_train, kst, klt, kmom, Q
-            )
-        end
-        
-        # model
-        model = po_max_predicted_return_limit_return(formulation, R; predicted_mean = r_bar_t)
-        x = compute_solution(model, DEFAULT_SOLVER)
-        return x * market_budget(market)
-    end;
-rename!(wealth_betina, :betina);
 
 ############# backtest with DRO strategies #####################
 

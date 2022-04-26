@@ -68,7 +68,9 @@ export AmbiguitySet,
     get_records,
     # end-to-end
     max_sharpe,
-    equal_weights
+    equal_weights,
+    # forecasts
+    mixed_signals_predict_return
 
 Reexport.@reexport using JuMP
 

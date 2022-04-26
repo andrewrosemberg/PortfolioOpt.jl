@@ -12,7 +12,7 @@ Further information:
   - Fernandes, B., Street, A., ValladA˜ £o, D., e Fernandes, C. (2016). An adaptive robust portfolio optimization model with loss constraints based on data-driven polyhedral uncertainty sets. European Journal of Operational Research, 255(3):961 – 970. ISSN 0377-2217. URL.
 
 """
-function calculate_measure!(measure::ConditionalExpectedReturn{Inf,N,ContinuousMultivariateSampleable,R}, w) where {N,R}
+function calculate_measure!(measure::ConditionalExpectedReturn{Inf,N,D,R}, w) where {D<:ContinuousMultivariateSampleable,N,R}
     model = owner_model(w)
     s = ambiguityset(measure)
     samples = rand(s, sample_size(measure))
@@ -26,7 +26,7 @@ function calculate_measure!(measure::ConditionalExpectedReturn{Inf,N,ContinuousM
 end
 
 """conditional_expectation = -cvar = -expected_shortfall"""
-function calculate_measure!(measure::ConditionalExpectedReturn{α,N,ContinuousMultivariateSampleable,EstimatedCase}, w) where {α,N}
+function calculate_measure!(measure::ConditionalExpectedReturn{α,N,D,EstimatedCase}, w) where {D<:ContinuousMultivariateSampleable,α,N}
     model = owner_model(w)
     s = ambiguityset(measure)
 

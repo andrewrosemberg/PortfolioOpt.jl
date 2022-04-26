@@ -25,12 +25,12 @@ References:
 - Bertsimas, D. e Sim, M. (2004). The price of robustness. Operations research, 52(1):35–53.
 
 """
-struct BudgetSet{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
+struct BudgetSet{T<:Real, D<:Sampleable} <: CenteredAmbiguitySet{T,D}
     d::D
     Δ::Vector{T}
     Γ::T
     # Inner constructor for validating arguments
-    function BudgetSet{T, D}(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:ContinuousMultivariateSampleable}
+    function BudgetSet{T, D}(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:Sampleable}
         length(d) == length(Δ) || throw(ArgumentError(
             "Distribution ($(length(d))) and Δ ($(length(Δ))) are not the same length"
         ))
@@ -44,7 +44,7 @@ end
 distribution(s::BudgetSet) = s.d
 
 # Default outer constructor
-BudgetSet(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:ContinuousMultivariateSampleable} = BudgetSet{T, D}(d, Δ, Γ)
+BudgetSet(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:Sampleable} = BudgetSet{T, D}(d, Δ, Γ)
 
 """
     calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase})
@@ -191,11 +191,14 @@ function calculate_measure!(measure::ExpectedReturn{S,WorstCase}, w)   where {S<
 
     # parameters
     means = Vector(Distributions.mean(s.d))
+    Σ = PDMat(Symmetric(cov(s.d)))
+    sqrt_Σ = collect(Σ.chol.U)
+
     Δ = s.Δ
     # dual variables
     @variable(model, θ)
     # constraints: from duality
-    @constraint(model, [θ; Matrix(sqrtcov(s.d)) * w] in JuMP.SecondOrderCone())
+    @constraint(model, [θ; sqrt_Σ * w] in JuMP.SecondOrderCone())
 
     return dot(w, means) - θ * Δ
 end

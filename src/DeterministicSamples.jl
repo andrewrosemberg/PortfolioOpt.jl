@@ -25,5 +25,5 @@ function Distributions.rand(
     return s.samples
 end
 
-mean(s::DeterministicSamples) = Statistics.mean(s.samples, dims=1)'[:,1]
-cov(s::DeterministicSamples) = Statistics.cov(s.samples, dims=1)
+mean(s::DeterministicSamples) = Statistics.mean(s.samples, dims=2)[:,1]
+cov(s::DeterministicSamples) = Statistics.cov(s.samples, dims=2)

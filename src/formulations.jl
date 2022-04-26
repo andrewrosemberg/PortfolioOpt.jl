@@ -56,6 +56,7 @@ end
 function ConditionalExpectedReturn{R}(α::T, ambiguity_set::S, num_samples::N) where {T<:Real, N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Robustness}
     return ConditionalExpectedReturn{α,N,S,R}(ambiguity_set, num_samples)
 end
+
 ambiguityset(m::ConditionalExpectedReturn) = m.ambiguity_set
 sample_size(m::ConditionalExpectedReturn) = m.num_samples
 function alpha_quantile(::ConditionalExpectedReturn{α,N,S,R}) where {α,N,S,R}
