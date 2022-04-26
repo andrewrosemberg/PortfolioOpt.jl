@@ -15,6 +15,8 @@ function VolumeMarket(N::Int; budget::T=1.0, volume_fee::T=0.0, allow_short_sell
     VolumeMarket(N, budget, volume_fee, allow_short_selling, risk_free_rate)
 end
 
+risk_free_rate(market::VolumeMarket) = market.risk_free_rate
+
 market_budget(market::VolumeMarket) = market.budget
 function set_market_budget(market::VolumeMarket{T,N}, val::T) where {T,N}
     market.budget = val

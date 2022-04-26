@@ -4,13 +4,13 @@ struct PieceWiseUtility{T<:Real} <: ConcaveUtilityFunction
     c::Vector{T}
     b::Vector{T}
 
-    function PieceWiseUtility{T}(c, b) where {T}
+    function PieceWiseUtility(c::Vector{T}=[1.0], b::Vector{T}=[0.0]) where T
         @assert length(c) == length(b)
-        return PieceWiseUtility(c, b)
+        return new{T}(c, b)
     end
 end
 
-coeficients(u::PieceWiseUtility) = u.c
+coefficients(u::PieceWiseUtility) = u.c
 intercepts(u::PieceWiseUtility) = u.b
 
 # TODO: Implement other useful utility functions
@@ -67,6 +67,11 @@ struct ExpectedUtility{C<:ConcaveUtilityFunction,S<:AmbiguitySet,R<:Robustness} 
     ambiguity_set::S
     utility::C
 end
+
+function ExpectedUtility(ambiguity_set::S, utility::C, R::Type{<:Robustness}) where {C<:ConcaveUtilityFunction,S<:AmbiguitySet}
+    ExpectedUtility{C,S,R}(ambiguity_set, utility)
+end
+
 ambiguityset(m::ExpectedUtility) = m.ambiguity_set
 utility(m::ExpectedUtility) = m.utility
 
@@ -132,12 +137,20 @@ term(o::ObjectiveTerm) = o.term
 weight(o::ObjectiveTerm) = o.weight
 
 struct PortfolioFormulation
-    objective_terms::Vector{ObjectiveTerm}
-    risk_constraints::Vector{RiskConstraint}
     sense::MOI.OptimizationSense
+    objective_terms::Vector{<:ObjectiveTerm}
+    risk_constraints::Vector{<:RiskConstraint}
+
+    function PortfolioFormulation(sense::MOI.OptimizationSense,
+        objective_terms::Vector{<:ObjectiveTerm}, 
+        risk_constraints::Vector{<:RiskConstraint}=Vector{RiskConstraint}(),
+    )
+        return new(sense, objective_terms, risk_constraints)
+    end
 end
 
-PortfolioFormulation(O::ObjectiveTerm, R::RiskConstraint, sense::MOI.OptimizationSense) = PortfolioFormulation([O], [R], sense)
+PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk::RiskConstraint{C}) where {T,C} = PortfolioFormulation(sense, [obj], [risk])
+PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}) where {T} = PortfolioFormulation(sense, [obj])
 sense(formulation::PortfolioFormulation) = formulation.sense
 
 function portfolio_model!(model::JuMP.Model, formulation::PortfolioFormulation, decision_variables; record_measures::Bool=false)

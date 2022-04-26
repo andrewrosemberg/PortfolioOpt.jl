@@ -52,7 +52,7 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `s::MomentUncertainty`: Struct containing atributes of MomentUncertainty ambiguity set.
 """
-function calculate_measure!(m::ExpectedUtility{PieceWiseUtility,MomentUncertainty,WorstCase}, w)
+function calculate_measure!(m::ExpectedUtility{U,S,R}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty,R<:WorstCase}
     model = owner_model(w)
     s = ambiguityset(m)
     utility_function = utility(m)
