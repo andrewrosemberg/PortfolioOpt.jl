@@ -2,6 +2,7 @@ module PortfolioOpt
 
 import Base: size, length
 using Distributions
+import Distributions: rand
 using JuMP
 using LinearAlgebra
 using LinearAlgebra: dot
