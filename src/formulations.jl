@@ -19,9 +19,9 @@ abstract type Robustness end
 abstract type EstimatedCase <: Robustness end
 abstract type WorstCase <: Robustness end
 
-abstract type PortfolioStatisticalMeasure{S<:AmbiguitySet,R<:Robustness} end
+abstract type PortfolioRiskMeasure{S<:AmbiguitySet,R<:Robustness} end
 
-struct ExpectedReturn{S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
+struct ExpectedReturn{S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
     ambiguity_set::S
 end
 
@@ -30,7 +30,7 @@ function ExpectedReturn(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) w
 end
 ambiguityset(m::ExpectedReturn) = m.ambiguity_set
 
-struct Variance{S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
+struct Variance{S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
     ambiguity_set::S
 end
 
@@ -39,7 +39,7 @@ function Variance(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) where {
 end
 ambiguityset(m::Variance) = m.ambiguity_set
 
-struct SqrtVariance{S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
+struct SqrtVariance{S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
     ambiguity_set::S
 end
 
@@ -48,7 +48,7 @@ function SqrtVariance(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) whe
 end
 
 ambiguityset(m::SqrtVariance) = m.ambiguity_set
-struct ConditionalExpectedReturn{α,N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
+struct ConditionalExpectedReturn{α,N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
     ambiguity_set::S
     num_samples::N
 end
@@ -63,7 +63,7 @@ function alpha_quantile(::ConditionalExpectedReturn{α,N,S,R}) where {α,N,S,R}
     return α
 end
 
-struct ExpectedUtility{C<:ConcaveUtilityFunction,S<:AmbiguitySet,R<:Robustness} <: PortfolioStatisticalMeasure{S,R}
+struct ExpectedUtility{C<:ConcaveUtilityFunction,S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
     ambiguity_set::S
     utility::C
 end
@@ -76,11 +76,11 @@ ambiguityset(m::ExpectedUtility) = m.ambiguity_set
 utility(m::ExpectedUtility) = m.utility
 
 struct RiskConstraint{C<:Union{EqualTo, GreaterThan, LessThan}}
-    risk_measure::PortfolioStatisticalMeasure
+    risk_measure::PortfolioRiskMeasure
     constraint_type::C
     uid::UUID
 
-    function RiskConstraint(risk_measure::PortfolioStatisticalMeasure, constraint_type::C, uid::UUID=uuid1()) where {C}
+    function RiskConstraint(risk_measure::PortfolioRiskMeasure, constraint_type::C, uid::UUID=uuid1()) where {C}
         return new{C}(risk_measure, constraint_type, uid)
     end
 end
@@ -123,11 +123,11 @@ function calculate_measure!(m::ConeRegularizer, w)
 end
 
 struct ObjectiveTerm{T<:Real}
-    term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}
+    term::Union{PortfolioRiskMeasure,ConeRegularizer{T}}
     weight::T
     uid::UUID
 
-    function ObjectiveTerm(term::Union{PortfolioStatisticalMeasure,ConeRegularizer{T}}, weight::T=1.0, uid::UUID=uuid1()) where {T}
+    function ObjectiveTerm(term::Union{PortfolioRiskMeasure,ConeRegularizer{T}}, weight::T=1.0, uid::UUID=uuid1()) where {T}
         return new{T}(term, weight, uid)
     end
 end

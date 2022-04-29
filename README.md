@@ -17,19 +17,33 @@ julia> ] add https://github.com/andrewrosemberg/PortfolioOpt.jl.git
 
 ## PO Strategies
 
-There are two types of strategies implemented in this package: 
- - Optimization model creation functions that receive the formulation and parameters of the strategy as inputs, and returns a problem with the necessary variables and constraints. Solutions to the resulting optimization model can be computed using (`compute_solution`). Currently implemented ones are: 
-    - `po_max_conditional_expectation_limit_predicted_return` 
-    - `po_max_predicted_return_limit_conditional_expectation`
-    - `po_max_predicted_return_limit_return`
-    - `po_max_return_limit_variance`
-    - `po_max_utility_return`
-    - `po_min_variance_limit_return`
+The core functionalities of this package are implementations of `PortfolioRiskMeasure`s of `AmbiguitySets` that can be used to define `ObjectiveTerm`s  and `RiskConstraint`s. 
+ - Currently implemented `AmbiguitySets` are all `CenteredAmbiguitySet`, i.e. centered around a Continuous Multivariate `Sampleable`. E.g. : 
+    - Any multivariate distribution,
+    - `MomentUncertainty`,
+    - `BudgetSet`,
+    - `EllipticalSet`
+
+    PieceWiseUtility,
+    Robustness,
+    ExpectedReturn,
+    Variance,
+    SqrtVariance,
+    ConditionalExpectedReturn,
+    ExpectedUtility,
+    RiskConstraint,
+    ConeRegularizer,
+    ObjectiveTerm,
+    PortfolioFormulation,
+    portfolio_model!,
+    DeterministicSamples,
+
+    EstimatedCase,
+    WorstCase,
 
  - "End-to-End" functions that receive parameters as inputs and output the weights of a portfolio summing up to the maximum wealth defined in the parameters. These are mainly simple rules or analytical solutions to simple PO formulations: 
     - `max_sharpe` 
     - `equal_weights` 
-    - `mean_variance_noRf_analytical`
 
 Normally this package won't focus nor make available forecasting functionalities, but, as an exception, there is one univariate point-prediction forecasting function exported: 
  - `mixed_signals_predict_return`
@@ -42,56 +56,57 @@ Mainly:
  - `sequential_backtest_market` that provides a basic backtest using provided strategy and returns data.
 
 But also:
- - `readjust_volumes`
  - `mean_variance`
 
-## Example
+## Example Markowitz with Empirical Forecaster
 
 Simple example of backtest with an available strategy.
 
 ```julia
 using COSMO
+using Distributions
 using PortfolioOpt
-using PortfolioOpt.TestUtils: 
-    sequential_backtest_market, get_test_data, mean_variance, 
-    percentchange, timestamp, rename!
+using PortfolioOpt.TestUtils
 
-prices = get_test_data()
+# Read Prices 
+prices = get_test_data();
 numD, numA = size(prices) # A: Assets    D: Days
-returns_series = percentchange(prices)
 
-solver = optimizer_with_attributes(
+# Calculating returns 
+returns_series = percentchange(prices);
+
+# Backtest Parameters 
+DEFAULT_SOLVER = optimizer_with_attributes(
     COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
 )
 
-start_date = timestamp(returns_series)[100]
+date_range = timestamp(returns_series)[100:end];
 
-wealth_strategy, returns_strategy =
-    sequential_backtest_market(returns_series; start_date=start_date
-    ) do past_returns, market_budget(market), risk_free_return
+# Backtest
+backtest_results = Dict()
+backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
+    VolumeMarketHistory(returns_series), date_range,
+) do market, past_returns, ext
+    # Parameters
+    max_std = 0.003 / market_budget(market)
+    k_back = 60
 
-        # Prep data provided by the backtest pipeline
-        numD, numA = size(past_returns)
-        returns = values(past_returns)
-        # calculate mean and variance for the past 60 days
-        Σ, r̄ = mean_variance(returns[(end - 60):end, :])
+    # Prep
+    numD, numA = size(past_returns)
+    returns = values(past_returns)
+    
+    # Forecast
+    Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
+    d = MvNormal(r̄, Σ)
 
-        # Parameters
-        # maximum acceptable normalized variance for our portfolio
-        max_risk = 0.8
-        formulation = MeanVariance(;
-            predicted_mean = r̄,
-            predicted_covariance = Σ,
-        )
-
-        # Build PO model
-        model = po_max_return_limit_variance(formulation, max_risk; rf = risk_free_return)
-
-        # Optimize model and retrieve solution
-        x = compute_solution(model, solver)
-
-        # return invested portfolio in used currency
-        return x * market_budget(market)
+    # PO Formulation
+    formulation = PortfolioFormulation(MAX_SENSE,
+        ObjectiveTerm(ExpectedReturn(d)),
+        RiskConstraint(SqrtVariance(d), LessThan(max_std)),
+    )
+    
+    pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
+    return pointers
 end
 
 ```
@@ -100,12 +115,17 @@ end
 ```
 using Plots
 
-plot(
-    wealth_strategy;
-    title="Culmulative Wealth",
+plt = plot(;title="Culmulative Wealth",
     xlabel="Time",
     ylabel="Wealth",
     legend=:outertopright,
-)
+);
+for (strategy_name, recorders) in backtest_results
+    plot!(plt, 
+        axes(get_records(recorders[:wealth]), 1), get_records(recorders[:wealth]).data;
+        label=strategy_name,
+    )
+end
+plt
 ```
 ![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/cumwealth.png?raw=true)
