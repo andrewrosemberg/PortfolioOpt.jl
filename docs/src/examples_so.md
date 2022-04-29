@@ -164,9 +164,10 @@ backtest_results["GP_markowitz_limit_var"], _ = sequential_backtest_market(
     returns = values(past_returns)
     
     # Forecast
-    dates_for_test = [ext[:date]]
-    x_test = MOInputIsotopicByOutputs(date2float.(dates_for_test), numA);
-    y_test = vec(values(returns_series[dates_for_test]));
+    dates_for_training = timestamp(past_returns)[end-k_back:end]
+    x_train = MOInputIsotopicByOutputs(date2float.(dates_for_training), numA)
+    y_train = vec(values(past_returns[dates_for_training]))
+    x_test = MOInputIsotopicByOutputs(date2float.([ext[:date]]), numA);
 
     ilmm = build_gp(final_params)
     ilmmx = ilmm(x_train, final_params.var_noise)
@@ -184,7 +185,7 @@ backtest_results["GP_markowitz_limit_var"], _ = sequential_backtest_market(
 end
 ```
 
-### Plot
+## Plot
 
 ```@example Backtest
 plt = plot(;title="Culmulative Wealth",

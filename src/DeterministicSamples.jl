@@ -11,7 +11,7 @@ function Distributions.rand(
     x = Array{T, 2}(undef, length(s), num_requested_samples)
     num_samples = size(samples, 2)
     num_first_samples = min(num_requested_samples, num_samples)
-    x[:, 1:num_first_samples] = samples[:, 1:num_first_samples]
+    x[:, 1:num_first_samples] = samples[:, end-num_first_samples+1:end]
     num_last_samples = num_requested_samples - num_first_samples
     if num_last_samples > 0
         x[:, num_first_samples+1:end] = samples[:, rand(rng, 1:num_samples, num_last_samples)]
