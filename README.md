@@ -17,35 +17,40 @@ julia> ] add https://github.com/andrewrosemberg/PortfolioOpt.jl.git
 
 ## PO Strategies
 
-The core functionalities of this package are implementations of `PortfolioRiskMeasure`s of `AmbiguitySets` that can be used to define `ObjectiveTerm`s  and `RiskConstraint`s. 
- - Currently implemented `AmbiguitySets` are all `CenteredAmbiguitySet`, i.e. centered around a Continuous Multivariate `Sampleable`. E.g. : 
-    - Any multivariate distribution,
-    - `MomentUncertainty`,
-    - `BudgetSet`,
-    - `EllipticalSet`
+The core functionalities of this package are implementations of risk measures (type `PortfolioRiskMeasure`) of the random variable representing the next period portfolio return (`R = w'r`. where `w`: investment weights; `r`: asset returns) used to define the objective's terms (type `ObjectiveTerm`) and risk constraints (type `RiskConstraint`) of a PO formulation (type `PortfolioFormulation`). As with realistic applications, the decision maker might only have limited information about the individual asset returns, so these can be described in ambiguity sets (type `AmbiguitySet`).
 
-    PieceWiseUtility,
-    Robustness,
-    ExpectedReturn,
-    Variance,
-    SqrtVariance,
-    ConditionalExpectedReturn,
-    ExpectedUtility,
-    RiskConstraint,
-    ConeRegularizer,
-    ObjectiveTerm,
-    PortfolioFormulation,
-    portfolio_model!,
-    DeterministicSamples,
+Currently acceptable `AmbiguitySet`s are all `CenteredAmbiguitySet`s, i.e. centered around a (usually Continuous) Multivariate `Sampleable`. E.g. :
+ - Point distributions (type `Dirac`) if the decision maker has absolute certainty of the PO returns;
+ - Any continuous multivariate distribution (type `Sampleable{Multivariate, Continuous}`) if the decision maker can confidently estimate the distriubution for the next period's returns;
+ - Distributionally robust ambiguity sets if a set of distributions are equally likelly to be the true distribution:
+    - type `MomentUncertainty`;
+ - Robust uncertainty sets if the decision maker can only infer the support of the true distribution (also viewed as distributionally robust ambiguity sets containting just single point distributions):
+    - type `BudgetSet`,
+    - type `EllipticalSet`.
 
-    EstimatedCase,
-    WorstCase,
+Currently implemented `PortfolioRiskMeasure`s are: 
+ - Expeceted return (`ExpectedReturn`);
+ - `Variance`;
+ - Square root of the portfolio variance (`SqrtVariance`);
+ - Conditional expected return (`ConditionalExpectedReturn`) - also called Conditional Value at Risk (CVAR) or (Expected Shortfall);
+ - Expected utility (`ExpectedUtility`) which computes the expected value of a specified (hopefully concave) utility function (`ConcaveUtilityFunction`):
+    - the only implemented one is the piece-wise concave utility function `PieceWiseUtility`.
 
- - "End-to-End" functions that receive parameters as inputs and output the weights of a portfolio summing up to the maximum wealth defined in the parameters. These are mainly simple rules or analytical solutions to simple PO formulations: 
+Given that `AmbiguitySet`s might be sets of distributions, it is necessary to determine which distribution to use in the definition of the `PortfolioRiskMeasure`. This choice can be imposed by the user through his level of robustness (type `Robustness`):
+ - `EstimatedCase` if dealing with `CenteredAmbiguitySet`s and the user doesn't want to add any robustness (default);
+ - `WorstCase` if the decision maker wants to use the worst case distribution in the ambiguity set.
+
+The `PortfolioRiskMeasure`s can be used to define both the `RiskConstraint`s and the `ObjectiveTerm`s in a `PortfolioFormulation` that can be parsed into a `JuMP.Model` using the `portfolio_model!` function.
+
+In addition, `ObjectiveTerm`s can also be `ConeRegularizer`s defined by a cone set (e.g. `norm-2`) and a linear transformation (default Identity).
+
+## Extras
+
+Some benchmarks are available as "End-to-End" functions that receive parameters as inputs and output the weights of a portfolio summing up to the maximum wealth defined in the parameters. These are mainly simple rules or analytical solutions to simple PO formulations: 
     - `max_sharpe` 
     - `equal_weights` 
 
-Normally this package won't focus nor make available forecasting functionalities, but, as an exception, there is one univariate point-prediction forecasting function exported: 
+Normally, this package won't focus nor make available forecasting functionalities, but, as an exception, there is one univariate point-prediction forecasting function exported: 
  - `mixed_signals_predict_return`
 
 ## TestUtils
@@ -88,30 +93,66 @@ backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
 ) do market, past_returns, ext
     # Parameters
-    max_std = 0.003 / market_budget(market)
-    k_back = 60
+    max_std = 0.03 / market_budget(market) # standard deviation limit
+    k_back = 60 # forecaster lookback
 
     # Prep
     numD, numA = size(past_returns)
     returns = values(past_returns)
     
-    # Forecast
+    # Empirical Forecast
     Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
     d = MvNormal(r̄, Σ)
 
     # PO Formulation
-    formulation = PortfolioFormulation(MAX_SENSE,
-        ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(SqrtVariance(d), LessThan(max_std)),
+    formulation = PortfolioFormulation(MAX_SENSE, # Maximization problem
+        ObjectiveTerm(ExpectedReturn(d)), # Objective: Max Expected return of forecasted distribution
+        RiskConstraint(SqrtVariance(d), LessThan(max_std)), # Risk: limit PO standard deviation
     )
     
-    pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
-    return pointers
+    change_bids!(market, formulation, DEFAULT_SOLVER)
 end
 
 ```
 
-### Plot Results
+## Example Markowitz with Empirical Forecaster, Soyster Uncertainty Box and L1 regularizer
+
+```julia
+
+backtest_results["EP_markowitz_with_soyster_l1"], _ = sequential_backtest_market(
+    VolumeMarketHistory(returns_series), date_range,
+) do market, past_returns, ext
+    # Parameters
+    max_std = 0.03 / market_budget(market)
+    R = -0.06 / market_budget(market)
+    l1_penalty = -0.0003
+    k_back = 60
+    
+    # Prep
+    numD, numA = size(past_returns)
+    returns = values(past_returns)
+
+    # Empirical Forecast
+    Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
+    d = MvNormal(r̄, Σ)
+
+    formulation = PortfolioFormulation(MAX_SENSE,
+        [ # Objective Terms:
+            ObjectiveTerm(ExpectedReturn(d)), # Max Expected return of forecasted distribution
+            ObjectiveTerm(ConeRegularizer(MOI.NormOneCone(numA+1)), l1_penalty) # Regularize decisions through norm-1 regularizer with `l1_penalty` coeficient
+        ],
+        [ # Risk Constraints:
+            RiskConstraint(SqrtVariance(d), LessThan(max_std)), # limit PO standard deviation
+            RiskConstraint(ExpectedReturn(BudgetSet(d, maximum(abs.(returns); dims=1)'[:] .- r̄, numA * 1.0), WorstCase), GreaterThan(R)), # Worst case return has to be greater than `R`
+        ]
+    )
+    
+    change_bids!(market, formulation, DEFAULT_SOLVER)
+end
+
+```
+
+## Plot Results
 ```
 using Plots
 

@@ -107,9 +107,13 @@ function constraint!(model::JuMP.Model, r::RiskConstraint{EqualTo{T}}, decision_
     return pointer_term
 end
 
-struct ConeRegularizer{T<:Real}
-    weight_matrix::Array{T,2}
-    norm_cone::AbstractVectorSet
+struct ConeRegularizer
+    norm_cone::Union{AbstractVectorSet, MOI.AbstractVectorSet}
+    weight_matrix::Union{AbstractArray,UniformScaling}
+
+    function ConeRegularizer(norm_cone, weight_matrix=I)
+        return new(norm_cone, weight_matrix)
+    end
 end
 
 cone(m::ConeRegularizer) = m.norm_cone
@@ -118,16 +122,16 @@ weights(m::ConeRegularizer) = m.weight_matrix
 function calculate_measure!(m::ConeRegularizer, w)
     model = owner_model(w)
     norm_value = @variable(model)
-    @constraint(model, [norm_value; weights(m) * w] in cone(m)())
+    @constraint(model, [norm_value; weights(m) * w] in cone(m))
     return norm_value
 end
 
 struct ObjectiveTerm{T<:Real}
-    term::Union{PortfolioRiskMeasure,ConeRegularizer{T}}
+    term::Union{PortfolioRiskMeasure,ConeRegularizer}
     weight::T
     uid::UUID
 
-    function ObjectiveTerm(term::Union{PortfolioRiskMeasure,ConeRegularizer{T}}, weight::T=1.0, uid::UUID=uuid1()) where {T}
+    function ObjectiveTerm(term::Union{PortfolioRiskMeasure,ConeRegularizer}, weight::T=1.0, uid::UUID=uuid1()) where {T}
         return new{T}(term, weight, uid)
     end
 end
@@ -150,6 +154,7 @@ struct PortfolioFormulation
 end
 
 PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk::RiskConstraint{C}) where {T,C} = PortfolioFormulation(sense, [obj], [risk])
+PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk_constraints::Vector{<:RiskConstraint}) where {T} = PortfolioFormulation(sense, [obj], risk_constraints)
 PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}) where {T} = PortfolioFormulation(sense, [obj])
 sense(formulation::PortfolioFormulation) = formulation.sense
 
