@@ -92,10 +92,11 @@ function market_model(market::VolumeMarket{T,N}, optimizer_factory::Any;
         @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
     end
     @constraint(model, sum_invested <= market_budget(market))
+    obj = (1-sum_invested) * risk_free_rate(market) - sum_invested * market_volume_fee(market)
     if sense === MAX_SENSE
-        @objective(model, sense, sum_invested * market.risk_free_rate)
+        @objective(model, sense, obj)
     else
-        @objective(model, sense, 0.0)
+        @objective(model, sense, - obj)
     end
     return model, w
 end

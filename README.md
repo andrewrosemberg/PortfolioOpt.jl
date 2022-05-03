@@ -40,9 +40,32 @@ Given that `AmbiguitySet`s might be sets of distributions, it is necessary to de
  - `EstimatedCase` if dealing with `CenteredAmbiguitySet`s and the user doesn't want to add any robustness (default);
  - `WorstCase` if the decision maker wants to use the worst case distribution in the ambiguity set.
 
-The `PortfolioRiskMeasure`s can be used to define both the `RiskConstraint`s and the `ObjectiveTerm`s in a `PortfolioFormulation` that can be parsed into a `JuMP.Model` using the `portfolio_model!` function.
+The `PortfolioRiskMeasure`s can be used to define both the `RiskConstraint`s and the `ObjectiveTerm`s in a `PortfolioFormulation` that can be parsed into details of a `JuMP.Model` using the `portfolio_model!` function.
 
 In addition, `ObjectiveTerm`s can also be `ConeRegularizer`s defined by a cone set (e.g. `norm-2`) and a linear transformation (default Identity).
+
+## VolumeMarket
+The `portfolio_model!` modifies an existing model `JuMP.Model` with decision variables already created and which, ideally, are already bounded by budget and bound constraints. In order to help users define market constraints, fees and clearing processess, his package also implements an interface with `OptimalBids.jl` (a framework for working with generic markets) through a simple market type called `VolumeMarket`.
+
+`VolumeMarket` represents market models that only allow the strategic agent to bid at market price, thus their decision is restricted to the amount/volume traded of each available assets.
+
+The current implementation allows the user to specify:
+ - `budget::Real`: Total amount of resources/volume that can be invested (usually the sum the vector of individual invested amounts or the 1-norm of it);
+ - `volume_fee::Real`: Cost per unit of volume invested;
+ - `allow_short_selling::Bool`: If true allows decision variables to be negative; 
+ - `risk_free_rate::Real`: Risk free return (known return of the money not invested).
+
+Once an instance of a `VolumeMarket` is defined, one can call `market_model` to create a `JuMP.Model` with the equivalent constraints, objective terms and variables created. Moreover, after the strategic objective terms and constraints are added on top of this model, it can be passed to the `change_bids!` together with the `VolumeMarket` object to modify the `volume_bids::Vector{Real}`. Alternetivelly, `change_bids!` can receive the already calculated bids (if chosen elsewhere) or even just the `PortfolioFormulation`, leaving the work of creating the `JuMP.Model` and adding all constraints and objective terms (market based or strategy based) to this function.
+
+A market with already defined strategic bids, i.e. `volume_bids`, can be cleared using the function `clear_market!` that receives the `VolumeMarket` and the `clearing_prices::Vector{Real}`.
+
+To help backtesting, a type `VolumeMarketHistory` was created to contain:
+ - `market::VolumeMarket`: The underlying market specifications;
+ - `history_clearing_prices`: The vector of vectors representing the historical returns for all assets with index vector `timestamp`;
+ - `history_risk_free_rates`: The vector of risk-free rates with index vector `timestamp`;
+ - `timestamp`: timestamps indexing the historical asset and risk-free returns;
+
+Instances of `VolumeMarketHistory` are the input of `sequential_backtest_market`: a fucntion that provides a basic backtest using provided strategy and `VolumeMarketHistory` for a specified `date_range` (that needs to have the same `eltype` as `timestamp`).
 
 ## Extras
 
@@ -55,12 +78,8 @@ Normally, this package won't focus nor make available forecasting functionalitie
 
 ## TestUtils
 
-As an extra, some testing utilities are available through the submodule called `TestUtils`. 
-Mainly:
+As an extra, some testing utilities are available through the submodule called `TestUtils`:
  - `get_test_data` that returns a TimeArray of Prices for 6 assets.
- - `sequential_backtest_market` that provides a basic backtest using provided strategy and returns data.
-
-But also:
  - `mean_variance`
 
 ## Example Markowitz with Empirical Forecaster
