@@ -14,7 +14,6 @@ module TestUtils
     import Reexport
     using MarketData
     import Base.keys
-    using OrderedCollections
 
     include("auxilary_functions.jl")
 
