@@ -16,18 +16,34 @@ Many uncertainty sets have been proposed to accommodate different levels of cons
 A collection of recent contributions to robust portfolio strategies are outlined in [7 - 10]. Data-driven approaches to robust PO has also gained interest in recent years and can be found in [12] - for a portfolio of stocks - and [13] - for a portfolio of future contracts. The results of these studies indicate promising alternatives for the integration of uncertain data in PO.
 
 ## Problem Definition
-Simple versions of the Mean-Variance PO problem with robust uncertainty around the estimated mean returns are implemented by the following functions:
+A simple version of the Mean-Variance Portfolio Allocation with robust uncertainty around the estimated mean returns (posed as a quadratic convex problem):
 
-```@docs
-po_min_variance_limit_return
+```math
+    \\begin{aligned}
+        \\max_{w} \\quad & R \\\\
+        s.t. \\quad & R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
+        & w ' \\Sigma w \\leq V_0 * W_0\\\\
+        & w \\in \\mathcal{X} \\\\
+    \\end{aligned}
 ```
 
-```@docs
-po_max_return_limit_variance
+Maximizes the worst case portfolio return (``R``) and limits the portfolio variance to a maximal risk parameter (``V_0``) normalized by current wealth (``W_0``).
+
+Where ``\\mathcal{X}`` represents the additional constraints defined in the model by the user (e.g. a limit on maximum invested money).
+
+A julia object representing this problem can be instanciated by the following command:
+
+```julia
+formulation = PortfolioFormulation(MAX_SENSE,
+    ObjectiveTerm(ExpectedReturn(Ω)),
+    RiskConstraint(Variance(d), LessThan(V_0 * W_0)),
+)
 ```
+
+where `d` is a `Sampleable` containing the estimated `\\Sigma` matrix.
 
 ### Bertsimas's Uncertainty Set
-The uncertainty set proposed by Bertsimas in [6] is defined by the julia type ([`RobustBertsimas`](@ref)):
+The uncertainty set proposed by Bertsimas in [6] is defined by the julia type ([`BudgetSet`](@ref)):
 
 ```math
 \Omega = \left\{ \mu \; \middle| \begin{array}{ll}
@@ -46,7 +62,7 @@ where:
 - ``\Gamma``: Budget (sometimes interpreted as number of assets in worst case).
 - ``\Sigma``: Predicted covariance of returns.
 
-When the previously described problem definition functions are dispatched on this type (referred to as a formulation), a JuMP expression defining the worst case return (``R``) is returned by the function ([`portfolio_return!(model::JuMP.Model, w, formulation::RobustBertsimas)`](@ref)). In this case, ``R`` in the described uncertainty set is defined by the following primal problem:  
+The equivalent JuMP expression defining the worst case return (``R``) considering this uncertainty set can be constructed by the function `calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase}, w)`. In this case, ``R`` in the described uncertainty set is defined by the following primal problem:  
 
 ```math
 \begin{aligned}
@@ -72,9 +88,7 @@ s.t.  \quad & w_i = \pi^+_i - \pi^-_i  \quad \forall i = 1:\mathcal{N} \\
 
 Moreover, to avoid having a bi-level optimization problem, we replace the lower-level problem by its objective function expression and enforce the dual constraints in the upper-level problem, defining a lower bound for the optimal value (which will be exact if the upper-level problem requires). 
 
-In the meantime, the worst case variance, is calculated as in a usual Mean Variance PO since this uncertainty set does not imply any uncertainty about the covariance matrix ([`portfolio_variance!(::JuMP.Model, w, ::RobustBertsimas)`](@ref)): ``w ' \Sigma w``.
-
-Finally, for instance, the resulting "Maximization of Returns" problem ([`po_max_return_limit_variance`](@ref)) becomes:
+Finally, for instance, the resulting problem becomes:
 
 ```math
 \begin{aligned}
@@ -121,7 +135,7 @@ Once again we get a lower avarage return for a smaller range of possible portfol
 
 PS.: Code in `examples/test_effi_robust.jl`.
 ### Comming Soon
-TODO: Ben-Tal's uncertainty set robust problems ([`RobustBenTal`](@ref))
+TODO: Ben-Tal's uncertainty set ([`EllipticalSet`](@ref))
 
 ## References
 

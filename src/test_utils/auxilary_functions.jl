@@ -14,6 +14,8 @@ function get_test_data(;
     return df
 end
 
+keys(a::TimeArray) = timestamp(a)
+
 """
 Mean and Variance of returns
 """
