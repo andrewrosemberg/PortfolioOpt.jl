@@ -7,7 +7,6 @@ Example of backtest with Mean-Variance strategy with a simple empirical forecast
 ```@example Backtest
 using COSMO
 using Distributions
-using Plots
 using PortfolioOpt
 using PortfolioOpt.TestUtils
 
@@ -156,10 +155,14 @@ end
 ## Plot
 
 ```@example Backtest
+using Plots
+using Plots.PlotMeasures
+
 plt = plot(;title="Culmulative Wealth",
     xlabel="Time",
     ylabel="Wealth",
     legend=:outertopright,
+    left_margin=10mm
 );
 for (strategy_name, recorders) in backtest_results
     plot!(plt, 

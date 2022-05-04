@@ -47,7 +47,7 @@ distribution(s::BudgetSet) = s.d
 BudgetSet(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:Sampleable} = BudgetSet{T, D}(d, Δ, Γ)
 
 """
-    calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase})
+    calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase}, w)
 
 Returns worst case return (WCR) in BudgetSet's uncertainty set ([`BudgetSet`](@ref)).
 
@@ -156,7 +156,7 @@ EllipticalSet(d::D, Δ::T) where {T<:Real, D<:ContinuousMultivariateSampleable} 
 distribution(s::EllipticalSet) = s.d
 
 """
-    calculate_measure!(measure::ExpectedReturn{EllipticalSet,WorstCase})
+    calculate_measure!(measure::ExpectedReturn{EllipticalSet,WorstCase}, w)
 
 Returns worst case return (WCR) in EllipticalSet's uncertainty set ([`EllipticalSet`](@ref)).
 

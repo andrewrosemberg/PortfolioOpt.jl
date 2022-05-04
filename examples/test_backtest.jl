@@ -246,11 +246,14 @@ backtest_results["equal_weights"], _ = sequential_backtest_market(
 end
 
 ##################### plot results  #####################
+using Plots
+using Plots.PlotMeasures
 
 plt = plot(;title="Culmulative Wealth",
     xlabel="Time",
     ylabel="Wealth",
     legend=:outertopright,
+    left_margin=10mm
 );
 for (strategy_name, recorders) in backtest_results
     plot!(plt, 
@@ -265,6 +268,7 @@ plt2 = scatter(;
     xlabel="σ",
     ylabel="E[r]",
     legend=:outertopright,
+    left_margin=10mm
 );
 for (strategy_name, recorders) in backtest_results
     scatter!(plt2, 

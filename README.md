@@ -174,11 +174,13 @@ end
 ## Plot Results
 ```
 using Plots
+using Plots.PlotMeasures
 
 plt = plot(;title="Culmulative Wealth",
     xlabel="Time",
     ylabel="Wealth",
     legend=:outertopright,
+    left_margin=10mm
 );
 for (strategy_name, recorders) in backtest_results
     plot!(plt, 
