@@ -17,7 +17,7 @@ julia> ] add https://github.com/andrewrosemberg/PortfolioOpt.jl.git
 
 ## PO Strategies
 
-The core functionalities of this package are implementations of risk measures (type `PortfolioRiskMeasure`) of the random variable representing the next period portfolio return (`R = w'r`). The investment weights,`w`,  and asset returns,`r`, are used to define the objective's terms (type `ObjectiveTerm`) and risk constraints (type `RiskConstraint`) of a PO formulation (type `PortfolioFormulation`). As with realistic applications, the decision maker might only have limited information about the individual asset returns, so these can be described with ambiguity sets (type `AmbiguitySet`).
+The core functionalities of this package are implementations of risk measures (type `PortfolioRiskMeasure`) of the random variable representing the next period portfolio return (`R = w'r`). These are used to define the objective's terms (type `ObjectiveTerm`) and risk constraints (type `RiskConstraint`) of a PO formulation (type `PortfolioFormulation`). As with realistic applications, the decision maker might only have limited information about the individual asset returns, so these can be described with ambiguity sets (type `AmbiguitySet`) - a general object containing some limited information of the asset returns' random variables.
 
 Currently acceptable `AmbiguitySet`s are all `CenteredAmbiguitySet`s, i.e. centered around a (usually Continuous) Multivariate `Sampleable`. E.g. :
  - Point distributions (type `Dirac`) if the decision maker has absolute certainty of the PO returns;
