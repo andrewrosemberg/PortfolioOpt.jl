@@ -14,10 +14,10 @@ using PortfolioOpt.TestUtils
 prices = get_test_data();
 numD, numA = size(prices) # A: Assets    D: Days
 
-# Calculating returns 
+# Calculating returns
 returns_series = percentchange(prices);
 
-# Backtest Parameters 
+# Backtest Parameters
 DEFAULT_SOLVER = optimizer_with_attributes(
     COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
 )
