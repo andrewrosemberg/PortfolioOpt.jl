@@ -179,13 +179,13 @@ function calculate_measure!(measure::ConditionalExpectedReturn{1.0,T,S,R}, w) wh
     Q_inv = pinv(Q)
     K = primal_cone[string(ambiguity_set.norm_cone)]
 
-    @variable(model, λ)
-    @variable(model, e)
-    @variable(model, s[1:N])
-    @variable(model, ν[i=1:N, j=1:m])
-    @variable(model, τ[i=1:N])
+    λ = @variable(model)
+    e = @variable(model)
+    s = @variable(model, [1:N])
+    ν = @variable(model, [i=1:N, j=1:m])
+    τ = @variable(model, [i=1:N])
 
-    @constraint(model, h[i=1:N], - dot(w, ξ[:, i])
+    @constraint(model, [i=1:N], - dot(w, ξ[:, i])
         + ν[i, :]' * Q_inv * ξ[:, i] + Λ * τ[i] <= s[i]
     )
 
