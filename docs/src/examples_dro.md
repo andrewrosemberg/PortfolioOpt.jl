@@ -46,7 +46,7 @@ end
 ## NingNing Du Wasserstein: fixed budget
 
 ```@example Backtest
-ϵ=0.001
+ϵ=0.005
 
 backtest_results["wasserstein_fixed_budget_$(ϵ)"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
@@ -68,6 +68,8 @@ backtest_results["wasserstein_fixed_budget_$(ϵ)"], _ = sequential_backtest_mark
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
     return pointers
 end
+
+backtest_results["wasserstein_fixed_budget_$(ϵ)"][:wealth]
 
 ```
 
@@ -121,12 +123,49 @@ backtest_results["EP_limit_wasserstein"], _ = sequential_backtest_market(
     s = DuWassersteinBall(d; ϵ=ϵ)
 
     formulation = PortfolioFormulation(MAX_SENSE,
-        ObjectiveTerm(ExpectedReturn(DeterministicSamples(returns'[:,:]))),
+        ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=0.005), j_robust)),
         RiskConstraint(ConditionalExpectedReturn{WorstCase}(1.0, s, j_robust), GreaterThan(R)),
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
     return pointers
+end
+
+backtest_results["EP_limit_wasserstein"][:wealth]
+
+```
+
+## NingNing Du Wasserstein: multiple risk limit
+
+```@example Backtest
+ρ_max_range = 3:2:9
+
+for ρ_max in ρ_max_range
+    backtest_results["EP_limit_wasserstein_$(ρ_max)_cons"], _ = sequential_backtest_market(
+        VolumeMarketHistory(returns_series), date_range,
+    ) do market, past_returns, ext
+        # Prep
+        numD, numA = size(past_returns)
+        returns = values(past_returns)
+        
+        # Parameters
+        j_robust = numD
+        ϵ=0.01
+        R = -0.001 / market_budget(market)
+        
+        d = DeterministicSamples(returns'[:,:])
+
+        formulation = PortfolioFormulation(MAX_SENSE,
+            ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=0.005), j_robust)),
+            [
+                RiskConstraint(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=ϵ * ρ), j_robust), GreaterThan(R * ρ))
+                for ρ in 1:ρ_max
+            ]
+        )
+        
+        pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
+        return pointers
+    end
 end
 
 ```
@@ -141,7 +180,8 @@ plt = plot(;title="Culmulative Wealth",
     xlabel="Time",
     ylabel="Wealth",
     legend=:outertopright,
-    left_margin=10mm
+    left_margin=10mm,
+    size=(900, 600)
 );
 for (strategy_name, recorders) in backtest_results
     plot!(plt, 
@@ -162,7 +202,7 @@ using RecipesBase
 using Intervals
 
 # Mean CIs
-n_boot = 100
+n_boot = 1000
 cil = 0.95
 
 function bootstrap_ci(f, data, boot_method, ci_method)
@@ -212,7 +252,21 @@ end
     end
 end
 
-ci_df = ci_dataframe([mean], backtest_results)
-plt = plot(plot_cis(ci_df))
+function expected_shortfall(returns; risk_level::Real=0.05)
+    last_index = floor(Int, risk_level * length(returns))
+    return -mean(partialsort(returns, 1:last_index))
+end
 
+function conditional_sharpe(returns; risk_level::Real=0.05)
+    cvar = - expected_shortfall(returns; risk_level=risk_level)
+
+    r̄ = mean(returns)
+
+    return r̄ ./ (r̄ .- cvar)
+end
+
+ci_df = ci_dataframe([mean, expected_shortfall, conditional_sharpe], backtest_results)
+plt = plot(plot_cis(ci_df),
+    size=(900, 600)
+)
 ```
