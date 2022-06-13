@@ -132,7 +132,7 @@ function sequential_backtest_market(
 )
     @assert issorted(date_range)
 
-    for date in date_range
+    @showprogress 1 "Computing..." for date in date_range
         day_backtest_market!(strategy_logic, market_history, date; 
             state_recorders=state_recorders, optimization_recorder=optimization_recorder, provide_state=true
         )

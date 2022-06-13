@@ -11,7 +11,7 @@ function calculate_measure!(measure::Variance{S,EstimatedCase}, w::Vector{AffExp
     model = owner_model(w)
     
     # Cholesky decomposition of the covariance matrix
-    Σ = PDMat(Symmetric(cov(measure.ambiguity_set)))
+    Σ = PDMat(cov(measure.ambiguity_set))
     sqrt_Σ = collect(Σ.chol.U)
 
     # Extra dimention to represent the portfolio variance
@@ -25,7 +25,7 @@ function calculate_measure!(measure::SqrtVariance{S,EstimatedCase}, w) where {S<
     model = owner_model(w)
     
     # Cholesky decomposition of the covariance matrix
-    Σ = PDMat(Symmetric(cov(measure.ambiguity_set)))
+    Σ = PDMat(cov(measure.ambiguity_set))
     sqrt_Σ = collect(Σ.chol.U)
 
     # Extra dimention to represent the square root of the portfolio variance
