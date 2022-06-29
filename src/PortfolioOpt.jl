@@ -11,6 +11,7 @@ using OptimalBids
 import MathOptInterface: LessThan, EqualTo, GreaterThan, constant, MAX_SENSE, MIN_SENSE
 import OptimalBids: Market, change_bids!, clear_market!, calculate_profit
 using PDMats
+using ProgressMeter
 using Random
 import Reexport
 using Statistics
@@ -48,6 +49,7 @@ export AmbiguitySet,
     portfolio_model!,
     DeterministicSamples,
     MomentUncertainty,
+    DuWassersteinBall,
     BudgetSet,
     EllipticalSet,
     EstimatedCase,
