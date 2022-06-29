@@ -5,7 +5,7 @@
 Example of backtest with Mean-Variance strategy with a simple empirical forecaster.
 
 ```@example Backtest
-using COSMO
+using HiGHS
 using Distributions
 using PortfolioOpt
 using PortfolioOpt.TestUtils
@@ -19,7 +19,7 @@ returns_series = percentchange(prices);
 
 # Backtest Parameters
 DEFAULT_SOLVER = optimizer_with_attributes(
-    COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
+    HiGHS.Optimizer, "presolve" => on, "time_limit" => 60.0
 )
 
 date_range = timestamp(returns_series)[100:end];
