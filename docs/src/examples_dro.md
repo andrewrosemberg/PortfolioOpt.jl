@@ -138,35 +138,34 @@ backtest_results["EP_limit_wasserstein"][:wealth]
 ## NingNing Du Wasserstein: multiple risk limit
 
 ```@example Backtest
-ρ_max_range = 3:2:9
+# ρ_max_range = 3:2:9
 
-for ρ_max in ρ_max_range
-    backtest_results["EP_limit_wasserstein_$(ρ_max)_cons"], _ = sequential_backtest_market(
-        VolumeMarketHistory(returns_series), date_range,
-    ) do market, past_returns, ext
-        # Prep
-        numD, numA = size(past_returns)
-        returns = values(past_returns)
-        
-        # Parameters
-        j_robust = numD
-        ϵ=0.01
-        R = -0.001 / market_budget(market)
-        
-        d = DeterministicSamples(returns'[:,:])
-
-        formulation = PortfolioFormulation(MAX_SENSE,
-            ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=0.005), j_robust)),
-            [
-                RiskConstraint(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=ϵ * ρ), j_robust), GreaterThan(R * ρ))
-                for ρ in 1:ρ_max
-            ]
-        )
-        
-        pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
-        return pointers
-    end
-end
+# for ρ_max in ρ_max_range
+#    backtest_results["EP_limit_wasserstein_$(ρ_max)_cons"], _ = sequential_backtest_market(
+#        VolumeMarketHistory(returns_series), date_range,
+#    ) do market, past_returns, ext
+#        # Prep
+#        numD, numA = size(past_returns)
+#        returns = values(past_returns)
+#        
+#       # Parameters
+#       j_robust = numD
+#       ϵ=0.01
+#      
+#        d = DeterministicSamples(returns'[:,:])
+#
+#        formulation = PortfolioFormulation(MAX_SENSE,
+#            ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=0.005), j_robust)),
+#            [
+#                RiskConstraint(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=ϵ * ρ), j_robust), GreaterThan(R * ρ))
+#                for ρ in 1:ρ_max
+#            ]
+#        )
+#        
+#        pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
+#        return pointers
+#    end
+# end
 
 ```
 
