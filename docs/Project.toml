@@ -2,6 +2,7 @@
 AbstractGPs = "99985d1d-32ba-4be9-9821-2ec096f28918"
 Bootstrap = "e28b5b4c-05e8-5b66-bc03-6f0c0a0a06e0"
 COSMO = "1e616198-aa4e-51ec-90a2-23f7fbd31d8d"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
