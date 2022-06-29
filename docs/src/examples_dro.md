@@ -136,6 +136,7 @@ backtest_results["EP_limit_wasserstein"][:wealth]
 ```
 
 ## NingNing Du Wasserstein: multiple risk limit
+PS.: Need a faster solver to run it.
 
 ```@example Backtest
 # ρ_max_range = 3:2:9
