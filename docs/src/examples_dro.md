@@ -19,7 +19,7 @@ returns_series = percentchange(prices);
 
 # Backtest Parameters 
 DEFAULT_SOLVER = optimizer_with_attributes(
-    HiGHS.Optimizer, "presolve" => on, "time_limit" => 60.0
+    HiGHS.Optimizer, "presolve" => "on", "time_limit" => 60.0
 )
 
 date_range = timestamp(returns_series)[100:end];
