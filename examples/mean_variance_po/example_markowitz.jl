@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate(@__DIR__)
 
-using COSMO
+using SCS
 using Distributions
 using Plots
 using Plots.PlotMeasures
@@ -35,7 +35,8 @@ y_train_norm = (y_train .- ymean) ./ ystd;
 
 # Backtest Parameters
 DEFAULT_SOLVER = optimizer_with_attributes(
-    COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
+    #COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
+    SCS.Optimizer
 )
 
 date_range = timestamp(returns_series)[100:end];
@@ -457,7 +458,7 @@ backtest_results["GPRN_delage_inflated_mean"], _ = sequential_backtest_market(
     # println("backtest day ", ext[:date])
 
     # Parameters
-    max_risk = 0.003 / market_budget(market)
+    max_risk = 0.001 / market_budget(market)
     k_back = 60
     num_samples_cov = 500
 
