@@ -109,7 +109,7 @@ Solves optimization model and set new bids to optimal values of the `decision_va
 function change_bids!(market::VolumeMarket, model::JuMP.Model, decision_variables)
     optimize!(model)
     status = termination_status(model)
-    if status !== MOI.OPTIMAL
+    if status !== MOI.OPTIMAL && status !== MOI.ALMOST_OPTIMAL
         @warn "Did not find an optimal solution: status=$status"
         change_bids!(market, zeros(length(decision_variables)))
     else
