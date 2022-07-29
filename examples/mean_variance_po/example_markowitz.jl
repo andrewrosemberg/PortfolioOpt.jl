@@ -50,11 +50,8 @@ backtest_results = Dict()
 backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
 ) do market, past_returns, ext
-
-    # println("backtest day ", ext[:date])
-
     # Parameters
-    max_std = 0.003 / market_budget(market)
+    max_std = 0.01 * market_budget(market)
     k_back = 60
 
     # Prep
@@ -71,8 +68,7 @@ backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
         RiskConstraint(SqrtVariance(d), LessThan(max_std)),
     )
 
-    pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
-    return pointers
+    change_bids!(market, formulation, DEFAULT_SOLVER)
 end;
 
 backtest_results["biweight_markowitz_limit_var"], _ = sequential_backtest_market(
@@ -82,7 +78,7 @@ backtest_results["biweight_markowitz_limit_var"], _ = sequential_backtest_market
     # println("backtest day ", ext[:date])
 
     # Parameters
-    max_std = 0.003 / market_budget(market)
+    max_std = 0.003 * market_budget(market)
     k_back = 60
 
     # Prep
@@ -102,6 +98,34 @@ backtest_results["biweight_markowitz_limit_var"], _ = sequential_backtest_market
 
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
     return pointers
+end;
+
+backtest_results["ep_delage"], _ = sequential_backtest_market(
+    VolumeMarketHistory(returns_series), date_range,
+) do market, past_returns, ext
+    # Parameters
+    max_risk = 0.0025 * market_budget(market)
+    k_back = 60
+
+    # Prep
+    numD, numA = size(past_returns)
+    returns = values(past_returns)
+
+    # Forecast
+    Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
+    d = MvNormal(r̄, Σ)
+
+    # PO Formulation
+    s = MomentUncertainty(d; γ1=7.3, γ2=15.2)
+    formulation = PortfolioFormulation(MAX_SENSE,
+        ObjectiveTerm(ExpectedReturn(d)),
+        RiskConstraint(
+            ConditionalExpectedReturn{WorstCase}(0.01, s, 999), 
+            LessThan(max_risk)
+        ),
+    )
+
+    change_bids!(market, formulation, DEFAULT_SOLVER)
 end;
 
 ############################################################################################################
@@ -378,13 +402,16 @@ sample_cov(p, latent_prediction::AbstractVector{<:AbstractMvNormal}, num_samps) 
 test_pred = predict_in_data_space(post, x_test[1:1], cubature);
 testcov_unnorm = cov(only(test_pred)) .* ystd^2;
 latent_predict = predict(post, x_test[1:1]);
-s_cov = sample_cov(post, latent_predict, 5000);
+num_cov_samples = 5000
+s_cov = sample_cov(post, latent_predict, num_cov_samples);
 s_cov_unnorm = s_cov .* ystd^2;
 # cov_mean = mean.(s_cov_unnorm);
 cov_std = std.(s_cov_unnorm);
 
 Matisless(cov_1,cov_2) = minimum(eigvals(cov_2 .- cov_1))>=0
-λ2 = (1:0.1:20)[findfirst((λ) -> all([Matisless(cov_aux, testcov_unnorm * λ) for cov_aux in s_cov_unnorm[1]]), 1:0.1:20)]
+
+ϕ = 0.7
+λ2 = (1:0.1:20)[findfirst((λ) -> sum([Matisless(cov_aux, testcov_unnorm * λ) for cov_aux in s_cov_unnorm[1]]) / num_cov_samples >= ϕ, 1:0.1:20)]
 biggest_cov = testcov_unnorm * λ2
 
 p1 = heatmap(testcov_unnorm, title="Predictive Covariance");
@@ -458,7 +485,7 @@ backtest_results["GPRN_delage_inflated_mean"], _ = sequential_backtest_market(
     # println("backtest day ", ext[:date])
 
     # Parameters
-    max_risk = 0.001 / market_budget(market)
+    max_risk = 0.0025 * market_budget(market)
     k_back = 60
     num_samples_cov = 500
 
@@ -499,13 +526,18 @@ backtest_results["GPRN_delage_inflated_mean"], _ = sequential_backtest_market(
     s_cov_unnorm = s_cov .* ystd^2;
     d = MvNormal(r̄, Σ)
 
-    γ2 = (1:0.1:20)[findfirst((λ) -> all([Matisless(cov_aux, Σ * λ) for cov_aux in s_cov_unnorm[1]]), 1:0.1:20)]
+    returns = values(past_returns)
+    Σ_ep, r̄_ep = mean_variance(returns[(end - k_back):end, :])
+    d_ep = MvNormal(r̄_ep, Σ_ep)
+
+    ϕ = 1.0
+    γ2 = (1:0.1:20)[findfirst((λ) -> sum([Matisless(cov_aux, Σ * λ) for cov_aux in s_cov_unnorm[1]]) / num_samples_cov >= ϕ, 1:0.1:20)]
 
     # PO Formulation
-    s = MomentUncertainty(d; γ1=0.005, γ2=γ2)
+    s = MomentUncertainty(d; γ1=7.3, γ2=γ2)
     formulation = PortfolioFormulation(MAX_SENSE,
-        ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ConditionalExpectedReturn{WorstCase}(0.95, s, 999), LessThan(max_risk)),
+        ObjectiveTerm(ExpectedReturn(d_ep)),
+        RiskConstraint(ConditionalExpectedReturn{WorstCase}(0.01, s, 999), LessThan(max_risk)),
     )
 
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -513,70 +545,77 @@ backtest_results["GPRN_delage_inflated_mean"], _ = sequential_backtest_market(
 end;
 
 
-backtest_results["GPRN_delage_std"], _ = sequential_backtest_market(
-    VolumeMarketHistory(returns_series), date_range,
-) do market, past_returns, ext
+# backtest_results["GPRN_delage_std"], _ = sequential_backtest_market(
+#     VolumeMarketHistory(returns_series), date_range,
+# ) do market, past_returns, ext
 
-    # println("backtest day ", ext[:date])
+#     # println("backtest day ", ext[:date])
 
-    # Parameters
-    max_risk = 0.003 / market_budget(market)
-    k_back = 60
-    num_samples_cov = 500
+#     # Parameters
+#     max_risk = 0.003 / market_budget(market)
+#     k_back = 60
+#     num_samples_cov = 500
 
-    # Prep
-    numD, numA = size(past_returns)
+#     # Prep
+#     numD, numA = size(past_returns)
 
-    # Forecast
-    dates_for_training = timestamp(past_returns)[end-k_back:end]
-    days_for_training = dates_for_training - minimum(dates_for_training)
-    day_for_test = ext[:date] - minimum(dates_for_training)
-    x_train_gprn = day2float.(days_for_training)
-    x_test_gprn = [day2float(day_for_test)]
-    y_train = values(past_returns[dates_for_training])
-    y_train_gprn = RowVecs((y_train .- ymean) ./ ystd)  # normalise the observations
+#     # Forecast
+#     dates_for_training = timestamp(past_returns)[end-k_back:end]
+#     days_for_training = dates_for_training - minimum(dates_for_training)
+#     day_for_test = ext[:date] - minimum(dates_for_training)
+#     x_train_gprn = day2float.(days_for_training)
+#     x_test_gprn = [day2float(day_for_test)]
+#     y_train = values(past_returns[dates_for_training])
+#     y_train_gprn = RowVecs((y_train .- ymean) ./ ystd)  # normalise the observations
 
-    # need to re-fit the variational parameters
-    num_iters_backtest = 7
-    opt_backtest = ADAM(0.0)  # don't change the hyperparameters
-    post, θ_opt = train(
-        x_train_gprn,
-        y_train_gprn,
-        gp_model,
-        θ_init,
-        num_iters_backtest,
-        lr_newton,
-        opt_backtest,
-        cubature,
-        hyperprior
-    )
+#     # need to re-fit the variational parameters
+#     num_iters_backtest = 7
+#     opt_backtest = ADAM(0.0)  # don't change the hyperparameters
+#     post, θ_opt = train(
+#         x_train_gprn,
+#         y_train_gprn,
+#         gp_model,
+#         θ_init,
+#         num_iters_backtest,
+#         lr_newton,
+#         opt_backtest,
+#         cubature,
+#         hyperprior
+#     )
 
-    pred = only(predict_in_data_space(post, x_test_gprn, cubature))
-    latent_predict = predict(post, x_test_gprn);
-    s_cov = sample_cov(post, latent_predict, num_samples_cov);
+#     pred = only(predict_in_data_space(post, x_test_gprn, cubature))
+#     latent_predict = predict(post, x_test_gprn);
+#     s_cov = sample_cov(post, latent_predict, num_samples_cov);
 
-    # un-normalise the predictions
-    r̄ = mean(pred) .* ystd .+ ymean
-    Σ = cov(pred) .* ystd^2
-    s_cov_unnorm = s_cov .* ystd^2;
-    Σ = Σ + only(std.(s_cov_unnorm))
-    Σ_psd = (Σ .+ Σ') / 2
-    d = MvNormal(r̄, Σ_psd)
+#     # un-normalise the predictions
+#     r̄ = mean(pred) .* ystd .+ ymean
+#     Σ = cov(pred) .* ystd^2
+#     s_cov_unnorm = s_cov .* ystd^2;
+#     Σ = Σ + only(std.(s_cov_unnorm))
+#     Σ_psd = (Σ .+ Σ') / 2
+#     d = MvNormal(r̄, Σ_psd)
 
-    # PO Formulation
-    s = MomentUncertainty(d; γ1=0.005, γ2=1.0)
-    formulation = PortfolioFormulation(MAX_SENSE,
-        ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ConditionalExpectedReturn{WorstCase}(0.95, s, 999), LessThan(max_risk)),
-    )
+#     # PO Formulation
+#     s = MomentUncertainty(d; γ1=0.005, γ2=1.0)
+#     formulation = PortfolioFormulation(MAX_SENSE,
+#         ObjectiveTerm(ExpectedReturn(d)),
+#         RiskConstraint(ConditionalExpectedReturn{WorstCase}(0.95, s, 999), LessThan(max_risk)),
+#     )
 
-    pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
-    return pointers
-end;
+#     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
+#     return pointers
+# end;
 
 ############################################################################################################
 ## Plot Backtest results
 ############################################################################################################
+using Random
+rng = MersenneTwister(1111)
+
+num_dates = length(date_range)
+idx_range = 1:num_dates
+holdout_idx = sort(unique(rand(rng, idx_range, Int(ceil(num_dates/1.4)))))
+validation_idx = sort(setdiff(collect(idx_range), holdout_idx))
 
 plt = plot(;title="Culmulative Wealth",
     xlabel="Time",
@@ -587,8 +626,19 @@ plt = plot(;title="Culmulative Wealth",
 );
 for (strategy_name, recorders) in backtest_results
     plot!(plt,
-        axes(get_records(recorders[:wealth]), 1), get_records(recorders[:wealth]).data;
-        label=strategy_name,
+        axes(get_records(recorders[:wealth]), 1)[validation_idx],  cumsum(get_records(recorders[:returns]).data[validation_idx]) .+ 1;
+        label=strategy_name * " (Validation)",
+        color=Int(floor(hash(strategy_name) / 1e15)),
+        style=:solid,
+    )
+end
+
+for (strategy_name, recorders) in backtest_results
+    plot!(plt,
+        axes(get_records(recorders[:wealth]), 1)[holdout_idx], cumsum(get_records(recorders[:returns]).data[holdout_idx]) .+ 1;
+        label=strategy_name * " (Holdout)",
+        color=Int(floor(hash(strategy_name) / 1e15)),
+        style=:dash,
     )
 end
 plt
