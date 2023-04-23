@@ -42,7 +42,8 @@ end
 function clear_market!(market::VolumeMarket)
     @warn "Prices have not yet been set for this market. 
     This function can only be dispatched passing cleared prices (`clearing_prices`)"
-    throw(MethodError(clear_market!, (market)))
+    
+    throw(MethodError(clear_market!, (market,)))
 end
 
 function clear_market!(market::VolumeMarket{T, N}, clearing_prices::Vector{T}) where {T<:Real,N}
@@ -155,10 +156,13 @@ function VolumeMarketHistory(history_clearing_prices; kwards...)
     return VolumeMarketHistory(VolumeMarket(length(values(first(history_clearing_prices))); kwards...), history_clearing_prices)
 end
 
-number_assets(::VolumeMarketHistory{T,N}) where {T,N} = N 
+num_assets(::VolumeMarketHistory{T,N}) where {T,N} = N 
 
 timestamp(hist::VolumeMarketHistory) = hist.timestamp
 keys(hist::VolumeMarketHistory) = timestamp(hist)
+
+num_days(hist::VolumeMarketHistory) = length(timestamp(hist))
+
 function past_prices(hist::VolumeMarketHistory, t)
     timestamps = timestamp(hist)
     idx = findfirst(x -> x == t, timestamps)

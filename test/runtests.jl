@@ -1,4 +1,6 @@
 using COSMO
+using Distributions
+using LinearAlgebra
 using MarketData
 using PortfolioOpt
 using PortfolioOpt.TestUtils
@@ -9,5 +11,7 @@ DEFAULT_SOLVER = optimizer_with_attributes(
 )
 
 @testset "PortfolioOpt.jl" begin
-    # Write tests here.
+    include("./VolumeMarket.jl")
+    include("./backtest.jl")
+    include("./formulations.jl")
 end

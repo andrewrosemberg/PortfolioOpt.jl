@@ -16,7 +16,8 @@ function record!(recorder::WealthRecorder, market::VolumeMarket, date)
 end
 
 get_records(recorder::StateRecorder) = recorder.record
-
+get_records(recorder::StateRecorder, t) = get_records(recorder)[t]
+length(recorder::AbstractRecorder) = size(get_records(recorder), 1)
 mutable struct ReturnsRecorder{T<:Real} <: StateRecorder
     record::DenseAxisArray{T,1}
 
@@ -42,6 +43,8 @@ function record!(recorder::DecisionRecorder, market::VolumeMarket, date)
     recorder.record[date, :] = market.volume_bids
     return nothing
 end
+
+get_records(recorder::DecisionRecorder, t) = get_records(recorder)[t, :]
 
 default_state_recorders(numA::Int, date_range) = Dict(
     :wealth => WealthRecorder(date_range),
@@ -128,7 +131,7 @@ function sequential_backtest_market(
     market_history::MarketHistory,
     date_range;
     optimization_recorder::Union{DenseAxisArray,Nothing}=nothing,
-    state_recorders::Dict{Symbol,StateRecorder}=default_state_recorders(number_assets(market_history), date_range)
+    state_recorders::Dict{Symbol,StateRecorder}=default_state_recorders(num_assets(market_history), date_range)
 )
     @assert issorted(date_range)
 

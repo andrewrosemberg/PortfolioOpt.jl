@@ -16,7 +16,7 @@ using Random
 import Reexport
 using Statistics
 import Statistics: mean, cov
-import Base: eachindex, eltype, size, keys
+import Base: eachindex, eltype, size, keys, (==)
 using UUIDs
 using JuMP.Containers: DenseAxisArray
 
@@ -35,13 +35,19 @@ include("test_utils/testutils.jl")
 
 export AmbiguitySet,
     CenteredAmbiguitySet,
+    ambiguityset,
     PieceWiseUtility,
+    coefficients,
+    intercepts,
     Robustness,
     ExpectedReturn,
     Variance,
     SqrtVariance,
     ConditionalExpectedReturn,
+    alpha_quantile,
+    sample_size,
     ExpectedUtility,
+    utility,
     RiskConstraint,
     ConeRegularizer,
     ObjectiveTerm,
@@ -58,14 +64,19 @@ export AmbiguitySet,
     VolumeMarket,
     change_bids!,
     clear_market!,
+    calculate_profit,
     market_budget,
+    set_market_budget,
     market_volume_fee,
     market_model,
     MarketHistory,
     VolumeMarketHistory,
+    num_days,
+    num_assets,
     market_template,
     current_prices,
     risk_free_rate,
+    total_profit,
     # backtest
     sequential_backtest_market,
     get_records,

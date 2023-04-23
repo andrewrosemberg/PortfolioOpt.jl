@@ -13,6 +13,8 @@ end
 coefficients(u::PieceWiseUtility) = u.c
 intercepts(u::PieceWiseUtility) = u.b
 
+==(a::PieceWiseUtility, b::PieceWiseUtility) = coefficients(a) == coefficients(b) && intercepts(a) == intercepts(b)
+
 # TODO: Implement other useful utility functions
 
 abstract type Robustness end
@@ -53,7 +55,12 @@ struct ConditionalExpectedReturn{α,N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Rob
     num_samples::N
 end
 
+# TODO: deprecate
 function ConditionalExpectedReturn{R}(α::T, ambiguity_set::S, num_samples::N) where {T<:Real, N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Robustness}
+    return ConditionalExpectedReturn{α,N,S,R}(ambiguity_set, num_samples)
+end
+
+function ConditionalExpectedReturn(ambiguity_set::S, num_samples::N; α::T=0.05, R::Type{<:Robustness}=EstimatedCase) where {T<:Real, N<:Union{Int,Nothing},S<:AmbiguitySet}
     return ConditionalExpectedReturn{α,N,S,R}(ambiguity_set, num_samples)
 end
 
@@ -69,6 +76,10 @@ struct ExpectedUtility{C<:ConcaveUtilityFunction,S<:AmbiguitySet,R<:Robustness} 
 end
 
 function ExpectedUtility(ambiguity_set::S, utility::C, R::Type{<:Robustness}) where {C<:ConcaveUtilityFunction,S<:AmbiguitySet}
+    ExpectedUtility{C,S,R}(ambiguity_set, utility)
+end
+
+function ExpectedUtility(ambiguity_set::S, utility::C; R::Type{<:Robustness}=EstimatedCase) where {C<:ConcaveUtilityFunction,S<:AmbiguitySet}
     ExpectedUtility{C,S,R}(ambiguity_set, utility)
 end
 
