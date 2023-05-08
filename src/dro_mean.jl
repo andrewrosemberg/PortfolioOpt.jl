@@ -29,7 +29,7 @@ struct MomentUncertainty{T<:Real, D<:ContinuousMultivariateSampleable} <: Center
         d::D, γ1::T, γ2::T
     ) where {T<:Real, D<:ContinuousMultivariateSampleable}
         γ1 >= 0 || throw(ArgumentError("γ1 must be >= 0"))
-        γ2 >= 1 || throw(ArgumentError("γ2 must be >= 1"))
+        γ2 <= 1 || throw(ArgumentError("γ2 must be <= 1"))
         return new{T, D}(d, γ1, γ2)
     end
 end
