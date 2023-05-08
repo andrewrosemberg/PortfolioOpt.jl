@@ -120,7 +120,7 @@ end
 
 struct ConeRegularizer
     norm_cone::Union{AbstractVectorSet, MOI.AbstractVectorSet}
-    weight_matrix::Union{AbstractArray,UniformScaling}
+    weight_matrix::Union{Matrix,UniformScaling}
 
     function ConeRegularizer(norm_cone, weight_matrix=I)
         return new(norm_cone, weight_matrix)

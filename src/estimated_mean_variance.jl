@@ -15,7 +15,7 @@ function calculate_measure!(measure::Variance{S,EstimatedCase}, w::Vector{AffExp
     sqrt_Σ = collect(Σ.chol.U)
 
     # Extra dimention to represent the portfolio variance
-    @variable(model, risk);
+    risk = @variable(model);
     @constraint(model, [risk; 0.5; sqrt_Σ * w] in JuMP.RotatedSecondOrderCone())
 
     return risk
@@ -29,7 +29,7 @@ function calculate_measure!(measure::SqrtVariance{S,EstimatedCase}, w) where {S<
     sqrt_Σ = collect(Σ.chol.U)
 
     # Extra dimention to represent the square root of the portfolio variance
-    @variable(model, risk);
+    risk = @variable(model);
     @constraint(model, [risk; sqrt_Σ * w] in JuMP.SecondOrderCone())
 
     return risk
