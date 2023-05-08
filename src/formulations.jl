@@ -166,6 +166,7 @@ end
 
 PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk::RiskConstraint{C}) where {T,C} = PortfolioFormulation(sense, [obj], [risk])
 PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk_constraints::Vector{<:RiskConstraint}) where {T} = PortfolioFormulation(sense, [obj], risk_constraints)
+PortfolioFormulation(sense::MOI.OptimizationSense, obj::Vector{<:ObjectiveTerm}, risk::RiskConstraint) = PortfolioFormulation(sense, obj, [risk])
 PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}) where {T} = PortfolioFormulation(sense, [obj])
 sense(formulation::PortfolioFormulation) = formulation.sense
 

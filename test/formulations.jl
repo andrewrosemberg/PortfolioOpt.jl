@@ -1,4 +1,5 @@
 @testset "formulations.jl" begin
+    jump_model, pf_w = market_model(m, DEFAULT_SOLVER; sense=MAX_SENSE)
     @testset "PieceWiseUtility" begin
         @testset "constructor" begin
             @test PieceWiseUtility() isa PieceWiseUtility
@@ -96,6 +97,60 @@
                 @test utility(ExpectedUtility(d, PieceWiseUtility(), EstimatedCase)) == PieceWiseUtility()
                 @test utility(ExpectedUtility(d, PieceWiseUtility(), WorstCase)) == PieceWiseUtility()
             end
+        end
+    end
+    @testset "ConeRegularizer" begin
+        numA = 2
+        con = ConeRegularizer(MOI.NormOneCone(numA+1))
+        @test con isa ConeRegularizer
+        @test PortfolioOpt.cone(con) isa MOI.AbstractVectorSet
+        @test PortfolioOpt.weights(con) isa UniformScaling
+        con = ConeRegularizer(MOI.NormOneCone(numA+1), rand(numA))
+        @test con isa ConeRegularizer
+        @test PortfolioOpt.cone(con) isa MOI.AbstractVectorSet
+        @test PortfolioOpt.weights(con) isa Vector
+    end
+    @testset "Portfolio Terms" begin
+        numA = 3
+        Σ = rand(numA, numA)
+        Σ = Σ' * Σ
+        d = MvNormal(rand(numA), Σ)
+        max_std = 0.03
+        R = -0.06
+        l1_penalty = -0.0003
+        risk_m = ExpectedReturn(d)
+        _cone = ConeRegularizer(MOI.NormOneCone(numA+1))
+        @testset "RiskConstraint Type" for con_type in [GreaterThan , LessThan, EqualTo]
+            con = RiskConstraint(risk_m, con_type(0.0))
+            @test con isa RiskConstraint
+            @test PortfolioOpt.risk_measure(con) isa PortfolioOpt.PortfolioRiskMeasure
+            @test PortfolioOpt.constant(con) == 0.0
+            @test PortfolioOpt.uid(con) isa UUID
+        end
+        @testset "ObjectiveTerm" begin
+            obj = ObjectiveTerm(risk_m, 0.01)
+            @test obj isa ObjectiveTerm
+            @test PortfolioOpt.term(obj) isa PortfolioOpt.PortfolioRiskMeasure
+            @test PortfolioOpt.weight(obj) == 0.01
+            @test PortfolioOpt.uid(obj) isa UUID
+            obj = ObjectiveTerm(_cone, -0.01)
+            @test obj isa ObjectiveTerm
+            @test PortfolioOpt.term(obj) isa ConeRegularizer
+            @test PortfolioOpt.weight(obj) == -0.01
+            @test PortfolioOpt.uid(obj) isa UUID
+        end
+        @testset "PortfolioFormulation" begin
+            risk_sqrt = SqrtVariance(d)
+            con1 = RiskConstraint(risk_sqrt, LessThan(max_std))
+            obj1 = ObjectiveTerm(risk_m)
+            con2 = RiskConstraint(risk_sqrt, LessThan(max_std * 2))
+            obj2 = ObjectiveTerm(_cone, l1_penalty)
+            @test PortfolioFormulation(MAX_SENSE, [obj1, obj2], [con1, con2]) isa PortfolioFormulation
+            @test PortfolioFormulation(MIN_SENSE, obj1, [con1, con2]) isa PortfolioFormulation
+            @test PortfolioFormulation(MIN_SENSE, [obj1, obj2], con1) isa PortfolioFormulation
+            pf = PortfolioFormulation(MAX_SENSE, obj1, con1)
+            @test pf isa PortfolioFormulation
+            @test PortfolioOpt.sense(pf) == MAX_SENSE
         end
     end
 end
