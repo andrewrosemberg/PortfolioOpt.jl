@@ -130,8 +130,6 @@ function calculate_measure!(measure::ExpectedReturn{S,WorstCase}, w)  where {S<:
     return return dot(means, w) - sum(θ) - λ * Γ
 end
 
-##################################
-
 """
     EllipticalSet <: CenteredAmbiguitySet{T,D}
 
