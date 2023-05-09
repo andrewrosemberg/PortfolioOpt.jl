@@ -19,9 +19,9 @@
         end
     end
     @testset "PortfolioRiskMeasure" begin
-        Σ = rand(2, 2)
+        Σ = rand(rng, 2, 2)
         Σ = Σ' * Σ
-        d = MvNormal(rand(2), Σ)
+        d = MvNormal(rand(rng, 2), Σ)
         @testset "ExpectedReturn" begin
             @testset "constructor" begin
                 @test ExpectedReturn(d) isa ExpectedReturn
@@ -100,9 +100,9 @@
     end
     @testset "Portfolio Terms" begin
         numA = 3
-        Σ = rand(numA, numA)
+        Σ = rand(rng, numA, numA)
         Σ = Σ' * Σ
-        d = MvNormal(rand(numA), Σ)
+        d = MvNormal(rand(rng, numA), Σ)
         max_std = 0.03
         R = -0.06
         l1_penalty = -0.0003
