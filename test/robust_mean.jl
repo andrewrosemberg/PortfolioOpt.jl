@@ -29,11 +29,11 @@
     end
     @testset "EllipticalSet" begin
         @testset "constructor" begin
-            @test EllipticalSet(d) isa EllipticalSet
+            @test EllipticalSet(d, 0.1) isa EllipticalSet
             @test EllipticalSet(d; Δ=0.1) isa EllipticalSet
             @test_throws ArgumentError EllipticalSet(d; Δ=-0.1)
         end
-        ambiguity_set = EllipticalSet(d)
+        ambiguity_set = EllipticalSet(d, 0.1)
         @testset "distribution" begin
             @test PortfolioOpt.distribution(ambiguity_set) == d
         end

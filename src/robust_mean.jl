@@ -162,7 +162,7 @@ end
 # Default outer constructor
 EllipticalSet(d::D, Δ::T) where {T<:Real, D<:ContinuousMultivariateSampleable} = EllipticalSet{T, D}(d, Δ)
 
-EllipticalSet(d::Sampleable; Δ=0.025) = EllipticalSet(d, Δ)
+EllipticalSet(d::Sampleable; Δ) = EllipticalSet(d, Δ)
 
 distribution(s::EllipticalSet) = s.d
 

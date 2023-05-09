@@ -12,11 +12,11 @@ s.t.  \\quad (\\mathbb{E} [r] - \\hat{r}) ' \\Sigma^{-1} (\\mathbb{E} [r] - \\ha
 
 Atributes:
 - `d::Sampleable{Multivariate, Continous}`: The parent distribution with an uncertain mean
-- `γ1::Float64`: Uniform uncertainty around the mean (has to be greater than 0). (default: std(dist) / 5)
-- `γ2::Float64`: Uncertainty around the covariance (has to be greater than 1). (default: 3.0)
+- `γ1::Float64`: Uniform uncertainty around the mean (has to be greater than 0).
+- `γ2::Float64`: Uncertainty around the covariance (has to be greater than 1).
 
 References:
-- Delage paper on moment uncertainty (implemented): https://www.researchgate.net/publication/220244490_Distributionally_Robust_Optimization_Under_Moment_Uncertainty_with_Application_to_Data-Driven_Problems
+- Delage paper on moment uncertainty: https://www.researchgate.net/publication/220244490_Distributionally_Robust_Optimization_Under_Moment_Uncertainty_with_Application_to_Data-Driven_Problems
 
 """
 struct MomentUncertainty{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
@@ -29,7 +29,7 @@ struct MomentUncertainty{T<:Real, D<:ContinuousMultivariateSampleable} <: Center
         d::D, γ1::T, γ2::T
     ) where {T<:Real, D<:ContinuousMultivariateSampleable}
         γ1 >= 0 || throw(ArgumentError("γ1 must be >= 0"))
-        γ2 <= 1 || throw(ArgumentError("γ2 must be <= 1"))
+        γ2 >= 1 || throw(ArgumentError("γ2 must be >= 1"))
         return new{T, D}(d, γ1, γ2)
     end
 end
@@ -41,16 +41,18 @@ function MomentUncertainty(
     MomentUncertainty{T, D}(d, γ1, γ2)
 end
 
+MomentUncertainty(d::Sampleable; γ1, γ2) = MomentUncertainty(d, γ1, γ2)
+
 distribution(s::MomentUncertainty) = s.d
 
 """
-    calculate_measure!(measure::ExpectedReturn{MomentUncertainty,WorstCase}, w)
+    calculate_measure!(m::ExpectedUtility{U,S,R}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty,R<:WorstCase}
 
 Returns worst case utility return (WCR) under distribution uncertainty defined by MomentUncertainty ambiguity set ([`MomentUncertainty`](@ref)).
 
 Arguments:
  - `w`: portfolio optimization investment variable ("weights").
- - `s::MomentUncertainty`: Struct containing atributes of MomentUncertainty ambiguity set.
+ - `m::ExpectedUtility`: Struct containing information about the utility and ambiguity set.
 """
 function calculate_measure!(m::ExpectedUtility{U,S,R}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty,R<:WorstCase}
     model = owner_model(w)
