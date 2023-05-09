@@ -48,7 +48,7 @@ BudgetSet(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:Sampleable} = BudgetSet
 
 # Kwarg constructor with defaults
 function BudgetSet(
-    d::AbstractMvNormal;
+    d::Sampleable;
     Δ=default_budgetset_delta(d),
     Γ=default_budgetset_budget(d),
 )
@@ -149,8 +149,6 @@ Atributes:
 References:
 - Ben-Tal, A. e Nemirovski, A. (2000). Robust solutions of linear programming problems contaminated with uncertain data. Mathematical programming, 88(3):411–424.
 
-For more information on how BenTal uncertainty sets are used for RO, please review
-the PortfolioOptimization.jl [docs](https://invenia.pages.invenia.ca/PortfolioOptimization.jl/).
 """
 struct EllipticalSet{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
     d::D
@@ -165,6 +163,8 @@ end
 
 # Default outer constructor
 EllipticalSet(d::D, Δ::T) where {T<:Real, D<:ContinuousMultivariateSampleable} = EllipticalSet{T, D}(d, Δ)
+
+EllipticalSet(d::Sampleable; Δ=0.025) = EllipticalSet(d, Δ)
 
 distribution(s::EllipticalSet) = s.d
 
