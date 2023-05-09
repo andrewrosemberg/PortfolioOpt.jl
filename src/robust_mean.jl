@@ -46,6 +46,19 @@ distribution(s::BudgetSet) = s.d
 # Default outer constructor
 BudgetSet(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:Sampleable} = BudgetSet{T, D}(d, Δ, Γ)
 
+# Kwarg constructor with defaults
+function BudgetSet(
+    d::AbstractMvNormal;
+    Δ=default_budgetset_delta(d),
+    Γ=default_budgetset_budget(d),
+)
+    return BudgetSet(d, Δ, Γ)
+end
+
+# Default values (no partuicular reason for these defaults)
+default_budgetset_delta(d::AbstractMvNormal) = sqrt.(var(d)) ./ 5
+default_budgetset_budget(d::Sampleable) = length(d) * 1.0
+
 """
     calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase}, w)
 

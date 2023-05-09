@@ -14,9 +14,12 @@ DEFAULT_SOLVER = optimizer_with_attributes(
 
 rng = MersenneTwister(1234)
 
+include("./generated_data.jl")
+
 @testset "PortfolioOpt.jl" begin
     include("./VolumeMarket.jl")
     include("./backtest.jl")
     include("./formulations.jl")
     include("./estimated_mean_variance.jl")
+    include("./robust_mean.jl")
 end
