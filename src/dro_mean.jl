@@ -89,6 +89,13 @@ function calculate_measure!(m::ExpectedUtility{U,S,R}, w) where {U<:PieceWiseUti
     return -(γ2 * dot(Σ, Q) - first(means'Q * means) + r + dot(Σ, P) - 2 * dot(means, p) + γ1 * s)
 end
 
+# Serves as a mapping from the norm's power to the appropriate cones
+const primal_cone = Dict(
+    "Inf" => MOI.NormInfinityCone,
+    "1.0" => MOI.NormOneCone,
+    "2.0" => MOI.SecondOrderCone
+)
+
 """
     DuWassersteinBall <: CenteredAmbiguitySet
 
@@ -103,14 +110,14 @@ s.t.  \\quad d_w(P, \\hat{P}_N) \\leq \\epsilon \\\\
 ```
 
 Atributes:
-- `d::ContinuousMultivariateSampleable`: Samples from the parent distribution
+- `d::DeterministicSamples`: Samples from the parent distribution
 - `ϵ::Float64`: Wasserstein distance from sampled distribution (has to be greater than 0). (default: 0.01)
 - `Λ::Float64`: Uncertainty around sampled values (has to be greater than 0). (default: maximum(d))
 
 References:
 - NingNing paper on Wasserstein DRO (Corollary 1-3): https://ieeexplore.ieee.org/abstract/document/9311154
 """
-struct DuWassersteinBall{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
+struct DuWassersteinBall{T<:Real, D<:DeterministicSamples} <: CenteredAmbiguitySet{T,D}
     d::D
     ϵ::T
     Λ::T
@@ -120,12 +127,13 @@ struct DuWassersteinBall{T<:Real, D<:ContinuousMultivariateSampleable} <: Center
     # Inner constructor for validating arguments
     function DuWassersteinBall{T, D}(
         d::D, ϵ::T, Λ::T, Q::Array{T,2}, norm_cone::Real
-    ) where {T<:Real, D<:ContinuousMultivariateSampleable}
+    ) where {T<:Real, D<:DeterministicSamples}
         length(d) == size(Q,1) == size(Q,2) || throw(ArgumentError(
             "Distribution ($(length(d))) and Q ($(size(Q,2))) must have coherent dimensions (m and mxm)"
         ))
         ϵ >= 0 || throw(ArgumentError("ϵ must be >= 0"))
         Λ >= 0 || throw(ArgumentError("Λ must be >= 0"))
+        haskey(primal_cone, string(norm_cone)) || throw(ArgumentError("norm_cone must be one of $(keys(primal_cone))"))
         return new{T, D}(d, ϵ, Λ, Q, norm_cone)
     end
 end
@@ -133,45 +141,39 @@ end
 # Default outer constructor
 function DuWassersteinBall(
     d::D, ϵ::T, Λ::T, Q::Array{T,2}, norm_cone::Real
-) where {T<:Real, D<:ContinuousMultivariateSampleable}
+) where {T<:Real, D<:DeterministicSamples}
     DuWassersteinBall{T, D}(d, ϵ, Λ, Q, norm_cone)
 end
 
 # Kwarg constructor with defaults
 function DuWassersteinBall(
-    d::ContinuousMultivariateSampleable;
+    d::S;
     ϵ=0.01,
     norm_cone=Inf,
     Λ=default_DuWassersteinBall_lambda(d, norm_cone),
     Q=Matrix(I(length(d))* 1.0)
-)
+) where {S<:DeterministicSamples}
     return DuWassersteinBall(d, ϵ, Λ, Q, norm_cone)
 end
 
 distribution(s::DuWassersteinBall) = s.d
+sample_size(s::DuWassersteinBall) = sample_size(distribution(s))
 
 default_DuWassersteinBall_lambda(d::Sampleable, norm_cone::Real; num_samples::Int=20, rng::AbstractRNG=MersenneTwister(123)) = maximum(
     norm.(eachrow(rand(rng, d, num_samples)), norm_cone)
 )
 
-# Serves as a mapping from the norm's power to the appropriate cones
-const primal_cone = Dict(
-    "Inf" => MOI.NormInfinityCone,
-    "1.0" => MOI.NormOneCone,
-    "2.0" => MOI.SecondOrderCone
-)
+"""
+    calculate_measure!(measure::ExpectedReturn{S,R}, w) where {S<:DuWassersteinBall,R}
 
 """
-objective_function!(model, f, ambiguity_set, fee_rates, samples)
-
-"""
-function calculate_measure!(measure::ConditionalExpectedReturn{1.0,S,R}, w) where {S<:DuWassersteinBall,R}
+function calculate_measure!(measure::ExpectedReturn{DuWassersteinBall,Robustness}, w)
     model = owner_model(w)
     ambiguity_set = ambiguityset(measure)
 
     # parameters
     N = sample_size(ambiguity_set)
-    ξ = rand(distribution(ambiguity_set), N)
+    ξ = rand(distribution(ambiguity_set))
 
     m = length(ambiguity_set)
 

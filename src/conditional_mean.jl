@@ -26,7 +26,7 @@ function convex_hull(measure, w)
 end
 
 """conditional_expectation = -cvar = -expected_shortfall"""
-function calculate_measure!(measure::ConditionalExpectedReturn{α,S,EstimatedCase}, w) where {S<:ContinuousMultivariateSampleable,α}
+function calculate_measure!(measure::ConditionalExpectedReturn{α,S,EstimatedCase}, w) where {S<:DeterministicSamples,α}
     if α == 1.0
         return convex_hull(measure, w)
     end

@@ -26,4 +26,36 @@
             @test value(er_pointer) <= mean(d)' * value.(w) - sqrt(value.(w)' * cov(d) * value.(w)) * ambiguity_set.γ1
         end
     end
+    @testset "DuWassersteinBall" begin
+        s = DeterministicSamples(rand(rng, d, 100))
+        @testset "constructor" begin
+            @test DuWassersteinBall(s, 0.1, 1000.0, rand(numA, numA), 2.0) isa DuWassersteinBall
+            @test DuWassersteinBall(s; ϵ=0.02,
+                norm_cone=Inf,
+                Λ=100.0,
+                Q=rand(numA, numA)
+            ) isa DuWassersteinBall
+            @test_throws ArgumentError DuWassersteinBall(s, -0.1, 1000.0, rand(numA, numA), 2.0)
+            @test_throws ArgumentError DuWassersteinBall(s, 0.1, -1000.0, rand(numA, numA), 2.0)
+            @test_throws ArgumentError DuWassersteinBall(s, 0.1, 1000.0, rand(5, numA), 3.0)
+        end
+        @testset "distribution" begin
+            @test PortfolioOpt.distribution(DuWassersteinBall(s)) == s
+        end
+        @testset "sample_size" begin
+            @test PortfolioOpt.sample_size(DuWassersteinBall(s)) == PortfolioOpt.sample_size(s)
+        end
+        @testset "ExpectedReturn" begin
+            measure = ExpectedReturn(DuWassersteinBall(s))
+            model = Model(DEFAULT_SOLVER)
+            w = @variable(model, [1:numA])
+            fix.(w, ones(numA)/numA)
+            er_pointer = PortfolioOpt.calculate_measure!(measure, w)
+
+            @objective(model, Max, er_pointer)
+            JuMP.optimize!(model)
+
+            @test value(er_pointer) <= mean(s)' * value.(w)
+        end
+    end
 end

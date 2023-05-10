@@ -19,6 +19,7 @@ module TestUtils
 
     export get_test_data,
         mean_variance,
+        max_sharpe,
         keys
 
     Reexport.@reexport using MarketData

@@ -240,7 +240,7 @@ backtest_results["equal_weights"], _ = sequential_backtest_market(
     # Prep
     numD, numA = size(past_returns)
     
-    change_bids!(market, market_budget(market) * equal_weights(numA))
+    change_bids!(market, market_budget(market) * fill(1 / numA, numA))
 
     return nothing
 end

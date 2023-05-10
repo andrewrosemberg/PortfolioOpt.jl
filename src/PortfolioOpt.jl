@@ -29,7 +29,6 @@ include("conditional_mean.jl")
 include("robust_mean.jl")
 include("dro_mean.jl")
 include("backtest.jl")
-include("simple_decision_rules.jl")
 include("forecasts.jl")
 include("test_utils/testutils.jl")
 
@@ -80,9 +79,6 @@ export AmbiguitySet,
     # backtest
     sequential_backtest_market,
     get_records,
-    # end-to-end
-    max_sharpe,
-    equal_weights,
     # forecasts
     mixed_signals_predict_return
 

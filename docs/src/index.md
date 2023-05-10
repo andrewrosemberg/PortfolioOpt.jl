@@ -77,18 +77,15 @@ Instances of `VolumeMarketHistory` are the input of `sequential_backtest_market`
 
 ## Extras
 
-Some benchmarks are available as "End-to-End" functions that receive parameters as inputs and output the weights of a portfolio summing up to the maximum wealth defined in the parameters. These are mainly simple rules or analytical solutions to simple PO formulations: 
-    - `max_sharpe` 
-    - `equal_weights` 
-
 Normally, this package won't focus nor make available forecasting functionalities, but, as an exception, there is one univariate point-prediction forecasting function exported: 
  - `mixed_signals_predict_return`
 
 ## TestUtils
 
 As an extra, some testing utilities are available through the submodule called `TestUtils`:
- - `get_test_data` that returns a TimeArray of Prices for 6 assets.
- - `mean_variance`
+ - `get_test_data`: returns a TimeArray of Prices for 6 assets.
+ - `mean_variance`: returns the mean and variance of a array of returns.
+ - `max_sharpe`: portfolio that maximizes sharp.
 
 ## Contents
 ```@contents

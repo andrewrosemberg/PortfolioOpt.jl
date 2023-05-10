@@ -27,3 +27,13 @@ function mean_variance(returns; digits::Union{Nothing,Int}=nothing)
     end
     return Σ, r̄
 end
+
+"""
+Maximize sharp coefficient allocation.
+"""
+function max_sharpe(Σ, r̄, rf)
+    one = ones(size(r̄, 1))
+    invΣ = pinv(Σ, 1E-25)
+    v = invΣ * (r̄ .- one * rf)
+    return v
+end
