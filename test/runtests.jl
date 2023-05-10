@@ -23,4 +23,5 @@ include("./generated_data.jl")
     include("./estimated_mean_variance.jl")
     include("./robust_mean.jl")
     include("./dro_mean.jl")
+    include("./DeterministicSamples.jl")
 end
