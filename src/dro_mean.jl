@@ -165,12 +165,12 @@ const primal_cone = Dict(
 objective_function!(model, f, ambiguity_set, fee_rates, samples)
 
 """
-function calculate_measure!(measure::ConditionalExpectedReturn{1.0,T,S,R}, w) where {S<:DuWassersteinBall,T,R}
+function calculate_measure!(measure::ConditionalExpectedReturn{1.0,S,R}, w) where {S<:DuWassersteinBall,R}
     model = owner_model(w)
     ambiguity_set = ambiguityset(measure)
 
     # parameters
-    N = sample_size(measure)
+    N = sample_size(ambiguity_set)
     ξ = rand(distribution(ambiguity_set), N)
 
     m = length(ambiguity_set)

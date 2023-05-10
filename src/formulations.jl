@@ -50,23 +50,22 @@ function SqrtVariance(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) whe
 end
 
 ambiguityset(m::SqrtVariance) = m.ambiguity_set
-struct ConditionalExpectedReturn{α,N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
+struct ConditionalExpectedReturn{α,S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
     ambiguity_set::S
-    num_samples::N
 end
 
 # TODO: deprecate
-function ConditionalExpectedReturn{R}(α::T, ambiguity_set::S, num_samples::N) where {T<:Real, N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Robustness}
-    return ConditionalExpectedReturn{α,N,S,R}(ambiguity_set, num_samples)
+function ConditionalExpectedReturn{R}(α::T, ambiguity_set::S) where {T<:Real,S<:AmbiguitySet,R<:Robustness}
+    return ConditionalExpectedReturn{α,S,R}(ambiguity_set)
 end
 
-function ConditionalExpectedReturn(ambiguity_set::S, num_samples::N; α::T=0.05, R::Type{<:Robustness}=EstimatedCase) where {T<:Real, N<:Union{Int,Nothing},S<:AmbiguitySet}
-    return ConditionalExpectedReturn{α,N,S,R}(ambiguity_set, num_samples)
+function ConditionalExpectedReturn(ambiguity_set::S; α::T=0.05, R::Type{<:Robustness}=EstimatedCase) where {T<:Real,S<:AmbiguitySet}
+    return ConditionalExpectedReturn{α,S,R}(ambiguity_set)
 end
 
 ambiguityset(m::ConditionalExpectedReturn) = m.ambiguity_set
-sample_size(m::ConditionalExpectedReturn) = m.num_samples
-function alpha_quantile(::ConditionalExpectedReturn{α,N,S,R}) where {α,N,S,R}
+
+function alpha_quantile(::ConditionalExpectedReturn{α,S,R}) where {α,S,R}
     return α
 end
 

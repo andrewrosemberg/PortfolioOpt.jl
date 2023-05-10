@@ -57,10 +57,8 @@
             end
         end
         @testset "ConditionalExpectedReturn" begin
-            numS = 100
-            α = 0.05
-            cexp1 = ConditionalExpectedReturn(d, numS)
-            cexp2 = ConditionalExpectedReturn(d, numS; α=0.01, R=WorstCase)
+            cexp1 = ConditionalExpectedReturn(d)
+            cexp2 = ConditionalExpectedReturn(d; α=0.01, R=WorstCase)
             @testset "constructor" begin
                 @test cexp1 isa ConditionalExpectedReturn
                 @test cexp2 isa ConditionalExpectedReturn
@@ -69,12 +67,8 @@
                 @test ambiguityset(cexp1) == d
                 @test ambiguityset(cexp2) == d
             end
-            @testset "sample_size" begin
-                @test sample_size(cexp1) == numS
-                @test sample_size(cexp2) == numS
-            end
             @testset "alpha_quantile" begin
-                @test alpha_quantile(cexp1) == α
+                @test alpha_quantile(cexp1) == 0.05
                 @test alpha_quantile(cexp2) == 0.01
             end
         end

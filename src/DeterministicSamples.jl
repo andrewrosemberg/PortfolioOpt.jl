@@ -7,6 +7,9 @@ DeterministicSamples(samples, num_samples=size(samples, 2)) = DeterministicSampl
 
 Base.length(s::DeterministicSamples) = size(s.samples, 1)
 Base.size(s::DeterministicSamples) = (length(s), s.num_samples)
+Base.size(s::DeterministicSamples, dim::Int) = dim == 1 ? length(s) : s.num_samples
+sample_size(s::DeterministicSamples) = s.num_samples
+samples_probability(s::DeterministicSamples) = fill(1.0/sample_size(s), sample_size(s))
 
 """circular index"""
 function cidx(i::Int, n::Int)

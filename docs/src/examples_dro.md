@@ -62,7 +62,7 @@ backtest_results["wasserstein_fixed_budget_$(ϵ)"], _ = sequential_backtest_mark
     s = DuWassersteinBall(d; ϵ=ϵ)
 
     formulation = PortfolioFormulation(MAX_SENSE,
-        ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, s, j_robust))
+        ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, s))
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -93,7 +93,7 @@ backtest_results["wasserstein_light_tail"], _ = sequential_backtest_market(
     s = DuWassersteinBall(d; ϵ=ϵ)
 
     formulation = PortfolioFormulation(MAX_SENSE,
-        ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, s, j_robust))
+        ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, s))
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -123,8 +123,8 @@ backtest_results["EP_limit_wasserstein"], _ = sequential_backtest_market(
     s = DuWassersteinBall(d; ϵ=ϵ)
 
     formulation = PortfolioFormulation(MAX_SENSE,
-        ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=0.005), j_robust)),
-        RiskConstraint(ConditionalExpectedReturn{WorstCase}(1.0, s, j_robust), GreaterThan(R)),
+        ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=0.005))),
+        RiskConstraint(ConditionalExpectedReturn{WorstCase}(1.0, s), GreaterThan(R)),
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -156,9 +156,9 @@ PS.: Need a faster solver to run it.
 #        d = DeterministicSamples(returns'[:,:])
 #
 #        formulation = PortfolioFormulation(MAX_SENSE,
-#            ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=0.005), j_robust)),
+#            ObjectiveTerm(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=0.005))),
 #            [
-#                RiskConstraint(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=ϵ * ρ), j_robust), GreaterThan(R * ρ))
+#                RiskConstraint(ConditionalExpectedReturn{WorstCase}(1.0, DuWassersteinBall(d; ϵ=ϵ * ρ)), GreaterThan(R * ρ))
 #                for ρ in 1:ρ_max
 #            ]
 #        )
