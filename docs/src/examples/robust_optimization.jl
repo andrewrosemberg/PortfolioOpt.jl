@@ -3,7 +3,7 @@
 # ## Robust Return as Risk Constraint
 
 using HiGHS
-using COSMO
+using Clarabel
 using Distributions
 using PortfolioOpt
 using PortfolioOpt.TestUtils
@@ -20,8 +20,8 @@ DEFAULT_SOLVER = optimizer_with_attributes(
     HiGHS.Optimizer, "presolve" => "on", "time_limit" => 60.0, "log_to_console" => false
 )
 
-COSMO_SOLVER = optimizer_with_attributes(
-    COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
+Clarabel_SOLVER = optimizer_with_attributes(
+    Clarabel.Optimizer, "verbose" => false, "max_iter" => 900000
 )
 
 date_range = timestamp(returns_series)[100:end];
@@ -89,7 +89,7 @@ backtest_results["Ben-Tal"], _ = sequential_backtest_market(
         RiskConstraint(ExpectedReturn(EllipticalSet(d, 2.0), WorstCase), GreaterThan(R)),
     )
     
-    pointers = change_bids!(market, formulation, COSMO_SOLVER)
+    pointers = change_bids!(market, formulation, Clarabel_SOLVER)
     return pointers
 end
 

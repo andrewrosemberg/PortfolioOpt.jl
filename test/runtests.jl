@@ -1,4 +1,4 @@
-using COSMO
+using Clarabel
 using Distributions
 using LinearAlgebra
 using MarketData
@@ -11,7 +11,7 @@ using UUIDs
 include("./generated_data.jl")
 
 DEFAULT_SOLVER = optimizer_with_attributes(
-    COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
+    Clarabel.Optimizer, "verbose" => false, "max_iter" => 900000
 )
 
 rng = MersenneTwister(1234)

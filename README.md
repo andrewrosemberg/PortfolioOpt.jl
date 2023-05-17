@@ -79,7 +79,7 @@ As an extra, some testing utilities are available through the submodule called `
 Simple example of backtest with an available strategy.
 
 ```julia
-using COSMO
+using Clarabel
 using Distributions
 using PortfolioOpt
 using PortfolioOpt.TestUtils
@@ -93,7 +93,7 @@ returns_series = percentchange(prices);
 
 # Backtest Parameters 
 DEFAULT_SOLVER = optimizer_with_attributes(
-    COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
+    Clarabel.Optimizer, "verbose" => false, "max_iter" => 900000
 )
 
 date_range = timestamp(returns_series)[100:end];
