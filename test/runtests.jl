@@ -33,5 +33,4 @@ end
 
 @testset "PortfolioOpt.jl" begin
     util_test_directory(".", ["runtests.jl", "generated_data.jl"])
-    # util_test_directory(joinpath(dirname(@__DIR__), "docs", "src", "examples"))
 end

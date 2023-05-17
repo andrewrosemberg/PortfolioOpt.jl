@@ -67,11 +67,6 @@ To help backtesting, a type `VolumeMarketHistory` was created to contain:
 
 Instances of `VolumeMarketHistory` are the input of `sequential_backtest_market`: a function that provides a basic backtest using provided strategy and `VolumeMarketHistory` for a specified `date_range` (that needs to have the same `eltype` as `timestamp`).
 
-## Extras
-
-Normally, this package won't focus nor make available forecasting functionalities, but, as an exception, there is one univariate point-prediction forecasting function exported: 
- - `mixed_signals_predict_return`
-
 ## TestUtils
 
 As an extra, some testing utilities are available through the submodule called `TestUtils`:

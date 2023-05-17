@@ -1,9 +1,8 @@
-"""
-Features extraction from returns proposed by Betina and al.
-"""
-#KLT stands for the long-term period
-#KST stands for the short-term period
-#ϱ is the number of standard deviations above the means
+
+# Features extraction from returns proposed by Betina and al.
+# KLT stands for the long-term period
+# KST stands for the short-term period
+# ϱ is the number of standard deviations above the means
 function feature_indexes_sgns(asset_rtn_sgn, kst, klt, kmom, ϱ=2)
     #current time
     t = size(asset_rtn_sgn, 1)
@@ -71,9 +70,7 @@ function feature_indexes_sgns(asset_rtn_sgn, kst, klt, kmom, ϱ=2)
     return [sig_1; sig_2; sig_3; sig_4; sig_5; sig_6; sig_7; sig_8; sig_9]
 end
 
-"""
-Mixed signals predictor proposed by Betina and al. Univariate
-"""
+# Mixed signals predictor proposed by Betina and al. Univariate
 function mixed_signals_predict_return(asset_rtn_sgn, num_t, kst_a, klt_a, kmom, ϱ=2)
     numD = size(asset_rtn_sgn, 1)
     num_train = min(numD - 1, num_t)

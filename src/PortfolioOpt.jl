@@ -29,7 +29,6 @@ include("conditional_mean.jl")
 include("robust_mean.jl")
 include("dro_mean.jl")
 include("backtest.jl")
-include("forecasts.jl")
 include("test_utils/testutils.jl")
 
 export AmbiguitySet,
@@ -78,9 +77,7 @@ export AmbiguitySet,
     total_profit,
     # backtest
     sequential_backtest_market,
-    get_records,
-    # forecasts
-    mixed_signals_predict_return
+    get_records
 
 Reexport.@reexport using JuMP
 
