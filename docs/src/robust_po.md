@@ -29,7 +29,7 @@ A simple version of the Mean-Variance Portfolio Allocation with robust uncertain
 
 Maximizes the worst case portfolio return (``R``) and limits the portfolio variance to a maximal risk parameter (``V_0``) normalized by current wealth (``W_0``).
 
-Where ``\\mathcal{X}`` represents the additional constraints defined in the model by the user (e.g. a limit on maximum invested money).
+Where ``\mathcal{X}`` represents the additional constraints defined in the model by the user (e.g. a limit on maximum invested money).
 
 A julia object representing this problem can be instanciated by the following command:
 
@@ -40,7 +40,7 @@ formulation = PortfolioFormulation(MAX_SENSE,
 )
 ```
 
-where `d` is a `Sampleable` containing the estimated `\\Sigma` matrix.
+where `d` is a `Sampleable` containing the estimated `\Sigma` matrix.
 
 ### Bertsimas's Uncertainty Set
 The uncertainty set proposed by Bertsimas in [6] is defined by the julia type ([`BudgetSet`](@ref)):

@@ -1,7 +1,8 @@
-# # Stochastic Portfolio Optimization
+# # Distributionally Robust Portfolio Optimization
 
-# ## Empirical Forecast
+# ## distributionally Robust Return as Objective Term
 
+using HiGHS
 using COSMO
 using Distributions
 using PortfolioOpt
@@ -11,54 +12,67 @@ using PortfolioOpt.TestUtils
 prices = get_test_data();
 numD, numA = size(prices) # A: Assets    D: Days
 
-# Calculating returns 
+# Calculating returns
 returns_series = percentchange(prices);
 
-# Backtest Parameters 
+# Backtest parameters
 DEFAULT_SOLVER = optimizer_with_attributes(
+    HiGHS.Optimizer, "presolve" => "on", "time_limit" => 60.0, "log_to_console" => false
+)
+
+COSMO_SOLVER = optimizer_with_attributes(
     COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
 )
 
 date_range = timestamp(returns_series)[100:end];
 
-# ### Backtest Markowitz
-
+# ### Backtest Delage's robust return
 backtest_results = Dict()
-backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
+
+backtest_results["Delage"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
 ) do market, past_returns, ext
-    max_std = 0.003 / market_budget(market)
-    k_back = 60
-
+    # Prep
     numD, numA = size(past_returns)
     returns = values(past_returns)
-    
+    k_back = 30
     Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
+    
+    # Parameters
     d = MvNormal(r̄, Σ)
 
     formulation = PortfolioFormulation(MAX_SENSE,
-        ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(SqrtVariance(d), LessThan(max_std)),
+        ObjectiveTerm(ExpectedUtility(MomentUncertainty(d, 0.05, 1.3), 
+            PieceWiseUtility(
+                [1.0], [0.0]
+            ),
+            WorstCase
+        ))
     )
     
-    pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
+    pointers = change_bids!(market, formulation, COSMO_SOLVER)
     return pointers
 end
 
-# ### Backtest Sampled CVAR
+# ### Backtest NingNing Du's Wasserstein robust return (under light tail assumption)
 
-backtest_results["EP_limit_cvar"], _ = sequential_backtest_market(
+backtest_results["Wasserstein_light_tail"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
 ) do market, past_returns, ext
+    # Prep
     numD, numA = size(past_returns)
     returns = values(past_returns)
     
-    R = -0.001 / market_budget(market)
+    # Parameters
+    j_robust = numD
+    δ = 0.1
+    ϵ = log(1/δ)/j_robust
+    
     d = DeterministicSamples(returns'[:,:])
+    s = DuWassersteinBall(d; ϵ=ϵ)
 
     formulation = PortfolioFormulation(MAX_SENSE,
-        ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ConditionalExpectedReturn(d), GreaterThan(R)),
+        ObjectiveTerm(ExpectedReturn(s))
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
