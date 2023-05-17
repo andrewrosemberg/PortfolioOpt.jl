@@ -62,7 +62,7 @@ where:
 - ``\Gamma``: Budget (sometimes interpreted as number of assets in worst case).
 - ``\Sigma``: Predicted covariance of returns.
 
-The equivalent JuMP expression defining the worst case return (``R``) considering this uncertainty set can be constructed by the function `calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase}, w)`. In this case, ``R`` in the described uncertainty set is defined by the following primal problem:  
+The equivalent JuMP expression defining the worst case return (``R``) considering this uncertainty set can be constructed by the function `calculate_measure!(measure::ExpectedReturn{BudgetSet}, w)`. In this case, ``R`` in the described uncertainty set is defined by the following primal problem:  
 
 ```math
 \begin{aligned}

@@ -44,10 +44,6 @@ Currently implemented `PortfolioRiskMeasure`s are:
  - Expected utility (`ExpectedUtility`) which computes the expected value of a specified (hopefully concave) utility function (`ConcaveUtilityFunction`):
     - the only implemented one is the piece-wise concave utility function `PieceWiseUtility`.
 
-Given that `AmbiguitySet`s might be sets of distributions, it is necessary to determine which distribution to use in the definition of the `PortfolioRiskMeasure`. This choice can be imposed by the user through their level of robustness (type `Robustness`):
- - `EstimatedCase` if dealing with `CenteredAmbiguitySet`s and the user doesn't want to add any robustness (default);
- - `WorstCase` if the decision maker wants to use the worst case distribution in the ambiguity set.
-
 The `PortfolioRiskMeasure`s can be used to define both the `RiskConstraint`s and the `ObjectiveTerm`s in a `PortfolioFormulation` that can be parsed into details of a `JuMP.Model` using the `portfolio_model!` function.
 
 In addition, `ObjectiveTerm`s can also be `ConeRegularizer`s defined by a cone set (e.g. `norm-2`) and a linear transformation (default Identity).

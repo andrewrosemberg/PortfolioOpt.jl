@@ -23,42 +23,42 @@
         @testset "ExpectedReturn" begin
             @testset "constructor" begin
                 @test ExpectedReturn(d) isa ExpectedReturn
-                @test ExpectedReturn(d, EstimatedCase) isa ExpectedReturn
-                @test ExpectedReturn(d, WorstCase) isa ExpectedReturn
+                @test ExpectedReturn(d) isa ExpectedReturn
+                @test ExpectedReturn(d) isa ExpectedReturn
             end
             @testset "ambiguityset" begin
                 @test ambiguityset(ExpectedReturn(d)) == d
-                @test ambiguityset(ExpectedReturn(d, EstimatedCase)) == d
-                @test ambiguityset(ExpectedReturn(d, WorstCase)) == d
+                @test ambiguityset(ExpectedReturn(d)) == d
+                @test ambiguityset(ExpectedReturn(d)) == d
             end
         end
         @testset "Variance" begin
             @testset "constructor" begin
                 @test Variance(d) isa Variance
-                @test Variance(d, EstimatedCase) isa Variance
-                @test Variance(d, WorstCase) isa Variance
+                @test Variance(d) isa Variance
+                @test Variance(d) isa Variance
             end
             @testset "ambiguityset" begin
                 @test ambiguityset(Variance(d)) == d
-                @test ambiguityset(Variance(d, EstimatedCase)) == d
-                @test ambiguityset(Variance(d, WorstCase)) == d
+                @test ambiguityset(Variance(d)) == d
+                @test ambiguityset(Variance(d)) == d
             end
         end
         @testset "SqrtVariance" begin
             @testset "constructor" begin
                 @test SqrtVariance(d) isa SqrtVariance
-                @test SqrtVariance(d, EstimatedCase) isa SqrtVariance
-                @test SqrtVariance(d, WorstCase) isa SqrtVariance
+                @test SqrtVariance(d) isa SqrtVariance
+                @test SqrtVariance(d) isa SqrtVariance
             end
             @testset "ambiguityset" begin
                 @test ambiguityset(SqrtVariance(d)) == d
-                @test ambiguityset(SqrtVariance(d, EstimatedCase)) == d
-                @test ambiguityset(SqrtVariance(d, WorstCase)) == d
+                @test ambiguityset(SqrtVariance(d)) == d
+                @test ambiguityset(SqrtVariance(d)) == d
             end
         end
         @testset "ConditionalExpectedReturn" begin
             cexp1 = ConditionalExpectedReturn(d)
-            cexp2 = ConditionalExpectedReturn(d; α=0.01, R=WorstCase)
+            cexp2 = ConditionalExpectedReturn(d; α=0.01)
             @testset "constructor" begin
                 @test cexp1 isa ConditionalExpectedReturn
                 @test cexp2 isa ConditionalExpectedReturn
@@ -75,18 +75,18 @@
         @testset "ExpectedUtility" begin
             @testset "constructor" begin
                 @test ExpectedUtility(d, PieceWiseUtility()) isa ExpectedUtility
-                @test ExpectedUtility(d, PieceWiseUtility(), EstimatedCase) isa ExpectedUtility
-                @test ExpectedUtility(d, PieceWiseUtility(), WorstCase) isa ExpectedUtility
+                @test ExpectedUtility(d, PieceWiseUtility()) isa ExpectedUtility
+                @test ExpectedUtility(d, PieceWiseUtility()) isa ExpectedUtility
             end
             @testset "ambiguityset" begin
                 @test ambiguityset(ExpectedUtility(d, PieceWiseUtility())) == d
-                @test ambiguityset(ExpectedUtility(d, PieceWiseUtility(), EstimatedCase)) == d
-                @test ambiguityset(ExpectedUtility(d, PieceWiseUtility(), WorstCase)) == d
+                @test ambiguityset(ExpectedUtility(d, PieceWiseUtility())) == d
+                @test ambiguityset(ExpectedUtility(d, PieceWiseUtility())) == d
             end
             @testset "utility" begin
                 @test utility(ExpectedUtility(d, PieceWiseUtility())) == PieceWiseUtility()
-                @test utility(ExpectedUtility(d, PieceWiseUtility(), EstimatedCase)) == PieceWiseUtility()
-                @test utility(ExpectedUtility(d, PieceWiseUtility(), WorstCase)) == PieceWiseUtility()
+                @test utility(ExpectedUtility(d, PieceWiseUtility())) == PieceWiseUtility()
+                @test utility(ExpectedUtility(d, PieceWiseUtility())) == PieceWiseUtility()
             end
         end
     end

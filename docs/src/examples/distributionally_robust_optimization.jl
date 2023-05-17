@@ -43,8 +43,7 @@ backtest_results["Delage"], _ = sequential_backtest_market(
         ObjectiveTerm(ExpectedUtility(MomentUncertainty(d, 0.05, 1.3), 
             PieceWiseUtility(
                 [1.0], [0.0]
-            ),
-            WorstCase
+            )
         ))
     )
     

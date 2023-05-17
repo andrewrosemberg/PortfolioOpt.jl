@@ -46,7 +46,7 @@ MomentUncertainty(d::Sampleable; γ1, γ2) = MomentUncertainty(d, γ1, γ2)
 distribution(s::MomentUncertainty) = s.d
 
 """
-    calculate_measure!(m::ExpectedUtility{U,S,R}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty,R<:WorstCase}
+    calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty}
 
 Returns worst case utility return (WCR) under distribution uncertainty defined by MomentUncertainty ambiguity set ([`MomentUncertainty`](@ref)).
 
@@ -54,7 +54,7 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `m::ExpectedUtility`: Struct containing information about the utility and ambiguity set.
 """
-function calculate_measure!(m::ExpectedUtility{U,S,R}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty,R<:WorstCase}
+function calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty}
     model = owner_model(w)
     s = ambiguityset(m)
     utility_function = utility(m)
@@ -164,10 +164,10 @@ default_DuWassersteinBall_lambda(d::Sampleable, norm_cone::Real; num_samples::In
 )
 
 """
-    calculate_measure!(measure::ExpectedReturn{S,R}, w) where {S<:DuWassersteinBall,R}
+    calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:DuWassersteinBall}
 
 """
-function calculate_measure!(measure::ExpectedReturn{DuWassersteinBall,Robustness}, w)
+function calculate_measure!(measure::ExpectedReturn{DuWassersteinBall}, w)
     model = owner_model(w)
     ambiguity_set = ambiguityset(measure)
 

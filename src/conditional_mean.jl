@@ -1,5 +1,5 @@
 """
-    calculate_measure!(measure::ConditionalExpectedReturn{0.0,S,R}, w)
+    calculate_measure!(measure::ConditionalExpectedReturn{0.0,S}, w)
 
 Returns worst case return in the convex hull uncertainty set, defined by the following dual problem: 
 
@@ -26,7 +26,7 @@ function convex_hull(measure, w)
 end
 
 """conditional_expectation = -cvar = -expected_shortfall"""
-function calculate_measure!(measure::ConditionalExpectedReturn{α,S,EstimatedCase}, w) where {S<:DeterministicSamples,α}
+function calculate_measure!(measure::ConditionalExpectedReturn{α,S}, w) where {S<:DeterministicSamples,α}
     if α == 0.0
         return convex_hull(measure, w)
     end

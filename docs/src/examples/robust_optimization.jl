@@ -42,7 +42,7 @@ backtest_results["Soyster"], _ = sequential_backtest_market(
 
     formulation = PortfolioFormulation(MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ExpectedReturn(BudgetSet(d; Δ=maximum(abs.(returns); dims=1)'[:] .- r̄, Γ=numA * 1.0), WorstCase), GreaterThan(R)),
+        RiskConstraint(ExpectedReturn(BudgetSet(d; Δ=maximum(abs.(returns); dims=1)'[:] .- r̄, Γ=numA * 1.0)), GreaterThan(R)),
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -64,7 +64,7 @@ backtest_results["Bertsimas"], _ = sequential_backtest_market(
 
     formulation = PortfolioFormulation(MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ExpectedReturn(BudgetSet(d; Δ=maximum(abs.(returns); dims=1)'[:] .- r̄, Γ=numA * 0.3), WorstCase), GreaterThan(R)),
+        RiskConstraint(ExpectedReturn(BudgetSet(d; Δ=maximum(abs.(returns); dims=1)'[:] .- r̄, Γ=numA * 0.3)), GreaterThan(R)),
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -86,7 +86,7 @@ backtest_results["Ben-Tal"], _ = sequential_backtest_market(
 
     formulation = PortfolioFormulation(MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ExpectedReturn(EllipticalSet(d, 2.0), WorstCase), GreaterThan(R)),
+        RiskConstraint(ExpectedReturn(EllipticalSet(d, 2.0)), GreaterThan(R)),
     )
     
     pointers = change_bids!(market, formulation, Clarabel_SOLVER)

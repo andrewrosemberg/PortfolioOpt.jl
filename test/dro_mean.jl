@@ -13,7 +13,7 @@
             @test PortfolioOpt.distribution(ambiguity_set) == d
         end
         @testset "ExpectedUtility" begin
-            measure = ExpectedUtility(ambiguity_set, PieceWiseUtility(), WorstCase)
+            measure = ExpectedUtility(ambiguity_set, PieceWiseUtility())
             model = Model(DEFAULT_SOLVER)
             w = @variable(model, [1:numA])
             fix.(w, ones(numA)/numA)

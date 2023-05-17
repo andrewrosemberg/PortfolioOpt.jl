@@ -15,7 +15,7 @@
             @test PortfolioOpt.distribution(ambiguity_set) == d
         end
         @testset "ExpectedReturn" begin
-            measure = ExpectedReturn(ambiguity_set, WorstCase)
+            measure = ExpectedReturn(ambiguity_set)
             model = Model(DEFAULT_SOLVER)
             w = @variable(model, [1:numA])
             fix.(w, ones(numA)/numA)
@@ -38,7 +38,7 @@
             @test PortfolioOpt.distribution(ambiguity_set) == d
         end
         @testset "ExpectedReturn" begin
-            measure = ExpectedReturn(ambiguity_set, WorstCase)
+            measure = ExpectedReturn(ambiguity_set)
             model = Model(DEFAULT_SOLVER)
             w = @variable(model, [1:numA])
             fix.(w, ones(numA)/numA)
