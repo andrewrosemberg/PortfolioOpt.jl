@@ -23,7 +23,8 @@ DEFAULT_SOLVER = optimizer_with_attributes(
 
 date_range = timestamp(returns_series)[100:end];
 
-# Backtest
+# Backtest Markowitz
+
 backtest_results = Dict()
 backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
@@ -40,6 +41,26 @@ backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
     formulation = PortfolioFormulation(MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
         RiskConstraint(SqrtVariance(d), LessThan(max_std)),
+    )
+    
+    pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
+    return pointers
+end
+
+# Backtest Sampled CVAR
+
+backtest_results["EP_limit_cvar"], _ = sequential_backtest_market(
+    VolumeMarketHistory(returns_series), date_range,
+) do market, past_returns, ext
+    numD, numA = size(past_returns)
+    returns = values(past_returns)
+    
+    R = -0.001 / market_budget(market)
+    d = DeterministicSamples(returns'[:,:])
+
+    formulation = PortfolioFormulation(MAX_SENSE,
+        ObjectiveTerm(ExpectedReturn(d)),
+        RiskConstraint(ConditionalExpectedReturn(d), GreaterThan(R)),
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
