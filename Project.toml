@@ -1,7 +1,7 @@
 name = "PortfolioOpt"
 uuid = "d204b4b0-6ba1-497c-bfb5-71589c3b52ce"
 authors = ["Andrew Rosemberg"]
-version = "0.4.0"
+version = "1.0.0"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
