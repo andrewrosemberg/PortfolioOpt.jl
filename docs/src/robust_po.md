@@ -19,17 +19,17 @@ A collection of recent contributions to robust portfolio strategies are outlined
 A simple version of the Mean-Variance Portfolio Allocation with robust uncertainty around the estimated mean returns (posed as a quadratic convex problem):
 
 ```math
-    \\begin{aligned}
-        \\max_{w} \\quad & R \\\\
-        s.t. \\quad & R = (\\min r'w \\; | \\; r \\in \\Omega) \\\\
-        & w ' \\Sigma w \\leq V_0 * W_0\\\\
-        & w \\in \\mathcal{X} \\\\
-    \\end{aligned}
+\begin{aligned}
+    \max_{w} \quad & R \\
+    s.t. \quad & R = (\min r'w \; | \; r \in \Omega) \\
+    & w ' \Sigma w \leq V_0 * W_0\\
+    & w \in \mathcal{X} \\
+\end{aligned}
 ```
 
 Maximizes the worst case portfolio return (``R``) and limits the portfolio variance to a maximal risk parameter (``V_0``) normalized by current wealth (``W_0``).
 
-Where ``\\mathcal{X}`` represents the additional constraints defined in the model by the user (e.g. a limit on maximum invested money).
+Where ``\mathcal{X}`` represents the additional constraints defined in the model by the user (e.g. a limit on maximum invested money).
 
 A julia object representing this problem can be instanciated by the following command:
 
@@ -40,7 +40,7 @@ formulation = PortfolioFormulation(MAX_SENSE,
 )
 ```
 
-where `d` is a `Sampleable` containing the estimated `\\Sigma` matrix.
+where `d` is a `Sampleable` containing the estimated `\Sigma` matrix.
 
 ### Bertsimas's Uncertainty Set
 The uncertainty set proposed by Bertsimas in [6] is defined by the julia type ([`BudgetSet`](@ref)):
@@ -62,7 +62,7 @@ where:
 - ``\Gamma``: Budget (sometimes interpreted as number of assets in worst case).
 - ``\Sigma``: Predicted covariance of returns.
 
-The equivalent JuMP expression defining the worst case return (``R``) considering this uncertainty set can be constructed by the function `calculate_measure!(measure::ExpectedReturn{BudgetSet,WorstCase}, w)`. In this case, ``R`` in the described uncertainty set is defined by the following primal problem:  
+The equivalent JuMP expression defining the worst case return (``R``) considering this uncertainty set can be constructed by the function `calculate_measure!(measure::ExpectedReturn{BudgetSet}, w)`. In this case, ``R`` in the described uncertainty set is defined by the following primal problem:  
 
 ```math
 \begin{aligned}

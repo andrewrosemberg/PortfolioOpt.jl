@@ -44,10 +44,6 @@ Currently implemented `PortfolioRiskMeasure`s are:
  - Expected utility (`ExpectedUtility`) which computes the expected value of a specified (hopefully concave) utility function (`ConcaveUtilityFunction`):
     - the only implemented one is the piece-wise concave utility function `PieceWiseUtility`.
 
-Given that `AmbiguitySet`s might be sets of distributions, it is necessary to determine which distribution to use in the definition of the `PortfolioRiskMeasure`. This choice can be imposed by the user through their level of robustness (type `Robustness`):
- - `EstimatedCase` if dealing with `CenteredAmbiguitySet`s and the user doesn't want to add any robustness (default);
- - `WorstCase` if the decision maker wants to use the worst case distribution in the ambiguity set.
-
 The `PortfolioRiskMeasure`s can be used to define both the `RiskConstraint`s and the `ObjectiveTerm`s in a `PortfolioFormulation` that can be parsed into details of a `JuMP.Model` using the `portfolio_model!` function.
 
 In addition, `ObjectiveTerm`s can also be `ConeRegularizer`s defined by a cone set (e.g. `norm-2`) and a linear transformation (default Identity).
@@ -75,20 +71,12 @@ To help backtesting, a type `VolumeMarketHistory` was created to contain:
 
 Instances of `VolumeMarketHistory` are the input of `sequential_backtest_market`: a function that provides a basic backtest using provided strategy and `VolumeMarketHistory` for a specified `date_range` (that needs to have the same `eltype` as `timestamp`).
 
-## Extras
-
-Some benchmarks are available as "End-to-End" functions that receive parameters as inputs and output the weights of a portfolio summing up to the maximum wealth defined in the parameters. These are mainly simple rules or analytical solutions to simple PO formulations: 
-    - `max_sharpe` 
-    - `equal_weights` 
-
-Normally, this package won't focus nor make available forecasting functionalities, but, as an exception, there is one univariate point-prediction forecasting function exported: 
- - `mixed_signals_predict_return`
-
 ## TestUtils
 
 As an extra, some testing utilities are available through the submodule called `TestUtils`:
- - `get_test_data` that returns a TimeArray of Prices for 6 assets.
- - `mean_variance`
+ - `get_test_data`: returns a TimeArray of Prices for 6 assets.
+ - `mean_variance`: returns the mean and variance of a array of returns.
+ - `max_sharpe`: portfolio that maximizes sharp.
 
 ## Contents
 ```@contents

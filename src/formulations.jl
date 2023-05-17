@@ -13,63 +13,69 @@ end
 coefficients(u::PieceWiseUtility) = u.c
 intercepts(u::PieceWiseUtility) = u.b
 
+==(a::PieceWiseUtility, b::PieceWiseUtility) = coefficients(a) == coefficients(b) && intercepts(a) == intercepts(b)
+
 # TODO: Implement other useful utility functions
 
-abstract type Robustness end
-abstract type EstimatedCase <: Robustness end
-abstract type WorstCase <: Robustness end
+abstract type PortfolioRiskMeasure{S<:AmbiguitySet} end
 
-abstract type PortfolioRiskMeasure{S<:AmbiguitySet,R<:Robustness} end
-
-struct ExpectedReturn{S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
+struct ExpectedReturn{S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
     ambiguity_set::S
 end
 
-function ExpectedReturn(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) where {S<:AmbiguitySet}
-    return ExpectedReturn{S,R}(ambiguity_set)
+function ExpectedReturn(ambiguity_set::S) where {S<:AmbiguitySet}
+    return ExpectedReturn{S}(ambiguity_set)
 end
 ambiguityset(m::ExpectedReturn) = m.ambiguity_set
 
-struct Variance{S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
+struct Variance{S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
     ambiguity_set::S
 end
 
-function Variance(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) where {S<:AmbiguitySet}
-    return Variance{S,R}(ambiguity_set)
+function Variance(ambiguity_set::S) where {S<:AmbiguitySet}
+    return Variance{S}(ambiguity_set)
 end
 ambiguityset(m::Variance) = m.ambiguity_set
 
-struct SqrtVariance{S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
+struct SqrtVariance{S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
     ambiguity_set::S
 end
 
-function SqrtVariance(ambiguity_set::S, R::Type{<:Robustness}=EstimatedCase) where {S<:AmbiguitySet}
-    return SqrtVariance{S,R}(ambiguity_set)
+function SqrtVariance(ambiguity_set::S) where {S<:AmbiguitySet}
+    return SqrtVariance{S}(ambiguity_set)
 end
 
 ambiguityset(m::SqrtVariance) = m.ambiguity_set
-struct ConditionalExpectedReturn{α,N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
+struct ConditionalExpectedReturn{α,S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
     ambiguity_set::S
-    num_samples::N
 end
 
-function ConditionalExpectedReturn{R}(α::T, ambiguity_set::S, num_samples::N) where {T<:Real, N<:Union{Int,Nothing},S<:AmbiguitySet,R<:Robustness}
-    return ConditionalExpectedReturn{α,N,S,R}(ambiguity_set, num_samples)
+# TODO: deprecate
+function ConditionalExpectedReturn(α::T, ambiguity_set::S) where {T<:Real,S<:AmbiguitySet}
+    return ConditionalExpectedReturn{α,S}(ambiguity_set)
+end
+
+function ConditionalExpectedReturn(ambiguity_set::S; α::T=0.05) where {T<:Real,S<:AmbiguitySet}
+    return ConditionalExpectedReturn{α,S}(ambiguity_set)
 end
 
 ambiguityset(m::ConditionalExpectedReturn) = m.ambiguity_set
-sample_size(m::ConditionalExpectedReturn) = m.num_samples
-function alpha_quantile(::ConditionalExpectedReturn{α,N,S,R}) where {α,N,S,R}
+
+function alpha_quantile(::ConditionalExpectedReturn{α,S}) where {α,S}
     return α
 end
 
-struct ExpectedUtility{C<:ConcaveUtilityFunction,S<:AmbiguitySet,R<:Robustness} <: PortfolioRiskMeasure{S,R}
+struct ExpectedUtility{C<:ConcaveUtilityFunction,S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
     ambiguity_set::S
     utility::C
 end
 
-function ExpectedUtility(ambiguity_set::S, utility::C, R::Type{<:Robustness}) where {C<:ConcaveUtilityFunction,S<:AmbiguitySet}
-    ExpectedUtility{C,S,R}(ambiguity_set, utility)
+function ExpectedUtility(ambiguity_set::S, utility::C) where {C<:ConcaveUtilityFunction,S<:AmbiguitySet}
+    ExpectedUtility{C,S}(ambiguity_set, utility)
+end
+
+function ExpectedUtility(ambiguity_set::S, utility::C) where {C<:ConcaveUtilityFunction,S<:AmbiguitySet}
+    ExpectedUtility{C,S}(ambiguity_set, utility)
 end
 
 ambiguityset(m::ExpectedUtility) = m.ambiguity_set
@@ -109,7 +115,7 @@ end
 
 struct ConeRegularizer
     norm_cone::Union{AbstractVectorSet, MOI.AbstractVectorSet}
-    weight_matrix::Union{AbstractArray,UniformScaling}
+    weight_matrix::Union{Matrix,UniformScaling}
 
     function ConeRegularizer(norm_cone, weight_matrix=I)
         return new(norm_cone, weight_matrix)
@@ -155,6 +161,7 @@ end
 
 PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk::RiskConstraint{C}) where {T,C} = PortfolioFormulation(sense, [obj], [risk])
 PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk_constraints::Vector{<:RiskConstraint}) where {T} = PortfolioFormulation(sense, [obj], risk_constraints)
+PortfolioFormulation(sense::MOI.OptimizationSense, obj::Vector{<:ObjectiveTerm}, risk::RiskConstraint) = PortfolioFormulation(sense, obj, [risk])
 PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}) where {T} = PortfolioFormulation(sense, [obj])
 sense(formulation::PortfolioFormulation) = formulation.sense
 

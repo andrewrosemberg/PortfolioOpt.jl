@@ -1,5 +1,5 @@
 """
-    calculate_measure!(measure::ConditionalExpectedReturn{Inf,N,S,R}, w)
+    calculate_measure!(measure::ConditionalExpectedReturn{0.0,S}, w)
 
 Returns worst case return in the convex hull uncertainty set, defined by the following dual problem: 
 
@@ -12,10 +12,10 @@ Further information:
   - Fernandes, B., Street, A., ValladA˜ £o, D., e Fernandes, C. (2016). An adaptive robust portfolio optimization model with loss constraints based on data-driven polyhedral uncertainty sets. European Journal of Operational Research, 255(3):961 – 970. ISSN 0377-2217. URL.
 
 """
-function calculate_measure!(measure::ConditionalExpectedReturn{Inf,N,S,R}, w) where {S<:ContinuousMultivariateSampleable,N,R}
+function convex_hull(measure, w)
     model = owner_model(w)
     s = ambiguityset(measure)
-    samples = rand(s, sample_size(measure))
+    samples = rand(s)
 
     # auxilary variables
     θ = @variable(model)
@@ -26,14 +26,17 @@ function calculate_measure!(measure::ConditionalExpectedReturn{Inf,N,S,R}, w) wh
 end
 
 """conditional_expectation = -cvar = -expected_shortfall"""
-function calculate_measure!(measure::ConditionalExpectedReturn{α,N,S,EstimatedCase}, w) where {S<:ContinuousMultivariateSampleable,α,N}
+function calculate_measure!(measure::ConditionalExpectedReturn{α,S}, w) where {S<:DeterministicSamples,α}
+    if α == 0.0
+        return convex_hull(measure, w)
+    end
     model = owner_model(w)
     s = ambiguityset(measure)
 
     # parameters
-    numS = sample_size(measure)
-    samples = rand(s, numS)
-    sample_probability = fill(1/numS,numS)
+    numS = sample_size(s)
+    samples = rand(s)
+    sample_probability = samples_probability(s)
 
     # dual variables
     @variable(model, z)

@@ -1,7 +1,7 @@
 name = "PortfolioOpt"
 uuid = "d204b4b0-6ba1-497c-bfb5-71589c3b52ce"
 authors = ["Andrew Rosemberg"]
-version = "0.3.0"
+version = "0.4.0"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -27,8 +27,8 @@ Reexport = "~1.2"
 julia = "^1.6"
 
 [extras]
-COSMO = "1e616198-aa4e-51ec-90a2-23f7fbd31d8d"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Clarabel = "61c947e1-3e6d-4ee4-985a-eec8c727bd6e"
 
 [targets]
-test = ["Test", "COSMO"]
+test = ["Test", "Clarabel"]
