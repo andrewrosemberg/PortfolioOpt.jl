@@ -45,7 +45,7 @@ backtest_results["EP_limit_betina"], _ = sequential_backtest_market(
 
     formulation = PortfolioFormulation(MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ConditionalExpectedReturn{WorstCase}(Inf, DeterministicSamples(returns'[:,:]), j_robust), GreaterThan(R)),
+        RiskConstraint(ConditionalExpectedReturn(0.0, DeterministicSamples(returns'[:,:]), j_robust), GreaterThan(R)),
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -84,7 +84,7 @@ backtest_results["mixed_signals_limit_betina"], _ = sequential_backtest_market(
 
     formulation = PortfolioFormulation(MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(Dirac(r̄))),
-        RiskConstraint(ConditionalExpectedReturn{WorstCase}(Inf, DeterministicSamples(returns'[:,:]), j_robust), GreaterThan(R)),
+        RiskConstraint(ConditionalExpectedReturn(0.0, DeterministicSamples(returns'[:,:]), j_robust), GreaterThan(R)),
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -143,7 +143,7 @@ backtest_results["xgboost_limit_betina"], _ = sequential_backtest_market(
 
     formulation = PortfolioFormulation(MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(Dirac(r̄))),
-        RiskConstraint(ConditionalExpectedReturn{WorstCase}(Inf, DeterministicSamples(returns'[:,:]), j_robust), GreaterThan(R)),
+        RiskConstraint(ConditionalExpectedReturn(0.0, DeterministicSamples(returns'[:,:]), j_robust), GreaterThan(R)),
     )
     
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)

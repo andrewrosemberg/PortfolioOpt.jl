@@ -1,5 +1,5 @@
 # This is a very relaxed tests. It only checks that the conditional mean is
-# between the mean and the conditional mean of α=1.0. It does not check that the
+# between the mean and the conditional mean of α=0.0. It does not check that the
 # conditional mean is the correct value.
 # A check with the analytical solution would be better, but it is not numerically
 # stable.
@@ -9,7 +9,7 @@
     d = generate_gaussian_distribution(numA, rng)
     s = DeterministicSamples(rand(rng, d, 100))
     measure = ConditionalExpectedReturn(s)
-    measure2 = ConditionalExpectedReturn(s; α=1.0)
+    measure2 = ConditionalExpectedReturn(s; α=0.0)
 
     model = Model(DEFAULT_SOLVER)
     w = @variable(model, [1:numA])

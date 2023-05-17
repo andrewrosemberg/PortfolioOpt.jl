@@ -8,21 +8,30 @@ using Random
 using Test
 using UUIDs
 
+include("./generated_data.jl")
+
 DEFAULT_SOLVER = optimizer_with_attributes(
     COSMO.Optimizer, "verbose" => false, "max_iter" => 900000
 )
 
 rng = MersenneTwister(1234)
 
-include("./generated_data.jl")
+function util_test_directory(dir, exclude = String[])
+    for (root, _, files) in walkdir(dir)
+        for file in files
+            if endswith(file, ".jl") && !(file in exclude)
+                @testset "$(file)" begin
+                    @info file
+                    Random.seed!(12345)
+                    include(joinpath(root, file))
+                end
+            end
+        end
+    end
+    return
+end
 
 @testset "PortfolioOpt.jl" begin
-    include("./VolumeMarket.jl")
-    include("./backtest.jl")
-    include("./formulations.jl")
-    include("./estimated_mean_variance.jl")
-    include("./robust_mean.jl")
-    include("./dro_mean.jl")
-    include("./DeterministicSamples.jl")
-    include("./conditional_mean.jl")
+    util_test_directory(".", ["runtests.jl", "generated_data.jl"])
+    # util_test_directory(joinpath(dirname(@__DIR__), "docs", "src", "examples"))
 end
