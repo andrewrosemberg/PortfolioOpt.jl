@@ -22,7 +22,7 @@ A simple version of the Mean-Variance Portfolio Allocation with robust uncertain
 \begin{aligned}
     \max_{w} \quad & R \\
     s.t. \quad & R = (\min r'w \; | \; r \in \Omega) \\
-    & w ' \Sigma w \\leq V_0 * W_0\\
+    & w ' \Sigma w \leq V_0 * W_0\\
     & w \in \mathcal{X} \\
 \end{aligned}
 ```

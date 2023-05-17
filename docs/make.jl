@@ -17,7 +17,7 @@ function _include_sandbox(filename)
     return Base.include(mod, filename)
 end
 
-for dir in joinpath.(@__DIR__, "src", ("examples", "tutorial", "explanation"))
+for dir in joinpath.(@__DIR__, "src", ("examples",))
     for jl_filename in list_of_sorted_files(dir, dir, ".jl")
         Random.seed!(12345)
         # `include` the file to test it before `#src` lines are removed. It is
@@ -30,10 +30,6 @@ for dir in joinpath.(@__DIR__, "src", ("examples", "tutorial", "explanation"))
             jl_filename,
             dir;
             documenter = true,
-            preprocess = content -> add_binder_links(
-                replace(jl_filename, joinpath(@__DIR__, "src", "") => ""),
-                content,
-            ),
             postprocess = content -> replace(content, "nothing #hide" => ""),
         )
     end

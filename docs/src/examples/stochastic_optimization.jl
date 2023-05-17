@@ -28,19 +28,15 @@ backtest_results = Dict()
 backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
 ) do market, past_returns, ext
-    # Parameters
     max_std = 0.003 / market_budget(market)
     k_back = 60
 
-    # Prep
     numD, numA = size(past_returns)
     returns = values(past_returns)
     
-    # Forecast
     Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
     d = MvNormal(r̄, Σ)
 
-    # PO Formulation
     formulation = PortfolioFormulation(MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
         RiskConstraint(SqrtVariance(d), LessThan(max_std)),
