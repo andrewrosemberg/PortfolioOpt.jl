@@ -1,15 +1,15 @@
 # PortfolioOpt
 Simple package with Portfolio Optimization (PO) formulations using [JuMP.jl](https://github.com/jump-dev/JuMP.jl).
 
-<!-- [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://andrewrosemberg.github.io/PortfolioOpt.jl/stable) -->
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://andrewrosemberg.github.io/PortfolioOpt.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev)
-<!-- [![Build Status](https://travis-ci.com/andrewrosemberg/PortfolioOpt.jl.svg?branch=master)](https://travis-ci.com/andrewrosemberg/PortfolioOpt.jl) -->
-<!-- [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle) -->
+[![Coverage](https://codecov.io/gh/andrewrosemberg/PortfolioOpt.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/andrewrosemberg/PortfolioOpt.jl)
+[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 
 ## Installation
 
-The current package is unregistered so you will need to add it as follows:
+The current package is being registered so you will need to add it as follows for now:
 
 ```julia
 julia> ] add https://github.com/andrewrosemberg/PortfolioOpt.jl.git 
@@ -17,22 +17,23 @@ julia> ] add https://github.com/andrewrosemberg/PortfolioOpt.jl.git
 
 ## PO Strategies
 
-The core functionalities of this package are implementations of risk measures (type `PortfolioRiskMeasure`) of the random variable representing the next period portfolio return (`R = w'r`). These are used to define the objective's terms (type `ObjectiveTerm`) and risk constraints (type `RiskConstraint`) of a PO formulation (type `PortfolioFormulation`). As with realistic applications, the decision maker might only have limited information about the individual asset returns, so these can be described with ambiguity sets (type `AmbiguitySet`) - a general object containing some limited information of the asset returns' random variables.
+The core functionalities of this package are implementations of risk measures (type `PortfolioRiskMeasure`) of the random variable representing the next period portfolio return (`R = w'r`). These are used to define the objective's terms (type `ObjectiveTerm`) and risk constraints (type `RiskConstraint`) of a PO formulation (type `PortfolioFormulation`). As with realistic applications, the decision maker might only have limited information about the individual asset returns, so their uncertainty may be described in different ways:
 
-Currently acceptable `AmbiguitySet`s are all `CenteredAmbiguitySet`s, i.e. centered around a (usually Continuous) Multivariate `Sampleable`. E.g. :
+Currently acceptable uncertainty types:
  - Point distributions (type `Dirac`) if the decision maker has absolute certainty of the PO returns;
  - Any continuous multivariate distribution (type `Sampleable{Multivariate, Continuous}`) if the decision maker can confidently estimate the distribution for the next period's returns;
- - Distributionally robust ambiguity sets if a set of distributions are equally likely to be the true distribution:
-    - type `MomentUncertainty`;
+ - Distributionally robust ambiguity sets if a set of distributions may be be the true distribution:
+    - type `MomentUncertainty`,
+    - type `DuWassersteinBall`.
  - Robust uncertainty sets if the decision maker can only infer the support of the true distribution (also viewed as distributionally robust ambiguity sets containting just single point distributions):
     - type `BudgetSet`,
     - type `EllipticalSet`.
 
 Currently implemented `PortfolioRiskMeasure`s are: 
- - Expected return (`ExpectedReturn`);
- - `Variance`;
- - Square root of the portfolio variance (`SqrtVariance`);
- - Conditional expected return (`ConditionalExpectedReturn`) - also called Conditional Value at Risk (CVAR) or (Expected Shortfall);
+ - Expected return (`ExpectedReturn`),
+ - `Variance`,
+ - Square root of the portfolio variance (`SqrtVariance`, i.e., Standard Deviation),
+ - Conditional expected return (`ConditionalExpectedReturn`) - also called Conditional Value at Risk (CVAR) or (Expected Shortfall),
  - Expected utility (`ExpectedUtility`) which computes the expected value of a specified (hopefully concave) utility function (`ConcaveUtilityFunction`):
     - the only implemented one is the piece-wise concave utility function `PieceWiseUtility`.
 
@@ -68,11 +69,19 @@ Instances of `VolumeMarketHistory` are the input of `sequential_backtest_market`
 As an extra, some testing utilities are available through the submodule called `TestUtils`:
  - `get_test_data`: returns a TimeArray of Prices for 6 assets.
  - `mean_variance`: returns the mean and variance of a array of returns.
- - `max_sharpe`: portfolio that maximizes sharp. 
+ - `max_sharpe`: portfolio optimization that maximizes the sharp ratio. 
 
 ## Example Markowitz with Empirical Forecaster
 
 Simple example of backtest with an available strategy.
+
+```math
+\begin{aligned}
+    \max_{w} \quad & r'w \\
+    s.t. \quad & w ' \Sigma w \leq V_0 \\
+    & w \in \mathcal{X} \\
+\end{aligned}
+```
 
 ```julia
 using Clarabel
@@ -100,7 +109,7 @@ backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range,
 ) do market, past_returns, ext
     # Parameters
-    max_std = 0.03 / market_budget(market) # standard deviation limit
+    max_variance = 0.03 / market_budget(market) # standard deviation limit
     k_back = 60 # forecaster lookback
 
     # Prep
@@ -114,7 +123,7 @@ backtest_results["EP_markowitz_limit_var"], _ = sequential_backtest_market(
     # PO Formulation
     formulation = PortfolioFormulation(MAX_SENSE, # Maximization problem
         ObjectiveTerm(ExpectedReturn(d)), # Objective: Max Expected return of forecasted distribution
-        RiskConstraint(SqrtVariance(d), LessThan(max_std)), # Risk: limit PO standard deviation
+        RiskConstraint(Variance(d), LessThan(max_variance)), # Risk: limit PO variance
     )
     
     change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -122,7 +131,9 @@ end
 
 ```
 
-## Example Markowitz with Empirical Forecaster, Soyster Uncertainty Box and L1 regularizer
+## Let's add a regularizer and another risk constraint
+
+Example Markowitz with Empirical Forecaster, Soyster Uncertainty Box and L1 regularizer:
 
 ```julia
 
