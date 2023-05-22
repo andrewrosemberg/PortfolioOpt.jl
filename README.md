@@ -9,10 +9,8 @@ Simple package with Portfolio Optimization (PO) formulations using [JuMP.jl](htt
 
 ## Installation
 
-The current package is being registered so you will need to add it as follows for now:
-
 ```julia
-julia> ] add https://github.com/andrewrosemberg/PortfolioOpt.jl.git 
+julia> ] add PortfolioOpt
 ```
 
 ## PO Strategies
