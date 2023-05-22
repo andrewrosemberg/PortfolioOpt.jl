@@ -17,30 +17,29 @@ Simple package with Portfolio Optimization (PO) formulations using [JuMP.jl](htt
 
 ## Installation
 
-The current package is unregistered so you will need to add it as follows:
-
 ```julia
-julia> ] add https://github.com/andrewrosemberg/PortfolioOpt.jl.git 
+julia> ] add PortfolioOpt
 ```
 
 ## PO Strategies
 
-The core functionalities of this package are implementations of risk measures (type `PortfolioRiskMeasure`) of the random variable representing the next period portfolio return (`R = w'r`). These are used to define the objective's terms (type `ObjectiveTerm`) and risk constraints (type `RiskConstraint`) of a PO formulation (type `PortfolioFormulation`). As with realistic applications, the decision maker might only have limited information about the individual asset returns, so these can be described with ambiguity sets (type `AmbiguitySet`) - a general object containing some limited information of the asset returns' random variables.
+The core functionalities of this package are implementations of risk measures (type `PortfolioRiskMeasure`) of the random variable representing the next period portfolio return (`R = w'r`). These are used to define the objective's terms (type `ObjectiveTerm`) and risk constraints (type `RiskConstraint`) of a PO formulation (type `PortfolioFormulation`). As with realistic applications, the decision maker might only have limited information about the individual asset returns, so their uncertainty may be described in different ways:
 
-Currently acceptable `AmbiguitySet`s are all `CenteredAmbiguitySet`s, i.e. centered around a (usually Continuous) Multivariate `Sampleable`. E.g. :
+Currently acceptable uncertainty types:
  - Point distributions (type `Dirac`) if the decision maker has absolute certainty of the PO returns;
  - Any continuous multivariate distribution (type `Sampleable{Multivariate, Continuous}`) if the decision maker can confidently estimate the distribution for the next period's returns;
- - Distributionally robust ambiguity sets if a set of distributions are equally likely to be the true distribution:
-    - type `MomentUncertainty`;
+ - Distributionally robust ambiguity sets if a set of distributions may be be the true distribution:
+    - type `MomentUncertainty`,
+    - type `DuWassersteinBall`.
  - Robust uncertainty sets if the decision maker can only infer the support of the true distribution (also viewed as distributionally robust ambiguity sets containting just single point distributions):
     - type `BudgetSet`,
     - type `EllipticalSet`.
 
 Currently implemented `PortfolioRiskMeasure`s are: 
- - Expected return (`ExpectedReturn`);
- - `Variance`;
- - Square root of the portfolio variance (`SqrtVariance`);
- - Conditional expected return (`ConditionalExpectedReturn`) - also called Conditional Value at Risk (CVAR) or (Expected Shortfall);
+ - Expected return (`ExpectedReturn`),
+ - `Variance`,
+ - Square root of the portfolio variance (`SqrtVariance`, i.e., Standard Deviation),
+ - Conditional expected return (`ConditionalExpectedReturn`) - also called Conditional Value at Risk (CVAR) or (Expected Shortfall),
  - Expected utility (`ExpectedUtility`) which computes the expected value of a specified (hopefully concave) utility function (`ConcaveUtilityFunction`):
     - the only implemented one is the piece-wise concave utility function `PieceWiseUtility`.
 
@@ -76,7 +75,7 @@ Instances of `VolumeMarketHistory` are the input of `sequential_backtest_market`
 As an extra, some testing utilities are available through the submodule called `TestUtils`:
  - `get_test_data`: returns a TimeArray of Prices for 6 assets.
  - `mean_variance`: returns the mean and variance of a array of returns.
- - `max_sharpe`: portfolio that maximizes sharp.
+ - `max_sharpe`: portfolio optimization that maximizes the sharp ratio.
 
 ## Contents
 ```@contents
