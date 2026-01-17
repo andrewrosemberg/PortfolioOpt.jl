@@ -16,7 +16,6 @@ jobs:
       matrix:
         version:
           - '1.10'  # LTS version
-          - '1'     # Latest stable
         os:
           - ubuntu-latest
           - macOS-latest
