@@ -1,3 +1,12 @@
+"""
+    VolumeMarket(N::Int; budget=1.0, volume_fee=0.0, allow_short_selling=false, risk_free_rate=0.0)
+
+Market with `N` assets where the decision is the amount of money invested in each asset (the
+volume bids). Money that is not invested earns `risk_free_rate`, and every unit invested pays
+`volume_fee`. The total invested (in absolute value) is limited by `budget`.
+
+Bids are set with `change_bids!` and the realized returns of the assets with `clear_market!`.
+"""
 mutable struct VolumeMarket{T<:Real,N} <: OptimalBids.Market
     budget::T
     volume_fee::T
