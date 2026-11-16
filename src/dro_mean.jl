@@ -55,7 +55,7 @@ Arguments:
  - `m::ExpectedUtility`: Struct containing information about the utility and ambiguity set.
 """
 function calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty}
-    model = owner_model(w)
+    model = _owner_model(w)
     s = ambiguityset(m)
     utility_function = utility(m)
     
@@ -89,12 +89,18 @@ function calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtili
     return -(γ2 * dot(Σ, Q) - first(means'Q * means) + r + dot(Σ, P) - 2 * dot(means, p) + γ1 * s)
 end
 
-# Serves as a mapping from the norm's power to the appropriate cones
-const primal_cone = Dict(
-    "Inf" => MOI.NormInfinityCone,
-    "1.0" => MOI.NormOneCone,
-    "2.0" => MOI.SecondOrderCone
-)
+"""
+    primal_cone(::Val{p}) -> Type{<:MOI.AbstractVectorSet}
+
+Cone `{(t, x) : t ≥ ||x||_p}` of the `p` norm used by [`DuWassersteinBall`](@ref). Implemented for
+`p = 1.0`, `2.0` and `Inf`; add a method for `Val{p}` (with `p` a `Float64`) to support another norm.
+"""
+primal_cone(::Val{Inf}) = MOI.NormInfinityCone
+primal_cone(::Val{1.0}) = MOI.NormOneCone
+primal_cone(::Val{2.0}) = MOI.SecondOrderCone
+primal_cone(p::Real) = primal_cone(Val(Float64(p)))
+
+_has_primal_cone(p::Real) = applicable(primal_cone, Val(Float64(p)))
 
 """
     DuWassersteinBall <: CenteredAmbiguitySet
@@ -133,7 +139,9 @@ struct DuWassersteinBall{T<:Real, D<:DeterministicSamples} <: CenteredAmbiguityS
         ))
         ϵ >= 0 || throw(ArgumentError("ϵ must be >= 0"))
         Λ >= 0 || throw(ArgumentError("Λ must be >= 0"))
-        haskey(primal_cone, string(norm_cone)) || throw(ArgumentError("norm_cone must be one of $(keys(primal_cone))"))
+        _has_primal_cone(norm_cone) || throw(ArgumentError(
+            "no cone for the norm $(norm_cone): implement `PortfolioOpt.primal_cone(::Val{$(Float64(norm_cone))})`"
+        ))
         return new{T, D}(d, ϵ, Λ, Q, norm_cone)
     end
 end
@@ -173,7 +181,7 @@ default_DuWassersteinBall_lambda(d::DeterministicSamples, norm_cone::Real) = max
 
 """
 function calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:DuWassersteinBall}
-    model = owner_model(w)
+    model = _owner_model(w)
     ambiguity_set = ambiguityset(measure)
 
     # parameters
@@ -186,7 +194,7 @@ function calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:DuWasserste
     Λ = ambiguity_set.Λ
     Q = ambiguity_set.Q
     Q_inv = pinv(Q)
-    K = primal_cone[string(ambiguity_set.norm_cone)]
+    K = primal_cone(ambiguity_set.norm_cone)
 
     λ = @variable(model)
     e = @variable(model)

@@ -100,7 +100,7 @@ Arguments:
  - `s::BudgetSet`: Struct containing atributes of BudgetSet's uncertainty set.
 """
 function calculate_measure!(measure::ExpectedReturn{S}, w)  where {S<:BudgetSet}
-    model = owner_model(w)
+    model = _owner_model(w)
     s = ambiguityset(measure)
 
     # parameters
@@ -187,7 +187,7 @@ Arguments:
  - `s:: EllipticalSet `: Struct containing atributes of EllipticalSet's uncertainty set.
 """
 function calculate_measure!(measure::ExpectedReturn{S}, w)   where {S<:EllipticalSet}
-    model = owner_model(w)
+    model = _owner_model(w)
     s = ambiguityset(measure)
 
     # parameters

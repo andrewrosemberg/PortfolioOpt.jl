@@ -19,9 +19,11 @@ import Statistics: mean, cov
 import Base: eachindex, eltype, size, keys, (==)
 using UUIDs
 using JuMP.Containers: DenseAxisArray
+import MarketData
 
 include("AmbiguitySet.jl")
 include("formulations.jl")
+include("market_interface.jl")
 include("VolumeMarket.jl")
 include("DeterministicSamples.jl")
 include("estimated_mean_variance.jl")
@@ -29,15 +31,22 @@ include("conditional_mean.jl")
 include("robust_mean.jl")
 include("dro_mean.jl")
 include("backtest.jl")
+include("forecasters.jl")
 include("test_utils/testutils.jl")
 
 export AmbiguitySet,
     CenteredAmbiguitySet,
     ambiguityset,
+    distribution,
     PieceWiseUtility,
     coefficients,
     intercepts,
+    AbstractPortfolioTerm,
+    PortfolioRiskMeasure,
+    calculate_measure!,
+    uid,
     ExpectedReturn,
+    WorstCaseReturn,
     Variance,
     SqrtVariance,
     ConditionalExpectedReturn,
@@ -55,7 +64,11 @@ export AmbiguitySet,
     DuWassersteinBall,
     BudgetSet,
     EllipticalSet,
-    # VolumeMarket
+    # markets
+    PortfolioMarket,
+    bids,
+    set_bids!,
+    build_portfolio_model,
     VolumeMarket,
     change_bids!,
     clear_market!,
@@ -65,6 +78,7 @@ export AmbiguitySet,
     market_volume_fee,
     market_model,
     MarketHistory,
+    past_prices,
     VolumeMarketHistory,
     num_days,
     num_assets,
@@ -75,7 +89,14 @@ export AmbiguitySet,
     # backtest
     sequential_backtest_market,
     get_records,
-    portfolio_weights
+    record!,
+    StateRecorder,
+    portfolio_weights,
+    # forecasters
+    AbstractForecaster,
+    forecast,
+    EmpiricalGaussian,
+    EmpiricalSamples
 
 Reexport.@reexport using JuMP
 

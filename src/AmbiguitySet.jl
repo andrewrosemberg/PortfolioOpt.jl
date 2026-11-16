@@ -1,5 +1,12 @@
 const ContinuousMultivariateSampleable = Sampleable{Multivariate, Continuous}
 
+"""
+    distribution(s::AmbiguitySet) -> Sampleable
+
+Nominal (center) distribution of an ambiguity set; a distribution is its own nominal distribution.
+New [`CenteredAmbiguitySet`](@ref) types should implement it: `length`, `mean` and `cov` of the set
+default to those of its distribution.
+"""
 distribution(d::Sampleable) = d
 
 """
