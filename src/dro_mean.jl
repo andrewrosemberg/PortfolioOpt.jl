@@ -70,12 +70,12 @@ function calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtili
     K = length(a)
 
     # dual variables
-    @variable(model, P[i=1:n, j=1:n])
-    @variable(model, p[i=1:n])
-    @variable(model, s)
-    @variable(model, Q[i=1:n, j=1:n])
-    @variable(model, q[i=1:n])
-    @variable(model, r)
+    P = @variable(model, [i=1:n, j=1:n])
+    p = @variable(model, [i=1:n])
+    s = @variable(model)
+    Q = @variable(model, [i=1:n, j=1:n])
+    q = @variable(model, [i=1:n])
+    r = @variable(model)
 
     # constraints: from duality
     @constraint(model, p .== -q / 2 - Q * means)
@@ -159,15 +159,20 @@ end
 distribution(s::DuWassersteinBall) = s.d
 sample_size(s::DuWassersteinBall) = sample_size(distribution(s))
 
+# samples are stored column-wise, so the support bound is the largest norm of a sample (column)
 default_DuWassersteinBall_lambda(d::Sampleable, norm_cone::Real; num_samples::Int=20, rng::AbstractRNG=MersenneTwister(123)) = maximum(
-    norm.(eachrow(rand(rng, d, num_samples)), norm_cone)
+    norm.(eachcol(rand(rng, d, num_samples)), norm_cone)
+)
+# the support bound has to hold for every sample, otherwise the worst case problem is unbounded
+default_DuWassersteinBall_lambda(d::DeterministicSamples, norm_cone::Real) = maximum(
+    norm.(eachcol(rand(d)), norm_cone)
 )
 
 """
     calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:DuWassersteinBall}
 
 """
-function calculate_measure!(measure::ExpectedReturn{DuWassersteinBall}, w)
+function calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:DuWassersteinBall}
     model = owner_model(w)
     ambiguity_set = ambiguityset(measure)
 

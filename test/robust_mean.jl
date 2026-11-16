@@ -26,6 +26,16 @@
 
             @test isapprox(value(er_pointer), (mean(d) - sqrt.(var(d)) ./ 5)' * value.(w), atol=1e-4)
         end
+        @testset "used twice in a model" begin
+            model = Model(DEFAULT_SOLVER)
+            w = @variable(model, [1:numA])
+            fix.(w, ones(numA)/numA)
+            p1 = PortfolioOpt.calculate_measure!(ExpectedReturn(ambiguity_set), w)
+            p2 = PortfolioOpt.calculate_measure!(ExpectedReturn(BudgetSet(d; Γ=1.0)), w)
+            @objective(model, Max, p1 + p2)
+            JuMP.optimize!(model)
+            @test value(p1) <= value(p2) + 1e-6
+        end
     end
     @testset "EllipticalSet" begin
         @testset "constructor" begin

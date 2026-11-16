@@ -25,7 +25,20 @@ function convex_hull(measure, w)
     return θ
 end
 
-"""conditional_expectation = -cvar = -expected_shortfall"""
+"""
+    calculate_measure!(measure::ConditionalExpectedReturn{α,S}, w) where {S<:DeterministicSamples,α}
+
+Returns the conditional expected return of the portfolio over its worst `α` fraction of
+samples (i.e., `-CVaR_α = -expected shortfall`), using the Rockafellar-Uryasev formulation:
+
+```math
+    \\max_{z, y \\geq 0} \\quad z - \\frac{1}{\\alpha} \\sum_{s=1}^{\\mathcal{S}} p_s y_s \\\\
+    s.t.  \\quad y_s \\geq z - r_s ' w \\quad \\forall s = 1:\\mathcal{S} \\\\
+```
+
+`α = 0.0` gives the worst-case return over the samples (see [`convex_hull`](@ref)), and
+`α = 1.0` gives the sample mean.
+"""
 function calculate_measure!(measure::ConditionalExpectedReturn{α,S}, w) where {S<:DeterministicSamples,α}
     if α == 0.0
         return convex_hull(measure, w)
@@ -39,15 +52,10 @@ function calculate_measure!(measure::ConditionalExpectedReturn{α,S}, w) where {
     sample_probability = samples_probability(s)
 
     # dual variables
-    @variable(model, z)
-    @variable(model, y[i=1:numS] >= 0)
+    z = @variable(model)
+    y = @variable(model, [i=1:numS], lower_bound = 0)
 
-    @constraints(
-        model,
-        begin
-            ys[s=1:numS], y[s] >= z - sum(dot(samples[:, s], w))
-        end
-    )
-    return z - dot(sample_probability,y) / (1.0 - α)
+    @constraint(model, [s=1:numS], y[s] >= z - dot(samples[:, s], w))
+    return z - dot(sample_probability, y) / α
 end
 

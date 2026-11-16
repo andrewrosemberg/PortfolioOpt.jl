@@ -108,26 +108,16 @@ function calculate_measure!(measure::ExpectedReturn{S}, w)  where {S<:BudgetSet}
     n = length(s)
     Δ = s.Δ
     Γ = s.Γ
-    # dual variables
-    @variable(model, λ >= 0)
-    @variable(model, π_neg[i=1:n] >= 0)
-    @variable(model, π_pos[i=1:n] >= 0)
-    @variable(model, θ[i=1:n] >= 0)
+    # dual variables (anonymous, so that the measure can be used more than once per model)
+    λ = @variable(model, lower_bound = 0)
+    π_neg = @variable(model, [i=1:n], lower_bound = 0)
+    π_pos = @variable(model, [i=1:n], lower_bound = 0)
+    θ = @variable(model, [i=1:n], lower_bound = 0)
     # constraints: from duality
-    @constraints(
-        model,
-        begin
-            constrain_dual1[i=1:n], w[i] == π_pos[i] - π_neg[i]
-        end
-    )
-    @constraints(
-        model,
-        begin
-            constrain_dual2[i=1:n], Δ[i] * (π_pos[i] + π_neg[i]) - θ[i] <= λ
-        end
-    )
+    @constraint(model, [i=1:n], w[i] == π_pos[i] - π_neg[i])
+    @constraint(model, [i=1:n], Δ[i] * (π_pos[i] + π_neg[i]) - θ[i] <= λ)
 
-    return return dot(means, w) - sum(θ) - λ * Γ
+    return dot(means, w) - sum(θ) - λ * Γ
 end
 
 """
@@ -207,7 +197,7 @@ function calculate_measure!(measure::ExpectedReturn{S}, w)   where {S<:Elliptica
 
     Δ = s.Δ
     # dual variables
-    @variable(model, θ)
+    θ = @variable(model)
     # constraints: from duality
     @constraint(model, [θ; sqrt_Σ * w] in JuMP.SecondOrderCone())
 
