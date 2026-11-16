@@ -74,7 +74,8 @@ export AmbiguitySet,
     total_profit,
     # backtest
     sequential_backtest_market,
-    get_records
+    get_records,
+    portfolio_weights
 
 Reexport.@reexport using JuMP
 

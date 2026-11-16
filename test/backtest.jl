@@ -41,6 +41,39 @@
         risk_variable_id = PortfolioOpt.uid(con)
         @test isapprox(value(pointers[risk_variable_id]), max_std; atol=1e-6)
     end
+    @testset "portfolio_weights" begin
+        numA = 3
+        returns = rand(rng, generate_gaussian_distribution(numA, rng), 200)' ./ 100 # T × N
+        d = MvNormal(vec(mean(returns; dims=1)), cov(returns))
+        max_std = 0.003
+        formulation = PortfolioFormulation(MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(d)), RiskConstraint(SqrtVariance(d), LessThan(max_std)),
+        )
+        w = portfolio_weights(formulation, numA, DEFAULT_SOLVER)
+        @test w isa Vector{Float64}
+        @test length(w) == numA
+        @test all(w .>= -1e-6)
+        @test sum(w) <= 1.0 + 1e-6
+        @test sqrt(w' * cov(returns) * w) <= max_std + 1e-6
+        # same weights as building the market by hand
+        market = VolumeMarket(numA)
+        change_bids!(market, formulation, DEFAULT_SOLVER)
+        @test isapprox(w, market.volume_bids; atol=1e-6)
+        # budget scales the investment
+        w10 = portfolio_weights(
+            PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(d))), numA, DEFAULT_SOLVER;
+            budget=10,
+        )
+        @test isapprox(sum(w10), 10.0; atol=1e-5)
+        # sample based formulation (samples are stored column-wise)
+        s = DeterministicSamples(collect(returns'))
+        cvar_formulation = PortfolioFormulation(MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(s)), RiskConstraint(ConditionalExpectedReturn(s), GreaterThan(-0.05)),
+        )
+        w_cvar = portfolio_weights(cvar_formulation, numA, DEFAULT_SOLVER)
+        @test length(w_cvar) == numA
+        @test all(w_cvar .>= -1e-6)
+    end
     @testset "day_backtest_market!" begin
         # read prices
         prices = get_test_data()
