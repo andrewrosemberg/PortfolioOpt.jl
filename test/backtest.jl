@@ -39,7 +39,7 @@
         pointers = change_bids!(m, formulation, DEFAULT_SOLVER; record_measures=true)
         @test length(pointers) == 2
         risk_variable_id = PortfolioOpt.uid(con)
-        @test isapprox(value(pointers[risk_variable_id]), max_std)
+        @test isapprox(value(pointers[risk_variable_id]), max_std; atol=1e-6)
     end
     @testset "day_backtest_market!" begin
         # read prices

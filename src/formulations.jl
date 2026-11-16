@@ -23,26 +23,16 @@ struct ExpectedReturn{S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
     ambiguity_set::S
 end
 
-function ExpectedReturn(ambiguity_set::S) where {S<:AmbiguitySet}
-    return ExpectedReturn{S}(ambiguity_set)
-end
 ambiguityset(m::ExpectedReturn) = m.ambiguity_set
 
 struct Variance{S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
     ambiguity_set::S
 end
 
-function Variance(ambiguity_set::S) where {S<:AmbiguitySet}
-    return Variance{S}(ambiguity_set)
-end
 ambiguityset(m::Variance) = m.ambiguity_set
 
 struct SqrtVariance{S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
     ambiguity_set::S
-end
-
-function SqrtVariance(ambiguity_set::S) where {S<:AmbiguitySet}
-    return SqrtVariance{S}(ambiguity_set)
 end
 
 ambiguityset(m::SqrtVariance) = m.ambiguity_set
@@ -68,14 +58,6 @@ end
 struct ExpectedUtility{C<:ConcaveUtilityFunction,S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
     ambiguity_set::S
     utility::C
-end
-
-function ExpectedUtility(ambiguity_set::S, utility::C) where {C<:ConcaveUtilityFunction,S<:AmbiguitySet}
-    ExpectedUtility{C,S}(ambiguity_set, utility)
-end
-
-function ExpectedUtility(ambiguity_set::S, utility::C) where {C<:ConcaveUtilityFunction,S<:AmbiguitySet}
-    ExpectedUtility{C,S}(ambiguity_set, utility)
 end
 
 ambiguityset(m::ExpectedUtility) = m.ambiguity_set
