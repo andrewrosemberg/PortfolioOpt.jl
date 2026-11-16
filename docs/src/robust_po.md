@@ -163,7 +163,7 @@ programming. Oper. Res. 1973, 21, 1154–1157.
 [11] Natarajan, K., Pachamanova, D., e Sim, M. (2009). Constructing risk measures from uncertainty sets. Operations research, 57(5):1129–1141.
 
 [12] Fernandes, B., Street, A., ValladA˜ £o, D., e Fernandes, C. (2016). An adaptive robust portfolio
-optimization model with loss constraints based on data-driven polyhedral uncertainty sets. European Journal of Operational Research, 255(3):961 – 970. ISSN 0377-2217. [URL](www.sciencedirect.com/science/article/pii/S0377221716303757).
+optimization model with loss constraints based on data-driven polyhedral uncertainty sets. European Journal of Operational Research, 255(3):961 – 970. ISSN 0377-2217. [URL](https://www.sciencedirect.com/science/article/pii/S0377221716303757).
 
 [13] Futures Contracts Portfolio Selection via Robust Data Driven Optimization publication date Aug 9, 2018  publication descriptionL SBPO, 2018, Rio de Janeiro. Anais do L SBPO, 2018. v. 1. [URL](https://proceedings.science/sbpo/papers/selecao-de-carteira-de-contratos-futuros-via-otimizacao-robusta-direcionado-por-dados).
 

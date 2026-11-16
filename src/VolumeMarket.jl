@@ -1,3 +1,12 @@
+"""
+    VolumeMarket(N::Int; budget=1.0, volume_fee=0.0, allow_short_selling=false, risk_free_rate=0.0)
+
+Market with `N` assets where the decision is the amount of money invested in each asset (the
+volume bids). Money that is not invested earns `risk_free_rate`, and every unit invested pays
+`volume_fee`. The total invested (in absolute value) is limited by `budget`.
+
+Bids are set with `change_bids!` and the realized returns of the assets with `clear_market!`.
+"""
 mutable struct VolumeMarket{T<:Real,N} <: OptimalBids.Market
     budget::T
     volume_fee::T
@@ -31,7 +40,8 @@ function change_bids!(market::VolumeMarket{T, N}, new_bids::Vector{T}) where {T<
     @assert length(new_bids) == N
     total_volume = norm(new_bids, 1)
     if  total_volume > market.budget
-        market.volume_bids = new_bids / total_volume
+        # rescale (e.g. solver tolerance overshoot) so that the total volume equals the budget
+        market.volume_bids = new_bids * (market.budget / total_volume)
     else
         market.volume_bids = new_bids
     end
@@ -93,7 +103,7 @@ function market_model(market::VolumeMarket{T,N}, optimizer_factory::Any;
         @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
     end
     @constraint(model, sum_invested <= market_budget(market))
-    obj = (1-sum_invested) * risk_free_rate(market) - sum_invested * market_volume_fee(market)
+    obj = (market_budget(market) - sum_invested) * risk_free_rate(market) - sum_invested * market_volume_fee(market)
     if sense === MAX_SENSE
         @objective(model, sense, obj)
     else

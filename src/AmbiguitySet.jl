@@ -21,4 +21,4 @@ cov(s::CenteredAmbiguitySet) = cov(distribution(s))
 
 Alias for Union{CenteredAmbiguitySet, ContinuousMultivariateSampleable}
 """
-AmbiguitySet = Union{CenteredAmbiguitySet, Sampleable}
+const AmbiguitySet = Union{CenteredAmbiguitySet, Sampleable}

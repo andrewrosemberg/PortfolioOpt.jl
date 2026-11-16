@@ -36,6 +36,11 @@
 
         clear_market!(m, [3.0, 2.0, 1.0])
         @test m.clearing_prices ≈ [3.0, 2.0, 1.0]
+
+        # bids above the budget are rescaled to the budget
+        change_bids!(m, [10.0, 10.0, 10.0])
+        @test m.volume_bids ≈ [5.0, 5.0, 5.0]
+        change_bids!(m, [0.1, 0.2, 0.7])
     end
 
     # Test the calculate_profit and total_profit functions

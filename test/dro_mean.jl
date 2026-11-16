@@ -55,7 +55,18 @@
             @objective(model, Max, er_pointer)
             JuMP.optimize!(model)
 
-            @test value(er_pointer) <= mean(s)' * value.(w)
+            # the worst case expected return over the ball is strictly below the empirical mean
+            @test value(er_pointer) < mean(s)' * value.(w) - 1e-4
+
+            # a ball with zero radius only contains the empirical distribution
+            model = Model(DEFAULT_SOLVER)
+            w = @variable(model, [1:numA])
+            fix.(w, ones(numA)/numA)
+            er_pointer = PortfolioOpt.calculate_measure!(ExpectedReturn(DuWassersteinBall(s; ϵ=0.0)), w)
+            @objective(model, Max, er_pointer)
+            JuMP.optimize!(model)
+            @test termination_status(model) == MOI.OPTIMAL
+            @test isapprox(value(er_pointer), mean(s)' * value.(w); atol=1e-5)
         end
     end
 end

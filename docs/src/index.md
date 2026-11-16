@@ -70,6 +70,28 @@ To help backtesting, a type `VolumeMarketHistory` was created to contain:
 
 Instances of `VolumeMarketHistory` are the input of `sequential_backtest_market`: a function that provides a basic backtest using provided strategy and `VolumeMarketHistory` for a specified `date_range` (that needs to have the same `eltype` as `timestamp`).
 
+## Weights from a matrix of returns
+
+`portfolio_weights` solves a `PortfolioFormulation` on a fresh `VolumeMarket` and returns the amount
+invested per asset (the weights when `budget = 1.0`; what is not invested stays in the risk-free asset).
+No `TimeArray` is needed: given a `T × N` matrix of past returns (one row per period),
+
+```julia
+using Clarabel, Distributions, PortfolioOpt
+
+d = MvNormal(vec(mean(returns; dims=1)), cov(returns)) # parametric forecast
+s = DeterministicSamples(collect(returns'))            # empirical samples (stored column-wise)
+
+markowitz = PortfolioFormulation(MAX_SENSE,
+    ObjectiveTerm(ExpectedReturn(d)), RiskConstraint(SqrtVariance(d), LessThan(0.01)),
+)
+cvar = PortfolioFormulation(MAX_SENSE,
+    ObjectiveTerm(ExpectedReturn(s)), RiskConstraint(ConditionalExpectedReturn(s; α=0.05), GreaterThan(-0.02)),
+)
+
+w = portfolio_weights(markowitz, size(returns, 2), Clarabel.Optimizer) # long-only by default
+```
+
 ## TestUtils
 
 As an extra, some testing utilities are available through the submodule called `TestUtils`:

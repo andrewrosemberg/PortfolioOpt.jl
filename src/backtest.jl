@@ -65,6 +65,46 @@ function change_bids!(market::VolumeMarket, formulation::PortfolioFormulation, o
     end
 end
 
+"""
+    portfolio_weights(formulation::PortfolioFormulation, num_assets::Integer, optimizer_factory;
+        budget=1.0, volume_fee=0.0, allow_short_selling=false, risk_free_rate=0.0
+    ) -> Vector{Float64}
+
+Solves `formulation` on a fresh [`VolumeMarket`](@ref) with `num_assets` assets and returns the
+optimal amount invested in each asset (the portfolio weights when `budget = 1.0`). Whatever is not
+invested is held in the risk-free asset.
+
+The keyword arguments are passed to the `VolumeMarket` constructor. If the solver does not find an
+optimal solution, a warning is emitted and a vector of zeros is returned (see `change_bids!`).
+
+Example (`returns` is a `T × N` matrix of past returns, one row per period):
+```julia
+d = MvNormal(vec(mean(returns; dims=1)), cov(returns))
+formulation = PortfolioFormulation(MAX_SENSE,
+    ObjectiveTerm(ExpectedReturn(d)), RiskConstraint(SqrtVariance(d), LessThan(0.02)),
+)
+w = portfolio_weights(formulation, size(returns, 2), Clarabel.Optimizer)
+```
+"""
+function portfolio_weights(
+    formulation::PortfolioFormulation,
+    num_assets::Integer,
+    optimizer_factory::Any;
+    budget::Real=1.0,
+    volume_fee::Real=0.0,
+    allow_short_selling::Bool=false,
+    risk_free_rate::Real=0.0,
+)
+    market = VolumeMarket(num_assets;
+        budget=float(budget),
+        volume_fee=float(volume_fee),
+        allow_short_selling=allow_short_selling,
+        risk_free_rate=float(risk_free_rate),
+    )
+    change_bids!(market, formulation, optimizer_factory)
+    return copy(market.volume_bids)
+end
+
 
 function day_backtest_market!(
     strategy_logic::Function,
