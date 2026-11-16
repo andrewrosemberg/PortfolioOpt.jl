@@ -18,8 +18,6 @@ function get_test_data(;
     return df
 end
 
-keys(a::TimeArray) = timestamp(a)
-
 """
     mean_variance(returns::Array{T, 2}; digits::Union{Nothing,Int}=nothing) where {T<:Real}
 

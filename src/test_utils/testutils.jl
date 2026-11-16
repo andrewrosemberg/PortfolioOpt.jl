@@ -13,14 +13,12 @@ module TestUtils
     using LinearAlgebra
     import Reexport
     using MarketData
-    import Base.keys
 
     include("auxilary_functions.jl")
 
     export get_test_data,
         mean_variance,
-        max_sharpe,
-        keys
+        max_sharpe
 
     Reexport.@reexport using MarketData
 end

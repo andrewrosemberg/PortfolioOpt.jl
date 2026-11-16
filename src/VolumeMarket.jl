@@ -7,7 +7,7 @@ volume bids). Money that is not invested earns `risk_free_rate`, and every unit 
 
 Bids are set with `change_bids!` and the realized returns of the assets with `clear_market!`.
 """
-mutable struct VolumeMarket{T<:Real,N} <: OptimalBids.Market
+mutable struct VolumeMarket{T<:Real,N} <: PortfolioMarket
     budget::T
     volume_fee::T
     allow_short_selling::Bool
@@ -37,7 +37,12 @@ function eltype(::VolumeMarket{T,N}) where {T,N}
 end
 
 function change_bids!(market::VolumeMarket{T, N}, new_bids::Vector{T}) where {T<:Real,N}
+    return set_bids!(market, new_bids)
+end
+
+function set_bids!(market::VolumeMarket{T, N}, new_bids::AbstractVector{<:Real}) where {T<:Real,N}
     @assert length(new_bids) == N
+    new_bids = convert(Vector{T}, new_bids)
     total_volume = norm(new_bids, 1)
     if  total_volume > market.budget
         # rescale (e.g. solver tolerance overshoot) so that the total volume equals the budget
@@ -79,6 +84,9 @@ function length(::VolumeMarket{T, N}) where {T, N}
     return N
 end
 
+num_assets(::VolumeMarket{T,N}) where {T,N} = N
+bids(market::VolumeMarket) = market.volume_bids
+
 """
     market_model(market::VolumeMarket{T,N}, optimizer_factory::Function) -> JuMP.Model, Vector{VariableRef}
 
@@ -112,35 +120,31 @@ function market_model(market::VolumeMarket{T,N}, optimizer_factory::Any;
     return model, w
 end
 
+# timestamps (keys) of a price history: a `TimeArray` or any collection with `keys`
+_timestamps(x) = keys(x)
+_timestamps(x::MarketData.TimeArray) = MarketData.TimeSeries.timestamp(x)
+
 """
-    change_bids!(market::VolumeMarket, model::JuMP.Model, decision_variables)
+    MarketHistory{T<:Real,N}
 
-Solves optimization model and set new bids to optimal values of the `decision_variables`.
+History of prices (returns) of `N` assets used by [`sequential_backtest_market`](@ref).
+[`VolumeMarketHistory`](@ref) is the implementation shipped with the package. A new history type
+has to implement [`past_prices`](@ref), `current_prices(hist, t)`, `market_template(hist)`,
+`market_template(hist, t)` and [`num_assets`](@ref).
 """
-function change_bids!(market::VolumeMarket, model::JuMP.Model, decision_variables)
-    optimize!(model)
-    status = termination_status(model)
-    if status !== MOI.OPTIMAL
-        @warn "Did not find an optimal solution: status=$status"
-        change_bids!(market, zeros(length(decision_variables)))
-    else
-        new_bids = value.(decision_variables)
-        change_bids!(market, new_bids)
-    end
-
-    return nothing
-end
-
-JuMP.owner_model(decision_variables::Vector{VariableRef}) = owner_model(first(decision_variables))
-JuMP.owner_model(decision_variables::AffExpr) = owner_model(first(keys(decision_variables.terms)))
-JuMP.owner_model(decision_variables::Vector{AffExpr}) = owner_model(first(decision_variables))
-
 abstract type MarketHistory{T<:Real,N} end
 
 function eltype(::MarketHistory{T,N}) where {T,N}
     return T
 end
 
+"""
+    VolumeMarketHistory(history_clearing_prices; kwargs...)
+    VolumeMarketHistory(market::VolumeMarket, history_clearing_prices)
+
+History of the returns of the assets of a [`VolumeMarket`](@ref) (e.g. a `TimeArray` with one
+column per asset). The keyword arguments are passed to the `VolumeMarket` constructor.
+"""
 struct VolumeMarketHistory{T<:Real,N} <: MarketHistory{T,N}
     market::VolumeMarket{T,N}
     history_clearing_prices::Any
@@ -150,16 +154,16 @@ struct VolumeMarketHistory{T<:Real,N} <: MarketHistory{T,N}
     function VolumeMarketHistory{T,N}(market::VolumeMarket{T,N}, history_clearing_prices, history_risk_free_rates, timestamp) where {T,N}
         @assert eltype(values(history_clearing_prices)) === T
         @assert eltype(values(history_risk_free_rates)) === T
-        @assert issetequal(keys(history_risk_free_rates), timestamp)
-        @assert issetequal(keys(history_clearing_prices), timestamp)
+        @assert issetequal(_timestamps(history_risk_free_rates), timestamp)
+        @assert issetequal(_timestamps(history_clearing_prices), timestamp)
 
         return new(market, history_clearing_prices, history_risk_free_rates, timestamp)
     end
 end
 
 function VolumeMarketHistory(market::VolumeMarket{T,N}, history_clearing_prices) where {T<:Real,N}
-    rf = Dict(keys(history_clearing_prices) .=> market.risk_free_rate)
-    return VolumeMarketHistory{T,N}(market, history_clearing_prices, rf, sort(unique(keys(history_clearing_prices))))
+    rf = Dict(_timestamps(history_clearing_prices) .=> market.risk_free_rate)
+    return VolumeMarketHistory{T,N}(market, history_clearing_prices, rf, sort(unique(_timestamps(history_clearing_prices))))
 end
 
 function VolumeMarketHistory(history_clearing_prices; kwards...)
@@ -172,6 +176,14 @@ timestamp(hist::VolumeMarketHistory) = hist.timestamp
 keys(hist::VolumeMarketHistory) = timestamp(hist)
 
 num_days(hist::VolumeMarketHistory) = length(timestamp(hist))
+
+"""
+    past_prices(hist::MarketHistory, t)
+
+Prices (returns) in `hist` strictly before the date `t`. This is what the strategy receives in
+[`sequential_backtest_market`](@ref). Implement it for a new [`MarketHistory`](@ref).
+"""
+function past_prices end
 
 function past_prices(hist::VolumeMarketHistory, t)
     timestamps = timestamp(hist)

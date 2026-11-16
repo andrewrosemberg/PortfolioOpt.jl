@@ -1,5 +1,21 @@
 abstract type AbstractRecorder end
+
+"""
+    StateRecorder <: AbstractRecorder
+
+Records a quantity of the market at each date of a backtest. A new recorder has to implement
+[`record!`](@ref) and `get_records(recorder)`.
+"""
 abstract type StateRecorder <: AbstractRecorder end
+
+"""
+    record!(recorder::StateRecorder, market::PortfolioMarket, date)
+
+Stores the state of `market` (after it was cleared) for `date` in `recorder`. Called by the
+backtest for each date. The recorders of the package only use the [`PortfolioMarket`](@ref)
+interface, so they work with any market type.
+"""
+function record! end
 
 mutable struct WealthRecorder{T<:Real} <: StateRecorder
     record::DenseAxisArray{T,1}
@@ -10,7 +26,7 @@ mutable struct WealthRecorder{T<:Real} <: StateRecorder
     end
 end
 
-function record!(recorder::WealthRecorder, market::VolumeMarket, date)
+function record!(recorder::WealthRecorder, market::PortfolioMarket, date)
     recorder.record[date] = market_budget(market)
     return nothing
 end
@@ -26,7 +42,7 @@ mutable struct ReturnsRecorder{T<:Real} <: StateRecorder
     end
 end
 
-function record!(recorder::ReturnsRecorder, market::VolumeMarket, date)
+function record!(recorder::ReturnsRecorder, market::PortfolioMarket, date)
     recorder.record[date] = total_profit(market) / market_budget(market)
     return nothing
 end
@@ -39,8 +55,8 @@ mutable struct DecisionRecorder{T<:Real} <: StateRecorder
     end
 end
 
-function record!(recorder::DecisionRecorder, market::VolumeMarket, date)
-    recorder.record[date, :] = market.volume_bids
+function record!(recorder::DecisionRecorder, market::PortfolioMarket, date)
+    recorder.record[date, :] = bids(market)
     return nothing
 end
 
@@ -51,19 +67,6 @@ default_state_recorders(numA::Int, date_range) = Dict(
     :returns => ReturnsRecorder(date_range),
     :decisions => DecisionRecorder(numA, date_range)
 )
-
-function change_bids!(market::VolumeMarket, formulation::PortfolioFormulation, optimizer_factory::Any; record_measures::Bool=false)
-    model, decision_variables = market_model(market, optimizer_factory; sense=sense(formulation))
-    pointers = portfolio_model!(model, formulation, decision_variables; record_measures=record_measures)
-    change_bids!(market, model, decision_variables)
-    
-    status = termination_status(model)
-    if status !== MOI.OPTIMAL
-        return nothing
-    else
-        return pointers
-    end
-end
 
 """
     portfolio_weights(formulation::PortfolioFormulation, num_assets::Integer, optimizer_factory;
@@ -102,7 +105,7 @@ function portfolio_weights(
         risk_free_rate=float(risk_free_rate),
     )
     change_bids!(market, formulation, optimizer_factory)
-    return copy(market.volume_bids)
+    return copy(bids(market))
 end
 
 

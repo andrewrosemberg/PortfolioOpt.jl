@@ -1,3 +1,9 @@
+"""
+    DeterministicSamples(samples::Matrix, num_samples=size(samples, 2))
+
+Empirical distribution of `n` assets given by a `n × S` matrix of samples (one column per
+sample). Sampling from it returns the last samples first.
+"""
 struct DeterministicSamples{T<:Real} <: ContinuousMultivariateSampleable
     samples::Array{T,2}
     num_samples::Int

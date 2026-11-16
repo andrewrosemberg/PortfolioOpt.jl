@@ -1,5 +1,5 @@
 """
-    calculate_measure!(measure::ConditionalExpectedReturn{0.0,S}, w)
+    calculate_measure!(measure::WorstCaseReturn{<:DeterministicSamples}, w)
 
 Returns worst case return in the convex hull uncertainty set, defined by the following dual problem: 
 
@@ -12,8 +12,12 @@ Further information:
   - Fernandes, B., Street, A., ValladA˜ £o, D., e Fernandes, C. (2016). An adaptive robust portfolio optimization model with loss constraints based on data-driven polyhedral uncertainty sets. European Journal of Operational Research, 255(3):961 – 970. ISSN 0377-2217. URL.
 
 """
+function calculate_measure!(measure::WorstCaseReturn{S}, w) where {S<:DeterministicSamples}
+    return convex_hull(measure, w)
+end
+
 function convex_hull(measure, w)
-    model = owner_model(w)
+    model = _owner_model(w)
     s = ambiguityset(measure)
     samples = rand(s)
 
@@ -36,14 +40,20 @@ samples (i.e., `-CVaR_α = -expected shortfall`), using the Rockafellar-Uryasev 
     s.t.  \\quad y_s \\geq z - r_s ' w \\quad \\forall s = 1:\\mathcal{S} \\\\
 ```
 
-`α = 0.0` gives the worst-case return over the samples (see [`convex_hull`](@ref)), and
+`α = 0.0` gives the worst-case return over the samples (see [`WorstCaseReturn`](@ref)), and
 `α = 1.0` gives the sample mean.
 """
 function calculate_measure!(measure::ConditionalExpectedReturn{α,S}, w) where {S<:DeterministicSamples,α}
-    if α == 0.0
-        return convex_hull(measure, w)
-    end
-    model = owner_model(w)
+    return _conditional_expected_return(measure, w, Val(iszero(α)))
+end
+
+# α = 0: the worst case return over the samples
+function _conditional_expected_return(measure::ConditionalExpectedReturn, w, ::Val{true})
+    return calculate_measure!(WorstCaseReturn(ambiguityset(measure)), w)
+end
+
+function _conditional_expected_return(measure::ConditionalExpectedReturn{α,S}, w, ::Val{false}) where {S<:DeterministicSamples,α}
+    model = _owner_model(w)
     s = ambiguityset(measure)
 
     # parameters

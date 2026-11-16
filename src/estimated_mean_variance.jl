@@ -3,12 +3,14 @@ function calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:AmbiguitySe
     return dot(mean(measure.ambiguity_set), w)
 end
 
-function calculate_measure!(measure::Variance{S}, w::Union{Vector{VariableRef},Real}) where {S<:AmbiguitySet}
+# quadratic expression when `w` are plain variables (or numbers)
+function calculate_measure!(measure::Variance{S}, w::Union{AbstractVector{<:JuMP.AbstractVariableRef},AbstractVector{<:Real},Real}) where {S<:AmbiguitySet}
     return dot(cov(measure.ambiguity_set) * w, w)
 end
 
-function calculate_measure!(measure::Variance{S}, w::Vector{AffExpr}) where {S<:AmbiguitySet}
-    model = owner_model(w)
+# rotated second order cone for any other JuMP expression (e.g. affine expressions of the variables)
+function calculate_measure!(measure::Variance{S}, w::AbstractVector{<:JuMP.AbstractJuMPScalar}) where {S<:AmbiguitySet}
+    model = _owner_model(w)
     
     # Cholesky decomposition of the covariance matrix
     Σ = PDMat(cov(measure.ambiguity_set))
@@ -22,7 +24,7 @@ function calculate_measure!(measure::Variance{S}, w::Vector{AffExpr}) where {S<:
 end
 
 function calculate_measure!(measure::SqrtVariance{S}, w) where {S<:AmbiguitySet}
-    model = owner_model(w)
+    model = _owner_model(w)
     
     # Cholesky decomposition of the covariance matrix
     Σ = PDMat(cov(measure.ambiguity_set))

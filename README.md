@@ -84,6 +84,27 @@ cvar = PortfolioFormulation(MAX_SENSE,
 w = portfolio_weights(markowitz, size(returns, 2), Clarabel.Optimizer) # long-only by default
 ```
 
+The same distributions can be built with the forecasters `forecast(EmpiricalGaussian(lookback), returns)`
+and `forecast(EmpiricalSamples(lookback), returns)`.
+
+To add constraints that are not part of the formulation (position limits, turnover, ...), build the
+model before solving it:
+
+```julia
+market = VolumeMarket(size(returns, 2))
+model, w, _ = build_portfolio_model(market, markowitz, Clarabel.Optimizer)
+@constraint(model, w .<= 0.3)
+change_bids!(market, model, w) # solves and sets bids(market)
+```
+
+## Extending
+
+New risk measures, ambiguity sets, forecasters and market types can be defined outside of the
+package by subtyping `AbstractPortfolioTerm`/`PortfolioRiskMeasure`, `CenteredAmbiguitySet`,
+`AbstractForecaster` and `PortfolioMarket` and implementing a few functions
+(`calculate_measure!`, `distribution`, `forecast`, `set_bids!`, ...). See the
+"Extending PortfolioOpt" page of the documentation for worked examples.
+
 ## TestUtils
 
 As an extra, some testing utilities are available through the submodule called `TestUtils`:
