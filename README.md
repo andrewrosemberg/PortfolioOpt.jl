@@ -21,7 +21,7 @@ Currently acceptable uncertainty types:
  - Point distributions (type `Dirac`) if the decision maker has absolute certainty of the PO returns;
  - Any continuous multivariate distribution (type `Sampleable{Multivariate, Continuous}`) if the decision maker can confidently estimate the distribution for the next period's returns;
  - Distributionally robust ambiguity sets if a set of distributions may be be the true distribution:
-    - type `MomentUncertainty`,
+    - type `MomentUncertainty` (Delage & Ye moment set, optionally with a bounded support),
     - type `DuWassersteinBall`.
  - Robust uncertainty sets if the decision maker can only infer the support of the true distribution (also viewed as distributionally robust ambiguity sets containting just single point distributions):
     - type `BudgetSet`,
