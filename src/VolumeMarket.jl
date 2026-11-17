@@ -36,10 +36,6 @@ function eltype(::VolumeMarket{T,N}) where {T,N}
     return T
 end
 
-function change_bids!(market::VolumeMarket{T, N}, new_bids::Vector{T}) where {T<:Real,N}
-    return set_bids!(market, new_bids)
-end
-
 function set_bids!(market::VolumeMarket{T, N}, new_bids::AbstractVector{<:Real}) where {T<:Real,N}
     @assert length(new_bids) == N
     new_bids = convert(Vector{T}, new_bids)
@@ -120,9 +116,9 @@ function market_model(market::VolumeMarket{T,N}, optimizer_factory::Any;
     return model, w
 end
 
-# timestamps (keys) of a price history: a `TimeArray` or any collection with `keys`
+# timestamps (keys) of a price history: any collection with `keys` (the TimeSeries extension
+# adds `TimeArray`)
 _timestamps(x) = keys(x)
-_timestamps(x::MarketData.TimeArray) = MarketData.TimeSeries.timestamp(x)
 
 """
     MarketHistory{T<:Real,N}

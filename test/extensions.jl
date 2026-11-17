@@ -79,7 +79,7 @@ PortfolioOpt.forecast(::TestDiagonalGaussian, returns::AbstractMatrix) =
         @test ExpectedReturn(d) isa AbstractPortfolioTerm
         @test ConeRegularizer(MOI.NormOneCone(numA + 1)) isa AbstractPortfolioTerm
         @test VolumeMarket(numA) isa PortfolioMarket
-        @test PortfolioMarket <: PortfolioOpt.OptimalBids.Market
+        @test supertype(PortfolioMarket) === Any # standalone interface
     end
 
     @testset "external ambiguity set" begin

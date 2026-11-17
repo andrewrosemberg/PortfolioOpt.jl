@@ -14,6 +14,7 @@ using Distributions
 using PortfolioOpt: DenseAxisArray # JuMP container used by the recorders
 using PortfolioOpt
 using PortfolioOpt.TestUtils
+using MarketData # test data (loads the TimeSeries integration)
 using Statistics
 using UUIDs
 
