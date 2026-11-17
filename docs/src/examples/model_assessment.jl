@@ -169,4 +169,5 @@ plt
 
 # In this period the Markowitz prediction of the daily standard deviation is close to the
 # realized one, while the 60 day empirical CVaR underestimates the realized tail losses. The
-# moment based DRO formulation has no risk limit, which shows in its higher drawdown.
+# moment based DRO formulation has no explicit risk limit: risk only enters through the worst case
+# mean, and its realized volatility falls between Markowitz and equal weights.
