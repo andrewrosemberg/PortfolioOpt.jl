@@ -33,7 +33,9 @@ Currently implemented `PortfolioRiskMeasure`s are:
  - Square root of the portfolio variance (`SqrtVariance`, i.e., Standard Deviation),
  - Conditional expected return (`ConditionalExpectedReturn`) - also called Conditional Value at Risk (CVAR) or (Expected Shortfall),
  - Expected utility (`ExpectedUtility`) which computes the expected value of a specified (hopefully concave) utility function (`ConcaveUtilityFunction`):
-    - the only implemented one is the piece-wise concave utility function `PieceWiseUtility`.
+    - the piece-wise concave utility function `PieceWiseUtility`,
+    - the exponential (CARA) utility `ExponentialUtility`, for Gaussian, Gaussian mixture and sampled returns (exponential cone),
+ - Certainty equivalent (`CertaintyEquivalent`) of a utility function, e.g. minus the entropic risk measure for `ExponentialUtility`.
 
 The `PortfolioRiskMeasure`s can be used to define both the `RiskConstraint`s and the `ObjectiveTerm`s in a `PortfolioFormulation` that can be parsed into details of a `JuMP.Model` using the `portfolio_model!` function.
 

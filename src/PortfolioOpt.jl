@@ -30,6 +30,7 @@ include("estimated_mean_variance.jl")
 include("conditional_mean.jl")
 include("robust_mean.jl")
 include("dro_mean.jl")
+include("exponential_utility.jl")
 include("backtest.jl")
 include("forecasters.jl")
 include("test_utils/testutils.jl")
@@ -54,6 +55,9 @@ export AmbiguitySet,
     sample_size,
     ExpectedUtility,
     utility,
+    ExponentialUtility,
+    risk_aversion,
+    CertaintyEquivalent,
     RiskConstraint,
     ConeRegularizer,
     ObjectiveTerm,
