@@ -1,92 +1,205 @@
-
 """
     MomentUncertainty <: CenteredAmbiguitySet
 
+    MomentUncertainty(d, γ1, γ2)
+    MomentUncertainty(d, γ1, γ2, lower, upper)
+    MomentUncertainty(d; γ1, γ2, lower=nothing, upper=nothing)
+
+Distributions of the returns ``r`` whose first two moments are close to those of the nominal
+distribution `d` (with mean ``\\hat{r}`` and covariance ``\\Sigma``), and, optionally, whose
+support is contained in the box ``[\\underline{r}, \\overline{r}]``:
+
 ```math
-\\left\\{ r  \\; \\middle| \\begin{array}{ll}
-s.t.  \\quad (\\mathbb{E} [r] - \\hat{r}) ' \\Sigma^{-1} (\\mathbb{E} [r] - \\hat{r}) \\leq \\gamma_1 \\\\
-\\quad \\quad \\mathbb{E} [ (r - \\hat{r}) ' (r - \\hat{r}) ] \\leq \\gamma_2 \\Sigma \\\\
+\\left\\{ P  \\; \\middle| \\begin{array}{ll}
+s.t.  \\quad (\\mathbb{E}_P [r] - \\hat{r}) ' \\Sigma^{-1} (\\mathbb{E}_P [r] - \\hat{r}) \\leq \\gamma_1 \\\\
+\\quad \\quad \\mathbb{E}_P [ (r - \\hat{r}) (r - \\hat{r})' ] \\preceq \\gamma_2 \\Sigma \\\\
+\\quad \\quad P(\\underline{r} \\leq r \\leq \\overline{r}) = 1 \\\\
 \\end{array}
 \\right\\} \\\\
 ```
 
 Atributes:
-- `d::Sampleable{Multivariate, Continous}`: The parent distribution with an uncertain mean
-- `γ1::Float64`: Uniform uncertainty around the mean (has to be greater than 0).
-- `γ2::Float64`: Uncertainty around the covariance (has to be greater than 1).
+- `d::Sampleable{Multivariate, Continous}`: The nominal distribution (only its mean and covariance are used).
+- `γ1::Float64`: Uncertainty around the mean (has to be greater than or equal to 0).
+- `γ2::Float64`: Uncertainty around the covariance (has to be greater than or equal to 1).
+- `lower::Vector`, `upper::Vector`: Bounds of the support of the returns (default: `-Inf` and
+  `Inf`, i.e. unbounded support). Infinite entries are not bounded. The mean of `d` has to be
+  inside the box.
+
+The worst case measures implemented over this set are `ExpectedUtility` with a
+`PieceWiseUtility`, `ExpectedReturn` and `ConditionalExpectedReturn` (minus the worst
+case CVaR), all reformulated as semidefinite programs (SDP).
+
+With unbounded support the reformulations are exact (Delage & Ye, 2010). With a bounded support,
+the constraint "for every return in the box" is handled with one nonnegative multiplier per finite
+bound (as in Yang et al., 2014), which gives a conservative approximation: the value is a lower
+bound of the exact worst case and is never smaller than the value with unbounded support.
 
 References:
-- Delage paper on moment uncertainty: https://www.researchgate.net/publication/220244490_Distributionally_Robust_Optimization_Under_Moment_Uncertainty_with_Application_to_Data-Driven_Problems
-
+- Delage, E., & Ye, Y. (2010). Distributionally robust optimization under moment uncertainty with
+  application to data-driven problems. Operations Research, 58(3), 595-612.
+  https://doi.org/10.1287/opre.1090.0741
+- Yang, L., Li, Y., Zhou, Z., & Chen, K. (2014). Distributionally robust return-risk optimization
+  models and their applications. Journal of Applied Mathematics, 2014, 784715.
+  https://doi.org/10.1155/2014/784715
 """
 struct MomentUncertainty{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
     d::D
     γ1::T
     γ2::T
+    lower::Vector{T}
+    upper::Vector{T}
 
     # Inner constructor for validating arguments
     function MomentUncertainty{T, D}(
-        d::D, γ1::T, γ2::T
+        d::D, γ1::T, γ2::T, lower::AbstractVector{<:Real}, upper::AbstractVector{<:Real}
     ) where {T<:Real, D<:ContinuousMultivariateSampleable}
         γ1 >= 0 || throw(ArgumentError("γ1 must be >= 0"))
         γ2 >= 1 || throw(ArgumentError("γ2 must be >= 1"))
-        return new{T, D}(d, γ1, γ2)
+        n = length(d)
+        length(lower) == n || throw(ArgumentError(
+            "Distribution ($(n)) and lower ($(length(lower))) must have the same length"
+        ))
+        length(upper) == n || throw(ArgumentError(
+            "Distribution ($(n)) and upper ($(length(upper))) must have the same length"
+        ))
+        μ = Vector(Distributions.mean(d))
+        all(lower .<= μ .<= upper) || throw(ArgumentError(
+            "the mean of the distribution must be inside the support [lower, upper]"
+        ))
+        return new{T, D}(d, γ1, γ2, convert(Vector{T}, lower), convert(Vector{T}, upper))
     end
 end
 
-# Default outer constructor
+# unbounded support
+function MomentUncertainty{T, D}(d::D, γ1::T, γ2::T) where {T<:Real, D<:ContinuousMultivariateSampleable}
+    n = length(d)
+    return MomentUncertainty{T, D}(d, γ1, γ2, fill(typemin(T), n), fill(typemax(T), n))
+end
+
+# Default outer constructors
 function MomentUncertainty(
     d::D, γ1::T, γ2::T
 ) where {T<:Real, D<:ContinuousMultivariateSampleable}
     MomentUncertainty{T, D}(d, γ1, γ2)
 end
 
-MomentUncertainty(d::Sampleable; γ1, γ2) = MomentUncertainty(d, γ1, γ2)
+function MomentUncertainty(
+    d::D, γ1::T, γ2::T, lower::AbstractVector{<:Real}, upper::AbstractVector{<:Real}
+) where {T<:Real, D<:ContinuousMultivariateSampleable}
+    MomentUncertainty{T, D}(d, γ1, γ2, lower, upper)
+end
+
+function MomentUncertainty(d::Sampleable; γ1, γ2, lower=nothing, upper=nothing)
+    γ1, γ2 = promote(float(γ1), float(γ2))
+    T = typeof(γ1)
+    n = length(d)
+    lower = isnothing(lower) ? fill(typemin(T), n) : lower
+    upper = isnothing(upper) ? fill(typemax(T), n) : upper
+    return MomentUncertainty(d, γ1, γ2, lower, upper)
+end
 
 distribution(s::MomentUncertainty) = s.d
 
-"""
-    calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty}
-
-Returns worst case utility return (WCR) under distribution uncertainty defined by MomentUncertainty ambiguity set ([`MomentUncertainty`](@ref)).
-
-Arguments:
- - `w`: portfolio optimization investment variable ("weights").
- - `m::ExpectedUtility`: Struct containing information about the utility and ambiguity set.
-"""
-function calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty}
+# Worst case, over the distributions in `s`, of the expected value of the concave piecewise linear
+# function min_k (a_k r'w + b_k) of the returns `r` (the intercepts `b` can be JuMP expressions).
+# Adds the SDP dual of Delage & Ye (2010) to the model of `w`, with one nonnegative multiplier per
+# finite bound of the support (Yang et al. 2014), and returns its value.
+function _worst_case_piecewise!(s::MomentUncertainty, w, a::AbstractVector, b::AbstractVector)
+    @assert length(a) == length(b)
     model = _owner_model(w)
-    s = ambiguityset(m)
-    utility_function = utility(m)
-    
+
     # parameters
     means = Vector(Distributions.mean(s.d))
     Σ = Matrix(Distributions.cov(s.d))
     n = length(s)
-    a = coefficients(utility_function)
-    b = intercepts(utility_function)
     γ1 = s.γ1
     γ2 = s.γ2
-    K = length(a)
+    bounded_below = findall(isfinite, s.lower)
+    bounded_above = findall(isfinite, s.upper)
 
     # dual variables
     P = @variable(model, [i=1:n, j=1:n])
     p = @variable(model, [i=1:n])
-    s = @variable(model)
+    t = @variable(model)
     Q = @variable(model, [i=1:n, j=1:n])
     q = @variable(model, [i=1:n])
     r = @variable(model)
 
     # constraints: from duality
     @constraint(model, p .== -q / 2 - Q * means)
-    @constraint(model, [[P p]; [p' s]] in PSDCone())
-    for k in 1:K
-        @constraint(
-            model, [[Q (q / 2 + a[k] * w / 2)]; [(q' / 2 + a[k] * w' / 2) (r + b[k])]] in PSDCone()
-        )
+    @constraint(model, [[P p]; [p' t]] in PSDCone())
+    for k in eachindex(a)
+        # r'Q r + r'(q + a_k w) + r + b_k >= 0 for every return r in the support
+        linear = q + a[k] * w
+        constant = r + b[k]
+        if !isempty(bounded_below)
+            λ = @variable(model, [eachindex(bounded_below)], lower_bound = 0)
+            linear[bounded_below] -= λ
+            constant += dot(λ, s.lower[bounded_below])
+        end
+        if !isempty(bounded_above)
+            λ = @variable(model, [eachindex(bounded_above)], lower_bound = 0)
+            linear[bounded_above] += λ
+            constant -= dot(λ, s.upper[bounded_above])
+        end
+        @constraint(model, [[Q (linear / 2)]; [(linear' / 2) constant]] in PSDCone())
     end
 
-    return -(γ2 * dot(Σ, Q) - first(means'Q * means) + r + dot(Σ, P) - 2 * dot(means, p) + γ1 * s)
+    return -(γ2 * dot(Σ, Q) - first(means'Q * means) + r + dot(Σ, P) - 2 * dot(means, p) + γ1 * t)
+end
+
+"""
+    calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty}
+
+Returns the worst case expected utility under distribution uncertainty defined by the
+[`MomentUncertainty`](@ref) ambiguity set (Delage & Ye, 2010).
+
+Arguments:
+ - `w`: portfolio optimization investment variable ("weights").
+ - `m::ExpectedUtility`: Struct containing information about the utility and ambiguity set.
+"""
+function calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty}
+    u = utility(m)
+    return _worst_case_piecewise!(ambiguityset(m), w, coefficients(u), intercepts(u))
+end
+
+"""
+    calculate_measure!(m::ExpectedReturn{S}, w) where {S<:MomentUncertainty}
+
+Returns the worst case expected return over the [`MomentUncertainty`](@ref) ambiguity set. With
+unbounded support it is ``\\hat{r}'w - \\sqrt{\\gamma_1 w' \\Sigma w}``.
+"""
+function calculate_measure!(m::ExpectedReturn{S}, w) where {S<:MomentUncertainty}
+    return _worst_case_piecewise!(ambiguityset(m), w, [1.0], [0.0])
+end
+
+"""
+    calculate_measure!(m::ConditionalExpectedReturn{α,S}, w) where {α,S<:MomentUncertainty}
+
+Returns the worst case, over the [`MomentUncertainty`](@ref) ambiguity set, of the expected return
+of the portfolio over its worst `α` fraction of outcomes, i.e. minus the worst case CVaR
+(Yang et al., 2014):
+
+```math
+\\max_{z} \\quad z - \\frac{1}{\\alpha} \\sup_{P} \\mathbb{E}_P [ (z - r'w)^+ ] \\\\
+```
+
+where the inner supremum is the Delage & Ye (2010) SDP dual of a piecewise linear function.
+`α` has to be in `(0, 1]` (`α = 1` gives the worst case expected return). With unbounded support,
+`γ1 = 0` and `γ2 = 1` it equals ``\\hat{r}'w - \\sqrt{(1 - \\alpha) / \\alpha} \\sqrt{w' \\Sigma w}``.
+"""
+function calculate_measure!(m::ConditionalExpectedReturn{α,S}, w) where {α,S<:MomentUncertainty}
+    0 < α <= 1 || throw(ArgumentError(
+        "α must be in (0, 1] for MomentUncertainty (the worst case return is unbounded), got $(α)"
+    ))
+    s = ambiguityset(m)
+    isone(α) && return _worst_case_piecewise!(s, w, [1.0], [0.0])
+    model = _owner_model(w)
+    z = @variable(model)
+    # min(0, r'w - z) = -(z - r'w)^+
+    worst_case_shortfall = _worst_case_piecewise!(s, w, [0.0, 1.0], [zero(AffExpr), -z])
+    return z + worst_case_shortfall / α
 end
 
 """
