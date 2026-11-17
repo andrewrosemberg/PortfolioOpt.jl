@@ -9,7 +9,7 @@ own code, without changing the package:
 | a risk measure over a distribution or ambiguity set | [`PortfolioRiskMeasure`](@ref) | [`calculate_measure!`](@ref) |
 | an ambiguity set | [`CenteredAmbiguitySet`](@ref) | [`distribution`](@ref), and [`calculate_measure!`](@ref) for the measures that use it |
 | a way to estimate the distribution of returns | [`AbstractForecaster`](@ref) | [`forecast`](@ref) |
-| a market | [`PortfolioMarket`](@ref) | [`num_assets`](@ref), [`market_budget`](@ref), [`set_market_budget`](@ref), [`bids`](@ref), [`set_bids!`](@ref), `clear_market!`, [`total_profit`](@ref), and optionally [`market_model`](@ref) |
+| a market | [`PortfolioMarket`](@ref) | [`num_assets`](@ref), [`market_budget`](@ref), [`set_market_budget`](@ref), [`bids`](@ref), [`set_bids!`](@ref), [`clear_market!`](@ref), [`total_profit`](@ref), and optionally [`market_model`](@ref) |
 | a history of prices for backtests | [`MarketHistory`](@ref) | [`past_prices`](@ref), `current_prices`, `market_template`, [`num_assets`](@ref) |
 | a quantity recorded in backtests | [`StateRecorder`](@ref) | [`record!`](@ref), `get_records` |
 
@@ -100,6 +100,15 @@ model, w, _ = build_portfolio_model(market, formulation, optimizer)
 change_bids!(market, model, w)
 bids(market)
 ```
+
+## Extending from another package
+
+The interfaces above have no dependencies beyond the core of PortfolioOpt (JuMP, MathOptInterface
+and Distributions), so a package that adds richer market types or stronger formulations only needs
+to depend on PortfolioOpt: subtype [`PortfolioMarket`](@ref), [`PortfolioRiskMeasure`](@ref),
+[`CenteredAmbiguitySet`](@ref) or [`AbstractForecaster`](@ref), and add methods to the functions of
+PortfolioOpt as in the examples on this page. Integrations with optional packages (TimeSeries,
+MarketData, OptimalBids) are package extensions, loaded only when those packages are.
 
 ## Forecasts from past returns
 

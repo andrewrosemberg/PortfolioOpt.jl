@@ -7,9 +7,7 @@ using JuMP
 using LinearAlgebra
 using LinearAlgebra: dot
 using MathOptInterface
-using OptimalBids
 import MathOptInterface: LessThan, EqualTo, GreaterThan, constant, MAX_SENSE, MIN_SENSE
-import OptimalBids: Market, change_bids!, clear_market!, calculate_profit
 using PDMats
 using ProgressMeter
 using Random
@@ -19,7 +17,6 @@ import Statistics: mean, cov
 import Base: eachindex, eltype, size, keys, (==)
 using UUIDs
 using JuMP.Containers: DenseAxisArray
-import MarketData
 
 include("AmbiguitySet.jl")
 include("formulations.jl")
@@ -106,5 +103,14 @@ Reexport.@reexport using JuMP
 
 Reexport.@reexport using MathOptInterface: LessThan, EqualTo, GreaterThan
 
-Reexport.@reexport using OptimalBids
+function __init__()
+    # `get_test_data` is implemented by the MarketData extension
+    Base.Experimental.register_error_hint(MethodError) do io, exc, argtypes, kwargs
+        if exc.f === TestUtils.get_test_data
+            print(io, "\n`get_test_data` needs the MarketData package: add it to your environment and run `using MarketData`.")
+        end
+    end
+    return nothing
+end
+
 end

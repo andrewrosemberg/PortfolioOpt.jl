@@ -4,21 +4,15 @@
 Some commom test utilities for portfolio optimization formulations.
 
 Mainly:
-    - `get_test_data` that returns a TimeArray of prices for 6 assets.
+    - `get_test_data` that returns a `TimeArray` of prices for 6 assets (needs `using MarketData`).
 """
 module TestUtils
-    using Distributions
-    using JuMP
-    using ..PortfolioOpt: MarketHistory, market_template, past_prices, clear_market!, current_prices, total_profit
     using LinearAlgebra
-    import Reexport
-    using MarketData
+    using Statistics
 
     include("auxilary_functions.jl")
 
     export get_test_data,
         mean_variance,
         max_sharpe
-
-    Reexport.@reexport using MarketData
 end

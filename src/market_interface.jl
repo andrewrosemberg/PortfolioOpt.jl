@@ -1,5 +1,5 @@
 """
-    PortfolioMarket <: OptimalBids.Market
+    PortfolioMarket
 
 Supertype of markets in which the decision is the vector of amounts invested in each asset
 (the bids). [`VolumeMarket`](@ref) is the implementation shipped with the package.
@@ -8,14 +8,45 @@ A new market type has to implement:
  - [`num_assets`](@ref)`(market)`: number of assets;
  - [`market_budget`](@ref)`(market)` and [`set_market_budget`](@ref)`(market, value)`: money available;
  - [`bids`](@ref)`(market)` and [`set_bids!`](@ref)`(market, bids)`: current investment decision;
- - `clear_market!(market, prices)`: sets the realized returns of the assets;
+ - [`clear_market!`](@ref)`(market, prices)`: sets the realized returns of the assets;
  - [`total_profit`](@ref)`(market)`: profit of the current bids after the market is cleared.
 
 and can optionally implement [`market_model`](@ref) (the default is a long only portfolio within
 the budget). With these, [`build_portfolio_model`](@ref), `change_bids!(market, formulation, optimizer)`,
 the recorders and [`sequential_backtest_market`](@ref) work with the new market.
+
+The interface does not depend on other packages. When `OptimalBids` is loaded, its
+`change_bids!`, `clear_market!` and `calculate_profit` functions also accept any
+`PortfolioMarket` (package extension).
 """
-abstract type PortfolioMarket <: OptimalBids.Market end
+abstract type PortfolioMarket end
+
+"""
+    change_bids!(market::PortfolioMarket, new_bids::AbstractVector)
+    change_bids!(market::PortfolioMarket, model::JuMP.Model, decision_variables)
+    change_bids!(market::PortfolioMarket, formulation::PortfolioFormulation, optimizer_factory; record_measures=false)
+
+Changes the investment decision (bids) of `market`: to `new_bids`, to the optimal value of
+`decision_variables` after solving `model`, or to the optimal portfolio of `formulation`.
+"""
+function change_bids! end
+
+"""
+    clear_market!(market::PortfolioMarket, clearing_prices)
+
+Clears `market` with the realized returns (`clearing_prices`) of the assets, so that the profit
+of the current bids can be computed with [`total_profit`](@ref).
+"""
+function clear_market! end
+
+"""
+    calculate_profit(market::PortfolioMarket) -> NamedTuple
+
+Details of the profit of the current bids after the market was cleared (e.g. for
+[`VolumeMarket`](@ref): cleared volumes, clearing prices, profit of the assets and of the money
+not invested).
+"""
+function calculate_profit end
 
 """
     num_assets(market::PortfolioMarket) -> Int
@@ -64,7 +95,6 @@ function total_profit end
 Base.length(market::PortfolioMarket) = num_assets(market)
 
 change_bids!(market::PortfolioMarket, new_bids::AbstractVector) = (set_bids!(market, new_bids); nothing)
-change_bids!(market::PortfolioMarket, new_bids::Vector) = (set_bids!(market, new_bids); nothing)
 
 """
     market_model(market::PortfolioMarket, optimizer_factory; sense, model=Model(optimizer_factory)) -> (model, w)

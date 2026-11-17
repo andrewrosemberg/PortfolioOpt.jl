@@ -50,6 +50,7 @@ makedocs(;
         "Robust PO" => "robust_po.md",
         "Examples" => list_of_sorted_files("examples", EXAMPLES_DIR),
         "Extending PortfolioOpt" => "extending.md",
+        "Breaking changes in v2.0" => "migration.md",
         "API" => "api.md",
     ],
     strict=true,

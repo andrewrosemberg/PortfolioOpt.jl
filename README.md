@@ -42,7 +42,7 @@ The `PortfolioRiskMeasure`s can be used to define both the `RiskConstraint`s and
 In addition, `ObjectiveTerm`s can also be `ConeRegularizer`s defined by a cone set (e.g. `norm-2`) and a linear transformation (default Identity).
 
 ## VolumeMarket
-The `portfolio_model!` modifies an existing model `JuMP.Model` with decision variables already created and which, ideally, are already bounded by budget and bound constraints. In order to help users define market constraints, fees and clearing processess, this package also implements an interface with `OptimalBids.jl` (a framework for working with generic markets) through a simple market type called `VolumeMarket`.
+The `portfolio_model!` modifies an existing model `JuMP.Model` with decision variables already created and which, ideally, are already bounded by budget and bound constraints. In order to help users define market constraints, fees and clearing processess, this package also defines a market interface (`PortfolioMarket`) and a simple implementation of it called `VolumeMarket`. The interface has no dependencies; other packages can subtype `PortfolioMarket` to add richer markets (see the "Extending PortfolioOpt" page). When `OptimalBids.jl` (a framework for working with generic markets) is loaded, its `change_bids!`, `clear_market!` and `calculate_profit` also accept any `PortfolioMarket`.
 
 `VolumeMarket` represents market models that only allow the strategic agent to bid at market price, thus their decision is restricted to the amount/volume traded of each of the available assets.
 
@@ -62,7 +62,7 @@ To help backtesting, a type `VolumeMarketHistory` was created to contain:
  - `history_risk_free_rates`: The vector of risk-free rates with index vector `timestamp`;
  - `timestamp`: timestamps indexing the historical asset and risk-free returns;
 
-Instances of `VolumeMarketHistory` are the input of `sequential_backtest_market`: a function that provides a basic backtest using provided strategy and `VolumeMarketHistory` for a specified `date_range` (that needs to have the same `eltype` as `timestamp`).
+The history can be any collection indexed by the timestamps, such as a `TimeArray` from TimeSeries.jl (supported when TimeSeries, or MarketData, is loaded). Instances of `VolumeMarketHistory` are the input of `sequential_backtest_market`: a function that provides a basic backtest using provided strategy and `VolumeMarketHistory` for a specified `date_range` (that needs to have the same `eltype` as `timestamp`).
 
 ## Weights from a matrix of returns
 
@@ -107,10 +107,21 @@ package by subtyping `AbstractPortfolioTerm`/`PortfolioRiskMeasure`, `CenteredAm
 (`calculate_measure!`, `distribution`, `forecast`, `set_bids!`, ...). See the
 "Extending PortfolioOpt" page of the documentation for worked examples.
 
+## Optional integrations
+
+The core package only depends on JuMP, MathOptInterface, Distributions and a few small packages.
+The integrations below are [package extensions](https://pkgdocs.julialang.org/v1/creating-packages/#Conditional-loading-of-code-in-packages-(Extensions)),
+loaded automatically when the other package is loaded:
+ - TimeSeries.jl (or MarketData.jl): a `TimeArray` of returns can be used as the history of a `VolumeMarketHistory`;
+ - MarketData.jl: `TestUtils.get_test_data`;
+ - OptimalBids.jl: its market functions accept any `PortfolioMarket`.
+
+See "Breaking changes in v2.0" in the documentation to migrate from v1.
+
 ## TestUtils
 
 As an extra, some testing utilities are available through the submodule called `TestUtils`:
- - `get_test_data`: returns a TimeArray of Prices for 6 assets.
+ - `get_test_data`: returns a TimeArray of Prices for 6 assets (requires `using MarketData`).
  - `mean_variance`: returns the mean and variance of a array of returns.
  - `max_sharpe`: portfolio optimization that maximizes the sharp ratio. 
 
@@ -131,6 +142,7 @@ using Clarabel
 using Distributions
 using PortfolioOpt
 using PortfolioOpt.TestUtils
+using MarketData # provides the test data
 
 # Read Prices 
 prices = get_test_data();

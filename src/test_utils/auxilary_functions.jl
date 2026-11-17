@@ -1,22 +1,11 @@
 """
-    get_test_data(;
-        start_date::Date=Date(2009, 9, 1), end_date::Date=start_date + Year(1) + Month(3)
-    )
-    
-Get test data (Prices) from MarketData.
+    get_test_data(; start_date=Date(2009, 9, 1), end_date=start_date + Year(1) + Month(3))
+
+Daily closing prices of 6 assets (AAPL, BA, DELL, CAT, EBAY, F) between `start_date` and
+`end_date`, as a `TimeArray`. The data ships with the MarketData package, which has to be loaded
+(`using MarketData`) for this function to be available (package extension).
 """
-function get_test_data(;
-    start_date::Date=Date(2009, 9, 1), end_date::Date=start_date + Year(1) + Month(3)
-)
-    df_AAPL = rename(to(from(AAPL[:Close], start_date), end_date), :AAPL)
-    df_BA = rename(to(from(BA[:Close], start_date), end_date), :BA)
-    df_DELL = rename(to(from(DELL[:Close], start_date), end_date), :DELL)
-    df_CAT = rename(to(from(CAT[:Close], start_date), end_date), :CAT)
-    df_EBAY = rename(to(from(EBAY[:Close], start_date), end_date), :EBAY)
-    df_F = rename(to(from(F[:Close], start_date), end_date), :F)
-    df = merge(df_AAPL, df_BA, df_DELL, df_CAT, df_EBAY, df_F)
-    return df
-end
+function get_test_data end
 
 """
     mean_variance(returns::Array{T, 2}; digits::Union{Nothing,Int}=nothing) where {T<:Real}
