@@ -7,6 +7,7 @@ using Clarabel
 using Distributions
 using PortfolioOpt
 using PortfolioOpt.TestUtils
+using MarketData # test data (loads the TimeSeries integration)
 
 # Read Prices 
 prices = get_test_data();
