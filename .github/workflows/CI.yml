@@ -1,5 +1,5 @@
 name: CI
-# Run on master, tags, or any pull request
+# Run on master, tags, pull requests, nightly and on demand
 on:
   schedule:
     - cron: '0 2 * * *'  # Daily at 2 AM UTC (8 PM CST)
@@ -7,10 +7,19 @@ on:
     branches: [master]
     tags: ["*"]
   pull_request:
+  workflow_dispatch:
+concurrency:
+  # cancel intermediate builds of pull requests only
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    permissions: # julia-actions/cache deletes the old caches it created
+      actions: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -39,6 +48,22 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
+  jet:
+    name: JET static analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.12' # JET releases are tied to Julia minor versions
+      - uses: julia-actions/cache@v2
+      - run: julia --color=yes --project=test/jet -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+      - run: julia --color=yes --project=test/jet test/jet/runtests.jl
+
   slack:
     name: Notify Slack Failure
     needs: test
@@ -54,22 +79,3 @@ jobs:
           color: danger
         env:
           SLACK_BOT_TOKEN: ${{ secrets.DEV_SLACK_BOT_TOKEN }}
-
-  docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
-        with:
-          version: '1'
-      - run: |
-          julia --project=docs -e '
-            using Pkg
-            Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.instantiate()
-            include("docs/make.jl")'
-        env:
-          JULIA_PKG_SERVER: ""
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}

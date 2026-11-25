@@ -1,0 +1,23 @@
+name: Format check
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    # Informational until the code base is formatted once with JuliaFormatter (BlueStyle); then
+    # remove `continue-on-error` to enforce it.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1'
+      - name: Run JuliaFormatter
+        run: |
+          julia --color=yes -e 'using Pkg; Pkg.add(PackageSpec(name="JuliaFormatter", version="2"))'
+          julia --color=yes -e 'using JuliaFormatter; format(".")'
+      - name: Report unformatted files
+        run: |
+          git diff --stat
+          git diff --exit-code
