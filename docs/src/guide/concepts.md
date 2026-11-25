@@ -1,20 +1,26 @@
 # Concepts
 
-```@mermaid
-flowchart LR
-    data["past returns<br/>(T × N matrix or TimeArray)"] --> fc["forecaster<br/>AbstractForecaster"]
-    fc --> dist["distribution / samples<br/>MvNormal, DeterministicSamples"]
-    dist --> set["ambiguity set<br/>CenteredAmbiguitySet"]
-    dist --> meas["measures<br/>PortfolioRiskMeasure"]
-    set --> meas
-    meas --> form["PortfolioFormulation<br/>ObjectiveTerm, RiskConstraint"]
-    mkt["market<br/>PortfolioMarket"] --> model["JuMP model<br/>market_model + portfolio_model!"]
-    form --> model
-    model --> solve["solve<br/>change_bids!"]
-    solve --> clear["clear_market!<br/>total_profit"]
-    clear --> bt["backtest<br/>sequential_backtest_market, recorders"]
-    bt -->|next date| data
+```@raw html
+<figure class="fig">
+  <picture>
+    <source media="(max-width: 640px)" srcset="../../assets/diagrams/portfolioopt--formulation-compact.svg">
+    <img src="../../assets/diagrams/portfolioopt--formulation.svg" alt="Formulation lane: a returns model, P or a set of distributions, feeds a measure rho of w, which takes a role, an objective weight c_j or a constraint set C_i, in the problem max over w in X of the weighted measures subject to the constraints. Backtest lane: JuMP solves the conic model, the decision w star is cleared with the realized returns, and the history of returns feeds the next forecast." width="554" height="264">
+  </picture>
+  <figcaption><b>One strategy, from returns to a decision and back.</b> The three blue objects are independent arguments of a formulation; the backtest lane is the walk-forward loop of <code>sequential_backtest_market</code>. Notation of <a href="../../theory/problem/">The portfolio problem</a>; <i>r</i><sub>1:<i>t</i></sub> are the returns observed up to period <i>t</i>.</figcaption>
+</figure>
 ```
+
+Each box of the diagram is a type or a function of the package:
+
+| In the diagram | In the code |
+|:--|:--|
+| returns model ``P`` or ``\mathcal{P}`` | a distribution (`MvNormal`, [`DeterministicSamples`](@ref), ...) or a [`CenteredAmbiguitySet`](@ref), built from past returns by an [`AbstractForecaster`](@ref) with [`forecast`](@ref) |
+| measure ``\rho(w)`` | a [`PortfolioRiskMeasure`](@ref), or another [`AbstractPortfolioTerm`](@ref) |
+| role ``c_j`` or ``\mathcal{C}_i`` | [`ObjectiveTerm`](@ref) (weight) or [`RiskConstraint`](@ref) (sense and level) |
+| the problem | [`PortfolioFormulation`](@ref); ``\mathcal{X}`` is the [`PortfolioMarket`](@ref) |
+| JuMP conic model, conic solve | [`market_model`](@ref) + [`portfolio_model!`](@ref) ([`build_portfolio_model`](@ref)), solved by [`change_bids!`](@ref) |
+| clear market | [`clear_market!`](@ref), [`total_profit`](@ref) |
+| next period, ``r_{1:t}`` | [`sequential_backtest_market`](@ref) over a [`MarketHistory`](@ref), with recorders |
 
 ## Uncertainty: distributions and ambiguity sets
 
