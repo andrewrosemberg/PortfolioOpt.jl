@@ -38,7 +38,7 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
@@ -60,7 +60,7 @@ jobs:
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1.12' # JET releases are tied to Julia minor versions
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
       - run: julia --color=yes --project=test/jet -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - run: julia --color=yes --project=test/jet test/jet/runtests.jl
 
