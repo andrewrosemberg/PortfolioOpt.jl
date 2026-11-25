@@ -19,7 +19,9 @@
         pointer = PortfolioOpt.calculate_measure!(measure, w)
         @objective(model, sense, pointer)
         JuMP.optimize!(model)
-        @test termination_status(model) == MOI.OPTIMAL
+        # the semidefinite programs may stop at ALMOST_OPTIMAL (e.g. on Julia 1.10); the claims
+        # are still checked with the tolerance below
+        @test termination_status(model) in (MOI.OPTIMAL, MOI.ALMOST_OPTIMAL)
         return value(pointer)
     end
 
