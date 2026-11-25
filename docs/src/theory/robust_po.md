@@ -9,7 +9,7 @@ The available information for many market data (e.g. stock prices, future prices
 One alternative approach is Robust Optimization.
 
 ## Background
-Robust Optimization (RO) problems belong to the class of optimization under uncertainty problems where some problem data is uncertain (either because the decision is taken before the realization of the random event or because its observation is not available). Usual application cases for RO are when there isn’t sufficient information to derive probability distributions, but this isn’t strictly necessary. RO focuses on guaranteeing solution feasibility for any possible value of the uncertain data inside a defined Uncertainty Set. In the case where the uncertainty impacts the objective function, it guarantees optimality for the works case scenario considered in the Uncertainty Set.
+Robust Optimization (RO) problems belong to the class of optimization under uncertainty problems where some problem data is uncertain (either because the decision is taken before the realization of the random event or because its observation is not available). Usual application cases for RO are when there isn’t sufficient information to derive probability distributions, but this isn’t strictly necessary. RO seeks solutions that remain feasible for any possible value of the uncertain data inside a defined Uncertainty Set. When the uncertainty affects the objective function, it optimizes for the worst case scenario in the Uncertainty Set.
 
 Many uncertainty sets have been proposed to accommodate different levels of conservatism and data structures ([1]-[7]). A comparison of uncertainty sets to usual risk measures used in finance are included in [4] and [11].
 

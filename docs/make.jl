@@ -64,7 +64,6 @@ makedocs(;
             "Risk measures" => "theory/measures.md",
             "Ambiguity sets" => "theory/ambiguity.md",
             "Robust portfolio optimization" => "theory/robust_po.md",
-            "Guarantees" => "theory/guarantees.md",
         ],
         "Package guide" => [
             "Getting started" => "guide/getting_started.md",

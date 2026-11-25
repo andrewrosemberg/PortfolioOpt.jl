@@ -51,7 +51,7 @@ w = portfolio_weights(formulation, 3, optimizer_with_attributes(Clarabel.Optimiz
 
 * **Theory**: [the problem and the notation](theory/problem.md), the
   [risk measures](theory/measures.md) and [ambiguity sets](theory/ambiguity.md) as optimization
-  problems, and the [guarantees](theory/guarantees.md) checked by the tests.
+  problems, with the conditions under which each reformulation is exact.
 * **Package guide**: [getting started](guide/getting_started.md), [concepts](guide/concepts.md),
   [extending the package](guide/extending.md) and the
   [breaking changes in v2.0](guide/migration.md).

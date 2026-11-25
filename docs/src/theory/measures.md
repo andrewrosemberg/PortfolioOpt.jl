@@ -19,7 +19,7 @@ and its reformulation is added to the model by [`calculate_measure!`](@ref).
 | [`CertaintyEquivalent`](@ref)`(d, `[`ExponentialUtility`](@ref)`(a))` | ``-\frac{1}{a} \log \mathbb{E}[e^{-aR}]`` | concave | exponential (+ rotated SOC) | direction |
 | [`ConeRegularizer`](@ref)`(K, M)` | ``\lVert M w \rVert_K`` | convex | ``K`` | direction |
 
-"Direction" means exact under the [direction assumption](@ref direction).
+"Direction" means exact when optimized in the [direction of its class](@ref direction).
 `s` stands for [`DeterministicSamples`](@ref), and `d` for any distribution with a mean and a
 covariance (for the exponential utility: `MvNormal`, a `MixtureModel` of `MvNormal`s, or
 `DeterministicSamples`).
@@ -45,11 +45,11 @@ return (see [Ambiguity sets](ambiguity.md)).
 * [`SqrtVariance`](@ref) returns ``t`` with ``(t, \Sigma^{1/2} w)`` in the second order cone,
   i.e. ``t \geq \lVert \Sigma^{1/2} w \rVert_2``.
 
-**Assumptions:** ``\Sigma \succ 0`` (a Cholesky factorization is computed). Over an ambiguity set,
-the covariance of its nominal distribution is used.
+The covariance must be positive definite, ``\Sigma \succ 0``, since a Cholesky factorization
+gives ``\Sigma^{1/2}``. Over an ambiguity set, the covariance of its nominal distribution is used.
 
-**Guarantee** (`variance_epigraph_exact`, `risk_constraint_feasible`): both epigraphs are exact in
-the convex direction; a portfolio optimal with `RiskConstraint(SqrtVariance(d), LessThan(σ))`
+Both epigraphs are exact in the convex direction: minimized, they equal ``w^\top \Sigma w`` and
+its square root, so a portfolio optimal with `RiskConstraint(SqrtVariance(d), LessThan(σ))`
 satisfies ``\sqrt{w^\top \Sigma w} \leq σ``.
 
 ## [Worst case return](@id worst-case-return)
@@ -60,9 +60,8 @@ For samples ``r_1, \dots, r_S``,
 \rho(w) = \min_{s} r_s^\top w = \max_{\theta} \{ \theta : \theta \leq r_s^\top w, \; s = 1, \dots, S \}.
 ```
 
-**Guarantee** (`worst_case_return_exact`): the linear reformulation equals the smallest sample
-return. This is the worst case over the convex hull of the samples
-(Fernandes et al., 2016).
+At the optimum the linear reformulation equals the smallest sample return. This is the worst
+case over the convex hull of the samples (Fernandes et al., 2016).
 
 ## [Conditional expected return (CVaR)](@id cvar)
 
@@ -93,16 +92,13 @@ its value is the tail mean
 the mean of the ``\alpha S`` worst returns when ``\alpha S`` is an integer. `α = 0` is the worst
 case return, and `α = 1` the expected return.
 
-**Assumptions:** ``\alpha \in [0, 1]``, samples with equal probabilities.
-
-**Guarantees:**
-* `cvar_ru_lower_bound`: for every ``z``, ``z - \mathbb{E}[(z - R)^+]/\alpha \leq -\mathrm{CVaR}_\alpha(R)``,
-  so every feasible point of the linear program is a conservative estimate;
-* `cvar_ru_exact`: the optimal value of the linear program equals the sorted tail mean above, also
-  when ``\alpha S`` is not an integer;
-* `risk_constraint_feasible`: a portfolio optimal with
-  `RiskConstraint(ConditionalExpectedReturn(s; α), GreaterThan(b))` has a sample tail mean of at
-  least ``b``.
+The tail-mean formula is for samples with equal probabilities and ``\alpha \in [0, 1]``. For
+every ``z``, ``z - \mathbb{E}[(z - R)^+]/\alpha \leq -\mathrm{CVaR}_\alpha(R)``, so every
+feasible point of the linear program is a conservative estimate, and its optimal value is the
+tail mean above, also when ``\alpha S`` is not an integer (Rockafellar & Uryasev, 2000).
+Hence a portfolio optimal with
+`RiskConstraint(ConditionalExpectedReturn(s; α), GreaterThan(b))` has a sample tail mean of at
+least ``b``.
 
 ## [Exponential utility and certainty equivalent](@id exponential-utility)
 
@@ -133,20 +129,17 @@ equivalent is the hypograph ``\theta \leq -\frac{1}{a} \log \sum_k \pi_k e^{e_k}
 ``\sum_k \pi_k e^{e_k + a \theta} \leq 1``. For a Gaussian, ``CE = \hat{r}^\top w - \frac{a}{2} w^\top \Sigma w``,
 so maximizing it is the mean-variance problem with risk aversion ``a``.
 
-**Assumptions:** ``a > 0``, ``\Sigma \succ 0`` for the Gaussian terms; a solver with exponential
-cones (e.g. Clarabel, SCS, Mosek).
-
-**Guarantees:** the closed forms above are checked for each distribution (tests of
-`ExponentialUtility`); `certainty_equivalent_le_mean`: by Jensen's inequality,
-``CE(R) \leq \mathbb{E}[R]`` and ``\mathbb{E}[u(R)] \leq u(\mathbb{E}[R])``;
-`risk_constraint_feasible`: a certainty equivalent constraint `GreaterThan(b)` holds for the
-closed form at the optimal portfolio.
+The Gaussian terms need ``\Sigma \succ 0``, and the solver must support exponential cones (e.g.
+Clarabel, SCS, Mosek). Since ``u`` is concave, Jensen's inequality gives
+``\mathbb{E}[u(R)] \leq u(\mathbb{E}[R])`` and ``CE(R) \leq \mathbb{E}[R]``. Both
+reformulations are exact in the concave direction, so a certainty equivalent constraint
+`GreaterThan(b)` holds for the closed form at the optimal portfolio.
 
 ## [Norm regularizers](@id norm-regularizers)
 
 [`ConeRegularizer`](@ref)`(K, M)` is ``t`` with ``(t, M w) \in K`` for a norm cone ``K`` (e.g.
 `MOI.NormOneCone(N + 1)`, `MOI.SecondOrderCone(N + 1)`), i.e. ``t \geq \lVert M w \rVert``. With a
-negative weight in a maximization (a penalty) it is exact (`cone_regularizer_exact`).
+negative weight in a maximization (a penalty) it is exact: at the optimum ``t = \lVert M w \rVert``.
 
 ## References
 

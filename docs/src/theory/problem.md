@@ -57,13 +57,13 @@ and returns an affine expression ``f(w, u)``. The measures fall in two classes:
   ```
   so ``f(w, u) \geq \rho(w)`` for every feasible ``u``.
 
-!!! note "Assumption (direction)"
+!!! note "Exactness and the direction of optimization"
     The reformulation of a measure is **exact** when the optimization pushes ``f`` in the
     direction of its class: a concave measure is maximized (positive weight with `MAX_SENSE`,
     negative weight with `MIN_SENSE`) or constrained from below (`GreaterThan`); a convex measure
     is minimized or constrained from above (`LessThan`).
 
-    Under this assumption, any optimal solution of the conic problem gives a portfolio ``w``
+    In that case, any optimal solution of the conic problem gives a portfolio ``w``
     that is optimal for the original problem and satisfies every risk constraint evaluated on the
     measure itself (not only on its reformulation), and the optimal values coincide.
 
@@ -73,6 +73,5 @@ and returns an affine expression ``f(w, u)``. The measures fall in two classes:
     from above, is not a convex problem.
 
 The [Risk measures](measures.md) and [Ambiguity sets](ambiguity.md) pages give, for each
-measure, its definition, its class, its conic reformulation and the assumptions under which the
-reformulation is exact. Each claim has a name, listed in [Guarantees](guarantees.md), and is
-checked numerically by the test with the same name.
+measure, its definition, its class, its conic reformulation and the conditions under which the
+reformulation is exact.

@@ -7,7 +7,7 @@ robust optimization). Every set is a [`CenteredAmbiguitySet`](@ref) around a nom
 use the covariance ([`Variance`](@ref), [`SqrtVariance`](@ref)) use the covariance of `d`.
 
 All worst cases are concave measures (see the
-[direction assumption](@ref direction)): they are exact when
+[direction of optimization](@ref direction)): they are exact when
 maximized or constrained from below. Each reformulation is the dual of the inner worst case
 problem, so the auxiliary variables are dual variables and no inner problem is solved.
 
@@ -32,9 +32,8 @@ means that can deviate. ``\Gamma = 0`` is the nominal mean and ``\Gamma = N`` th
 Soyster (1973). The worst case is a linear program; [`calculate_measure!`](@ref) adds the
 constraints of its dual and returns the dual objective (see the docstring of `BudgetSet`).
 
-**Guarantee** (`budget_set_strong_duality`): for every portfolio, including short positions, the
-dual expression equals the primal worst case (solved as a linear program), and both equal the
-greedy closed form
+By linear programming duality, for every portfolio, including short positions, the dual
+expression equals the primal worst case, and both equal the greedy closed form
 
 ```math
 \rho(w) = \hat{r}^\top w - \sum_{k=1}^{\lfloor \Gamma \rfloor} g_{(k)} - (\Gamma - \lfloor \Gamma \rfloor) \, g_{(\lfloor \Gamma \rfloor + 1)},
@@ -48,9 +47,9 @@ greedy closed form
 \qquad \rho(w) = \min_{\mu \in \mathcal{U}_\delta} \mu^\top w = \hat{r}^\top w - \delta \lVert \Sigma^{1/2} w \rVert_2 .
 ```
 
-**Assumptions:** ``\delta \geq 0``, ``\Sigma \succ 0``.
-**Guarantee** (`elliptical_closed_form`): the second order cone reformulation equals the closed
-form.
+For ``\delta \geq 0`` and ``\Sigma \succ 0``, the minimizer is
+``\mu^\star = \hat{r} - \delta \Sigma w / \lVert \Sigma^{1/2} w \rVert_2`` (Cauchy–Schwarz), so
+the second order cone reformulation equals the closed form.
 
 ## [Moment uncertainty (Delage & Ye)](@id moment-uncertainty)
 
@@ -94,20 +93,20 @@ on the box. The measures over this set are:
   ``\alpha`` has to be in ``(0, 1]``.
 * [`ExpectedUtility`](@ref) with a [`PieceWiseUtility`](@ref).
 
-**Assumptions:** ``\gamma_1 \geq 0``, ``\gamma_2 \geq 1``, ``\Sigma \succ 0``,
-``\underline{r} \leq \hat{r} \leq \overline{r}``.
+The set is defined for ``\gamma_1 \geq 0``, ``\gamma_2 \geq 1``, ``\Sigma \succ 0`` and
+``\underline{r} \leq \hat{r} \leq \overline{r}``; with ``\gamma_2 \geq 1`` it contains the
+nominal distribution. Some consequences:
 
-**Guarantees:**
-* With unbounded support the reformulation is exact (Delage & Ye, 2010); the closed forms above
-  are checked in the tests of `MomentUncertainty`.
+* With unbounded support the reformulation is exact (Delage & Ye, 2010) and gives the closed forms
+  above.
 * With a box support the value is a lower bound of the exact worst case over the box, and it is
-  never smaller than the value with unbounded support (`moment_bounded_support_between`).
-* `moment_worst_case_le_nominal`: the nominal distribution is in the set, so the worst case
-  expected return is at most ``\hat{r}^\top w`` for every portfolio, and the optimal worst case
-  objective is at most the optimal nominal objective.
-* `moment_monotone_in_radius`: the worst case is nonincreasing in ``\gamma_1`` and ``\gamma_2``.
-* `moment_cvar_le_member_cvar`: the Gaussian ``\mathcal{N}(\hat{r}, \Sigma)`` is in the set, so the
-  worst case conditional expected return is at most its Gaussian value
+  never smaller than the value with unbounded support.
+* The nominal distribution is in the set, so the worst case expected return is at most
+  ``\hat{r}^\top w`` for every portfolio, and the optimal worst case objective is at most the
+  optimal nominal objective.
+* The sets are nested in ``\gamma_1`` and ``\gamma_2``, so the worst case is nonincreasing in both.
+* The Gaussian ``\mathcal{N}(\hat{r}, \Sigma)`` is in the set, so the worst case conditional
+  expected return is at most its Gaussian value
   ``\hat{r}^\top w - \lVert \Sigma^{1/2} w \rVert_2 \, \phi(\Phi^{-1}(\alpha)) / \alpha``.
 
 ## [Wasserstein ball](@id wasserstein-ball)
@@ -128,14 +127,11 @@ return is reformulated following Du et al. (2021, Corollaries 1–3) as
 where ``p \in \{1, 2, \infty\}`` is `norm_cone` and ``q`` its dual exponent (a new ``p`` can be
 added with a method of `PortfolioOpt.primal_cone`).
 
-**Assumptions:** ``\epsilon \geq 0``, ``\Lambda`` at least the largest norm of a sample (the
-default), ``Q`` invertible.
-
-**Guarantees** (checked numerically; no closed form is available):
-* `wasserstein_zero_radius_is_empirical`: with ``\epsilon = 0`` it equals the sample mean
-  return;
-* `wasserstein_monotone_in_radius`: it is nonincreasing in ``\epsilon`` and at most the sample
-  mean return, for ``p = 1, 2, \infty``.
+The reformulation needs ``\epsilon \geq 0``, ``\Lambda`` at least the largest norm of a sample
+(the default) and ``Q`` invertible. No closed form is available in general, but with
+``\epsilon = 0`` the ball is the empirical distribution, so the value is the sample mean return;
+the balls are nested in ``\epsilon``, so the value is nonincreasing in ``\epsilon`` and at most the
+sample mean return, for ``p = 1, 2, \infty``.
 
 ## References
 
