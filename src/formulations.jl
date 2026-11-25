@@ -33,7 +33,7 @@ struct PieceWiseUtility{T<:Real} <: ConcaveUtilityFunction
     c::Vector{T}
     b::Vector{T}
 
-    function PieceWiseUtility(c::Vector{T}=[1.0], b::Vector{T}=[0.0]) where T
+    function PieceWiseUtility(c::Vector{T}=[1.0], b::Vector{T}=[0.0]) where {T}
         @assert length(c) == length(b)
         return new{T}(c, b)
     end
@@ -53,7 +53,9 @@ Intercepts ``b_k`` of the affine pieces of `u`.
 """
 intercepts(u::PieceWiseUtility) = u.b
 
-==(a::PieceWiseUtility, b::PieceWiseUtility) = coefficients(a) == coefficients(b) && intercepts(a) == intercepts(b)
+function ==(a::PieceWiseUtility, b::PieceWiseUtility)
+    return coefficients(a) == coefficients(b) && intercepts(a) == intercepts(b)
+end
 
 # TODO: Implement other useful utility functions
 
@@ -166,7 +168,9 @@ function ConditionalExpectedReturn(α::T, ambiguity_set::S) where {T<:Real,S<:Am
     return ConditionalExpectedReturn{α,S}(ambiguity_set)
 end
 
-function ConditionalExpectedReturn(ambiguity_set::S; α::T=0.05) where {T<:Real,S<:AmbiguitySet}
+function ConditionalExpectedReturn(
+    ambiguity_set::S; α::T=0.05
+) where {T<:Real,S<:AmbiguitySet}
     return ConditionalExpectedReturn{α,S}(ambiguity_set)
 end
 
@@ -214,12 +218,14 @@ utility(m::ExpectedUtility) = m.utility
 Constrains the value of `measure` (see [`calculate_measure!`](@ref)) to `set`, e.g.
 `RiskConstraint(SqrtVariance(d), LessThan(0.02))`.
 """
-struct RiskConstraint{C<:Union{EqualTo, GreaterThan, LessThan}}
+struct RiskConstraint{C<:Union{EqualTo,GreaterThan,LessThan}}
     risk_measure::AbstractPortfolioTerm
     constraint_type::C
     uid::UUID
 
-    function RiskConstraint(risk_measure::AbstractPortfolioTerm, constraint_type::C, uid::UUID=uuid1()) where {C}
+    function RiskConstraint(
+        risk_measure::AbstractPortfolioTerm, constraint_type::C, uid::UUID=uuid1()
+    ) where {C}
         return new{C}(risk_measure, constraint_type, uid)
     end
 end
@@ -235,19 +241,25 @@ uid(c::RiskConstraint) = c.uid
 risk_measure(c::RiskConstraint) = c.risk_measure
 constant(c::RiskConstraint) = constant(c.constraint_type)
 
-function constraint!(model::JuMP.Model, r::RiskConstraint{LessThan{T}}, decision_variables) where {T}
+function constraint!(
+    model::JuMP.Model, r::RiskConstraint{LessThan{T}}, decision_variables
+) where {T}
     pointer_term = calculate_measure!(risk_measure(r), decision_variables)
     @constraint(model, pointer_term <= constant(r))
     return pointer_term
 end
 
-function constraint!(model::JuMP.Model, r::RiskConstraint{GreaterThan{T}}, decision_variables) where {T}
+function constraint!(
+    model::JuMP.Model, r::RiskConstraint{GreaterThan{T}}, decision_variables
+) where {T}
     pointer_term = calculate_measure!(risk_measure(r), decision_variables)
     @constraint(model, pointer_term >= constant(r))
     return pointer_term
 end
 
-function constraint!(model::JuMP.Model, r::RiskConstraint{EqualTo{T}}, decision_variables) where {T}
+function constraint!(
+    model::JuMP.Model, r::RiskConstraint{EqualTo{T}}, decision_variables
+) where {T}
     pointer_term = calculate_measure!(risk_measure(r), decision_variables)
     @constraint(model, pointer_term == constant(r))
     return pointer_term
@@ -260,7 +272,7 @@ Norm of the weighted portfolio, `t` such that `[t; weight_matrix * w] in norm_co
 `ConeRegularizer(MOI.NormOneCone(n + 1))` for an L1 penalty.
 """
 struct ConeRegularizer <: AbstractPortfolioTerm
-    norm_cone::Union{AbstractVectorSet, MOI.AbstractVectorSet}
+    norm_cone::Union{AbstractVectorSet,MOI.AbstractVectorSet}
     weight_matrix::Union{Matrix,UniformScaling}
 
     function ConeRegularizer(norm_cone, weight_matrix=I)
@@ -288,7 +300,9 @@ struct ObjectiveTerm{T<:Real}
     weight::T
     uid::UUID
 
-    function ObjectiveTerm(term::AbstractPortfolioTerm, weight::T=1.0, uid::UUID=uuid1()) where {T}
+    function ObjectiveTerm(
+        term::AbstractPortfolioTerm, weight::T=1.0, uid::UUID=uuid1()
+    ) where {T}
         return new{T}(term, weight, uid)
     end
 end
@@ -308,18 +322,35 @@ struct PortfolioFormulation
     objective_terms::Vector{<:ObjectiveTerm}
     risk_constraints::Vector{<:RiskConstraint}
 
-    function PortfolioFormulation(sense::MOI.OptimizationSense,
-        objective_terms::Vector{<:ObjectiveTerm}, 
+    function PortfolioFormulation(
+        sense::MOI.OptimizationSense,
+        objective_terms::Vector{<:ObjectiveTerm},
         risk_constraints::Vector{<:RiskConstraint}=Vector{RiskConstraint}(),
     )
         return new(sense, objective_terms, risk_constraints)
     end
 end
 
-PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk::RiskConstraint{C}) where {T,C} = PortfolioFormulation(sense, [obj], [risk])
-PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk_constraints::Vector{<:RiskConstraint}) where {T} = PortfolioFormulation(sense, [obj], risk_constraints)
-PortfolioFormulation(sense::MOI.OptimizationSense, obj::Vector{<:ObjectiveTerm}, risk::RiskConstraint) = PortfolioFormulation(sense, obj, [risk])
-PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}) where {T} = PortfolioFormulation(sense, [obj])
+function PortfolioFormulation(
+    sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}, risk::RiskConstraint{C}
+) where {T,C}
+    return PortfolioFormulation(sense, [obj], [risk])
+end
+function PortfolioFormulation(
+    sense::MOI.OptimizationSense,
+    obj::ObjectiveTerm{T},
+    risk_constraints::Vector{<:RiskConstraint},
+) where {T}
+    return PortfolioFormulation(sense, [obj], risk_constraints)
+end
+function PortfolioFormulation(
+    sense::MOI.OptimizationSense, obj::Vector{<:ObjectiveTerm}, risk::RiskConstraint
+)
+    return PortfolioFormulation(sense, obj, [risk])
+end
+function PortfolioFormulation(sense::MOI.OptimizationSense, obj::ObjectiveTerm{T}) where {T}
+    return PortfolioFormulation(sense, [obj])
+end
 sense(formulation::PortfolioFormulation) = formulation.sense
 
 """
@@ -332,7 +363,12 @@ added to the current objective of `model`.
 If `record_measures=true`, returns a `Dict` from the [`uid`](@ref) of each term to the JuMP
 expression of its value; otherwise returns `nothing`.
 """
-function portfolio_model!(model::JuMP.Model, formulation::PortfolioFormulation, decision_variables; record_measures::Bool=false)
+function portfolio_model!(
+    model::JuMP.Model,
+    formulation::PortfolioFormulation,
+    decision_variables;
+    record_measures::Bool=false,
+)
     pointers = if record_measures
         Dict()
     else
@@ -356,7 +392,7 @@ function portfolio_model!(model::JuMP.Model, formulation::PortfolioFormulation, 
     # risk constraints
     for risk_constraint in formulation.risk_constraints
         pointer_term = constraint!(model, risk_constraint, decision_variables)
-        
+
         if record_measures
             pointers[uid(risk_constraint)] = pointer_term
         end

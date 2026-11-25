@@ -1,4 +1,4 @@
-const ContinuousMultivariateSampleable = Sampleable{Multivariate, Continuous}
+const ContinuousMultivariateSampleable = Sampleable{Multivariate,Continuous}
 
 """
     distribution(s::AmbiguitySet) -> Sampleable
@@ -16,7 +16,7 @@ Defines the ambiguity related to the distribution of a random variable, often us
 Robust Optimization (RO) and Distributionally Robust Optimization (DRO) problems.
 It represents a bounded infinite set of distributions.
 """
-abstract type CenteredAmbiguitySet{T<:Real, D<:Sampleable} end
+abstract type CenteredAmbiguitySet{T<:Real,D<:Sampleable} end
 
 Base.length(s::CenteredAmbiguitySet) = length(distribution(s))
 
@@ -28,4 +28,4 @@ cov(s::CenteredAmbiguitySet) = cov(distribution(s))
 
 Alias for Union{CenteredAmbiguitySet, ContinuousMultivariateSampleable}
 """
-const AmbiguitySet = Union{CenteredAmbiguitySet, Sampleable}
+const AmbiguitySet = Union{CenteredAmbiguitySet,Sampleable}

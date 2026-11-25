@@ -1,12 +1,18 @@
 @testset "backtest.jl" begin
     @testset "AbstractRecorder" begin
-        dates = Date(2023,1,1):Day(1):Date(2023,1,5)
-        t = Date(2023,1,2)
+        dates = Date(2023, 1, 1):Day(1):Date(2023, 1, 5)
+        t = Date(2023, 1, 2)
         numA = 3
-        budget=10.0
+        budget = 10.0
         volume_bids = [0.1, 0.3, 0.7]
         clearing_prices = [3.0, 2.0, 1.0]
-        market = VolumeMarket(numA, budget=budget, volume_fee=0.1, allow_short_selling=true, risk_free_rate=0.05)
+        market = VolumeMarket(
+            numA,
+            budget=budget,
+            volume_fee=0.1,
+            allow_short_selling=true,
+            risk_free_rate=0.05,
+        )
         @testset "WealthRecorder" begin
             recorder = PortfolioOpt.WealthRecorder(dates)
             @test length(recorder) == length(dates) + 1
@@ -46,8 +52,10 @@
         returns = rand(rng, generate_gaussian_distribution(numA, rng), 200)' ./ 100 # T × N
         d = MvNormal(vec(mean(returns; dims=1)), cov(returns))
         max_std = 0.003
-        formulation = PortfolioFormulation(MAX_SENSE,
-            ObjectiveTerm(ExpectedReturn(d)), RiskConstraint(SqrtVariance(d), LessThan(max_std)),
+        formulation = PortfolioFormulation(
+            MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(d)),
+            RiskConstraint(SqrtVariance(d), LessThan(max_std)),
         )
         w = portfolio_weights(formulation, numA, DEFAULT_SOLVER)
         @test w isa Vector{Float64}
@@ -61,14 +69,18 @@
         @test isapprox(w, market.volume_bids; atol=1e-6)
         # budget scales the investment
         w10 = portfolio_weights(
-            PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(d))), numA, DEFAULT_SOLVER;
+            PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(d))),
+            numA,
+            DEFAULT_SOLVER;
             budget=10,
         )
         @test isapprox(sum(w10), 10.0; atol=1e-5)
         # sample based formulation (samples are stored column-wise)
         s = DeterministicSamples(collect(returns'))
-        cvar_formulation = PortfolioFormulation(MAX_SENSE,
-            ObjectiveTerm(ExpectedReturn(s)), RiskConstraint(ConditionalExpectedReturn(s), GreaterThan(-0.05)),
+        cvar_formulation = PortfolioFormulation(
+            MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(s)),
+            RiskConstraint(ConditionalExpectedReturn(s), GreaterThan(-0.05)),
         )
         w_cvar = portfolio_weights(cvar_formulation, numA, DEFAULT_SOLVER)
         @test length(w_cvar) == numA
@@ -85,16 +97,19 @@
         # backtest
         state_recorders = PortfolioOpt.default_state_recorders(numA, date_range)
         PortfolioOpt.day_backtest_market!(
-            VolumeMarketHistory(returns_series), date_range[1],
+            VolumeMarketHistory(returns_series),
+            date_range[1],
             state_recorders=state_recorders,
-            provide_state=true
+            provide_state=true,
         ) do market, past_returns, ext
             numD, numA = size(past_returns)
-            change_bids!(market, fill(market_budget(market)/numA, numA))
+            change_bids!(market, fill(market_budget(market) / numA, numA))
         end
         _record = get_records(state_recorders[:returns])
         @test _record.data isa Vector
-        @test isapprox(_record.data[1], sum(values(returns_series[date_range])[1,:]) / numA)
+        @test isapprox(
+            _record.data[1], sum(values(returns_series[date_range])[1, :]) / numA
+        )
     end
     @testset "sequential_backtest_market" begin
         # read prices
@@ -107,14 +122,15 @@
         # backtest
         state_recorders = PortfolioOpt.default_state_recorders(numA, date_range)
         sequential_backtest_market(
-            VolumeMarketHistory(returns_series), date_range,
-            state_recorders=state_recorders,
+            VolumeMarketHistory(returns_series), date_range, state_recorders=state_recorders
         ) do market, past_returns, ext
             numD, numA = size(past_returns)
-            change_bids!(market, fill(market_budget(market)/numA, numA))
+            change_bids!(market, fill(market_budget(market) / numA, numA))
         end
         _record = get_records(state_recorders[:wealth])
         @test _record.data isa Vector
-        @test isapprox(_record.data[2], 1.0 + sum(values(returns_series[date_range])[1,:]) / numA)
+        @test isapprox(
+            _record.data[2], 1.0 + sum(values(returns_series[date_range])[1, :]) / numA
+        )
     end
 end

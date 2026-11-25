@@ -9,7 +9,7 @@ const EXAMPLES_DIR = joinpath(@__DIR__, "src", "examples")
 
 _sorted_files(dir, ext) = sort(filter(f -> endswith(f, ext), readdir(dir)))
 
-function list_of_sorted_files(prefix, dir, ext = ".md")
+function list_of_sorted_files(prefix, dir, ext=".md")
     return Any["$(prefix)/$(file)" for file in _sorted_files(dir, ext)]
 end
 
@@ -30,8 +30,8 @@ for dir in joinpath.(@__DIR__, "src", ("examples",))
         Literate.markdown(
             jl_filename,
             dir;
-            documenter = true,
-            postprocess = content -> replace(content, "nothing #hide" => ""),
+            documenter=true,
+            postprocess=content -> replace(content, "nothing #hide" => ""),
         )
     end
 end
@@ -79,4 +79,6 @@ makedocs(;
     checkdocs=:exports,
 )
 
-deploydocs(; repo="github.com/andrewrosemberg/PortfolioOpt.jl", devbranch="master", push_preview=true)
+deploydocs(;
+    repo="github.com/andrewrosemberg/PortfolioOpt.jl", devbranch="master", push_preview=true
+)

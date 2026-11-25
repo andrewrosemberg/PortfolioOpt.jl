@@ -11,7 +11,7 @@ import MathOptInterface: LessThan, EqualTo, GreaterThan, constant, MAX_SENSE, MI
 using PDMats
 using ProgressMeter
 using Random
-import Reexport
+using Reexport: Reexport
 using Statistics
 import Statistics: mean, cov
 import Base: eachindex, eltype, size, keys, (==)
@@ -107,7 +107,10 @@ function __init__()
     # `get_test_data` is implemented by the MarketData extension
     Base.Experimental.register_error_hint(MethodError) do io, exc, argtypes, kwargs
         if exc.f === TestUtils.get_test_data
-            print(io, "\n`get_test_data` needs the MarketData package: add it to your environment and run `using MarketData`.")
+            print(
+                io,
+                "\n`get_test_data` needs the MarketData package: add it to your environment and run `using MarketData`.",
+            )
         end
     end
     return nothing

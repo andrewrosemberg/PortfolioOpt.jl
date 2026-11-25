@@ -19,7 +19,9 @@ using Test
 const KNOWN = ("portfolio_model!", "day_backtest_market!")
 
 @testset "JET" begin
-    result = JET.report_package(PortfolioOpt; target_modules=(PortfolioOpt,), toplevel_logger=nothing)
+    result = JET.report_package(
+        PortfolioOpt; target_modules=(PortfolioOpt,), toplevel_logger=nothing
+    )
     reports = JET.get_reports(result)
     # name of the (keyword sorter of the) function in which the report was found
     reported_in(r) = string(first(r.vst).linfo.def.name)

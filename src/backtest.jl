@@ -21,8 +21,8 @@ mutable struct WealthRecorder{T<:Real} <: StateRecorder
     record::DenseAxisArray{T,1}
 
     function WealthRecorder(dates; zero::T=0.0) where {T}
-        date_step = dates[end] - dates[end-1]
-        new{T}(DenseAxisArray{T}(undef, vcat(dates,dates[end]+date_step)))
+        date_step = dates[end] - dates[end - 1]
+        return new{T}(DenseAxisArray{T}(undef, vcat(dates, dates[end] + date_step)))
     end
 end
 
@@ -46,7 +46,7 @@ mutable struct ReturnsRecorder{T<:Real} <: StateRecorder
     record::DenseAxisArray{T,1}
 
     function ReturnsRecorder(dates; zero::T=0.0) where {T}
-        new{T}(DenseAxisArray{T}(undef, dates))
+        return new{T}(DenseAxisArray{T}(undef, dates))
     end
 end
 
@@ -59,7 +59,7 @@ mutable struct DecisionRecorder{T<:Real} <: StateRecorder
     record::DenseAxisArray{T}
 
     function DecisionRecorder(numA::Int, dates; zero::T=0.0) where {T}
-        new{T}(DenseAxisArray{T}(undef, dates, 1:numA))
+        return new{T}(DenseAxisArray{T}(undef, dates, 1:numA))
     end
 end
 
@@ -70,11 +70,13 @@ end
 
 get_records(recorder::DecisionRecorder, t) = get_records(recorder)[t, :]
 
-default_state_recorders(numA::Int, date_range) = Dict(
-    :wealth => WealthRecorder(date_range),
-    :returns => ReturnsRecorder(date_range),
-    :decisions => DecisionRecorder(numA, date_range)
-)
+function default_state_recorders(numA::Int, date_range)
+    return Dict(
+        :wealth => WealthRecorder(date_range),
+        :returns => ReturnsRecorder(date_range),
+        :decisions => DecisionRecorder(numA, date_range),
+    )
+end
 
 """
     portfolio_weights(formulation::PortfolioFormulation, num_assets::Integer, optimizer_factory;
@@ -106,7 +108,8 @@ function portfolio_weights(
     allow_short_selling::Bool=false,
     risk_free_rate::Real=0.0,
 )
-    market = VolumeMarket(num_assets;
+    market = VolumeMarket(
+        num_assets;
         budget=float(budget),
         volume_fee=float(volume_fee),
         allow_short_selling=allow_short_selling,
@@ -116,27 +119,23 @@ function portfolio_weights(
     return copy(bids(market))
 end
 
-
 function day_backtest_market!(
     strategy_logic::Function,
     market_history::MarketHistory,
     date;
     state_recorders::Dict{Symbol,StateRecorder}=Dict(),
     optimization_recorder::Union{DenseAxisArray,Nothing}=nothing,
-    provide_state::Bool=false
+    provide_state::Bool=false,
 )
-    market =  market_template(market_history, date)
+    market = market_template(market_history, date)
     pointers = if provide_state
         strategy_logic(
             market,
             past_prices(market_history, date),
-            Dict(:state_recorders => state_recorders, :date => date)
+            Dict(:state_recorders => state_recorders, :date => date),
         )
     else
-        strategy_logic(
-            market,
-            past_prices(market_history, date)
-        )
+        strategy_logic(market, past_prices(market_history, date))
     end
 
     clear_market!(market, current_prices(market_history, date))
@@ -147,7 +146,7 @@ function day_backtest_market!(
 
     if !isnothing(pointers)
         for (uid, pointer) in pointers
-            optimization_recorder[date,uid] = value(pointer)
+            optimization_recorder[date, uid] = value(pointer)
         end
     end
 
@@ -182,20 +181,31 @@ function sequential_backtest_market(
     market_history::MarketHistory,
     date_range;
     optimization_recorder::Union{DenseAxisArray,Nothing}=nothing,
-    state_recorders::Dict{Symbol,StateRecorder}=default_state_recorders(num_assets(market_history), date_range)
+    state_recorders::Dict{Symbol,StateRecorder}=default_state_recorders(
+        num_assets(market_history), date_range
+    ),
 )
     @assert issorted(date_range)
 
     @showprogress 1 "Computing..." for date in date_range
-        day_backtest_market!(strategy_logic, market_history, date; 
-            state_recorders=state_recorders, optimization_recorder=optimization_recorder, provide_state=true
+        day_backtest_market!(
+            strategy_logic,
+            market_history,
+            date;
+            state_recorders=state_recorders,
+            optimization_recorder=optimization_recorder,
+            provide_state=true,
         )
     end
 
     if haskey(state_recorders, :wealth)
-        date_step = date_range[end] - date_range[end-1]
-        record!(state_recorders[:wealth], market_template(market_history), date_range[end]+date_step)
+        date_step = date_range[end] - date_range[end - 1]
+        record!(
+            state_recorders[:wealth],
+            market_template(market_history),
+            date_range[end] + date_step,
+        )
     end
-    
+
     return state_recorders, optimization_recorder
 end

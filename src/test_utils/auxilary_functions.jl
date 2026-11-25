@@ -12,11 +12,13 @@ function get_test_data end
 
 Mean and Variance of returns
 """
-function mean_variance(returns::Array{T, 2}; digits::Union{Nothing,Int}=nothing) where {T<:Real}
-    r̄ = mean(returns; dims=1)'[:,1]
+function mean_variance(
+    returns::Array{T,2}; digits::Union{Nothing,Int}=nothing
+) where {T<:Real}
+    r̄ = mean(returns; dims=1)'[:, 1]
     Σ = cov(returns)
     if !isnothing(digits)
-        return round.(Σ, digits=digits), round.(r̄, digits=digits)
+        return round.(Σ; digits=digits), round.(r̄; digits=digits)
     end
     return Σ, r̄
 end
@@ -26,7 +28,7 @@ end
 
 Maximize sharp coefficient allocation.
 """
-function max_sharpe(Σ::Array{T, 2}, r̄::Array{T, 1}, rf::T) where {T<:Real}
+function max_sharpe(Σ::Array{T,2}, r̄::Array{T,1}, rf::T) where {T<:Real}
     one = ones(size(r̄, 1))
     invΣ = pinv(Σ, 1E-25)
     v = invΣ * (r̄ .- one * rf)

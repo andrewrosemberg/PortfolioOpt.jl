@@ -94,7 +94,9 @@ function total_profit end
 
 Base.length(market::PortfolioMarket) = num_assets(market)
 
-change_bids!(market::PortfolioMarket, new_bids::AbstractVector) = (set_bids!(market, new_bids); nothing)
+function change_bids!(market::PortfolioMarket, new_bids::AbstractVector)
+    return (set_bids!(market, new_bids); nothing)
+end
 
 """
     market_model(market::PortfolioMarket, optimizer_factory; sense, model=Model(optimizer_factory)) -> (model, w)
@@ -107,10 +109,13 @@ Any objective added here (e.g. the risk free return of the money that is not inv
 The default method creates a long only portfolio, `w ≥ 0` and `sum(w) ≤ market_budget(market)`,
 with no objective. Implement it for a new market type to change the feasible set.
 """
-function market_model(market::PortfolioMarket, optimizer_factory::Any;
-    sense::MOI.OptimizationSense=MAX_SENSE, model::JuMP.Model=Model(optimizer_factory)
+function market_model(
+    market::PortfolioMarket,
+    optimizer_factory::Any;
+    sense::MOI.OptimizationSense=MAX_SENSE,
+    model::JuMP.Model=Model(optimizer_factory),
 )
-    w = @variable(model, [1:num_assets(market)], lower_bound = 0.0)
+    w = @variable(model, [1:num_assets(market)], lower_bound=0.0)
     @constraint(model, sum(w) <= market_budget(market))
     return model, w
 end
@@ -132,10 +137,16 @@ model, w, _ = build_portfolio_model(market, formulation, optimizer)
 change_bids!(market, model, w)
 ```
 """
-function build_portfolio_model(market::PortfolioMarket, formulation::PortfolioFormulation, optimizer_factory::Any;
-    record_measures::Bool=false, model::JuMP.Model=Model(optimizer_factory)
+function build_portfolio_model(
+    market::PortfolioMarket,
+    formulation::PortfolioFormulation,
+    optimizer_factory::Any;
+    record_measures::Bool=false,
+    model::JuMP.Model=Model(optimizer_factory),
 )
-    model, w = market_model(market, optimizer_factory; sense=sense(formulation), model=model)
+    model, w = market_model(
+        market, optimizer_factory; sense=sense(formulation), model=model
+    )
     pointers = portfolio_model!(model, formulation, w; record_measures=record_measures)
     return model, w, pointers
 end
@@ -166,9 +177,14 @@ Builds the model of `formulation` in `market` (see [`build_portfolio_model`](@re
 sets the bids. Returns the pointers to the value of each term (`nothing` unless
 `record_measures=true`, or if no optimal solution was found).
 """
-function change_bids!(market::PortfolioMarket, formulation::PortfolioFormulation, optimizer_factory::Any; record_measures::Bool=false)
-    model, decision_variables, pointers = build_portfolio_model(market, formulation, optimizer_factory;
-        record_measures=record_measures,
+function change_bids!(
+    market::PortfolioMarket,
+    formulation::PortfolioFormulation,
+    optimizer_factory::Any;
+    record_measures::Bool=false,
+)
+    model, decision_variables, pointers = build_portfolio_model(
+        market, formulation, optimizer_factory; record_measures=record_measures
     )
     change_bids!(market, model, decision_variables)
 
@@ -202,5 +218,7 @@ function _owner_model(x::AbstractArray)
         model = _owner_model(xi)
         model === nothing || return model
     end
-    throw(ArgumentError("could not find the JuMP model: no element depends on a variable"))
+    return throw(
+        ArgumentError("could not find the JuMP model: no element depends on a variable")
+    )
 end

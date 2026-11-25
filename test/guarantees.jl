@@ -25,7 +25,7 @@
         return value(pointer)
     end
 
-    random_portfolio(rng, n) = (x = rand(rng, n); x / sum(x))
+    random_portfolio(rng, n) = (x=rand(rng, n); x / sum(x))
 
     # lower tail mean of the portfolio returns `x` with equal probabilities: the expected return
     # over the worst `α` fraction of outcomes (fractional atom included)
@@ -57,7 +57,11 @@
             s = DeterministicSamples(rand(grng, d, 30))
             w0 = random_portfolio(grng, numA)
             x = rand(s)' * w0
-            @test isapprox(fixed_value(ConditionalExpectedReturn(s; α=α), w0), sorted_tail_mean(x, α); atol=tol)
+            @test isapprox(
+                fixed_value(ConditionalExpectedReturn(s; α=α), w0),
+                sorted_tail_mean(x, α);
+                atol=tol,
+            )
         end
     end
 
@@ -66,8 +70,14 @@
             d = generate_gaussian_distribution(numA, grng)
             s = DeterministicSamples(rand(grng, d, 30))
             w0 = random_portfolio(grng, numA)
-            @test isapprox(fixed_value(WorstCaseReturn(s), w0), minimum(rand(s)' * w0); atol=tol)
-            @test isapprox(fixed_value(ConditionalExpectedReturn(s; α=0.0), w0), minimum(rand(s)' * w0); atol=tol)
+            @test isapprox(
+                fixed_value(WorstCaseReturn(s), w0), minimum(rand(s)' * w0); atol=tol
+            )
+            @test isapprox(
+                fixed_value(ConditionalExpectedReturn(s; α=0.0), w0),
+                minimum(rand(s)' * w0);
+                atol=tol,
+            )
         end
     end
 
@@ -84,7 +94,9 @@
             @objective(model, Min, p)
             JuMP.optimize!(model)
             @test isapprox(value(p), v; rtol=1e-4)
-            @test isapprox(fixed_value(SqrtVariance(d), w0; sense=MIN_SENSE), sqrt(v); rtol=1e-4)
+            @test isapprox(
+                fixed_value(SqrtVariance(d), w0; sense=MIN_SENSE), sqrt(v); rtol=1e-4
+            )
         end
     end
 
@@ -95,7 +107,8 @@
             w0 = random_portfolio(grng, numA)
             @test isapprox(
                 fixed_value(ExpectedReturn(EllipticalSet(d, δ)), w0),
-                mean(d)' * w0 - δ * sqrt(w0' * cov(d) * w0); atol=tol,
+                mean(d)' * w0 - δ * sqrt(w0' * cov(d) * w0);
+                atol=tol,
             )
         end
     end
@@ -122,7 +135,8 @@
             # greedy: deviate the Γ assets with the largest Δ_i |w_i| (the last one fractionally)
             g = sort(Δ .* abs.(w0); rev=true)
             K = floor(Int, Γ)
-            deviation = sum(g[1:min(K, numA)]; init=0.0) + (K < numA ? (Γ - K) * g[K + 1] : 0.0)
+            deviation =
+                sum(g[1:min(K, numA)]; init=0.0) + (K < numA ? (Γ - K) * g[K + 1] : 0.0)
             @test isapprox(dual_value, mean(d)' * w0 - deviation; atol=tol)
         end
     end
@@ -137,7 +151,9 @@
             @test fixed_value(ExpectedReturn(s), w0) <= mean(d)' * w0 + tol
 
             robust = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(s)))
-            nominal = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(distribution(s))))
+            nominal = PortfolioFormulation(
+                MAX_SENSE, ObjectiveTerm(ExpectedReturn(distribution(s)))
+            )
             w_robust = portfolio_weights(robust, numA, DEFAULT_SOLVER)
             w_nominal = portfolio_weights(nominal, numA, DEFAULT_SOLVER)
             robust_optimum = fixed_value(ExpectedReturn(s), w_robust)
@@ -151,9 +167,17 @@
         # larger γ1 or γ2 means a larger set, hence a smaller (or equal) worst case
         d = generate_gaussian_distribution(numA, grng)
         w0 = random_portfolio(grng, numA)
-        values_γ1 = [fixed_value(ConditionalExpectedReturn(MomentUncertainty(d, γ1, 1.2); α=0.1), w0) for γ1 in (0.0, 0.05, 0.2)]
+        values_γ1 = [
+            fixed_value(
+                ConditionalExpectedReturn(MomentUncertainty(d, γ1, 1.2); α=0.1), w0
+            ) for γ1 in (0.0, 0.05, 0.2)
+        ]
         @test issorted(values_γ1; rev=true, lt=(a, b) -> a < b - tol)
-        values_γ2 = [fixed_value(ConditionalExpectedReturn(MomentUncertainty(d, 0.05, γ2); α=0.1), w0) for γ2 in (1.0, 1.5, 3.0)]
+        values_γ2 = [
+            fixed_value(
+                ConditionalExpectedReturn(MomentUncertainty(d, 0.05, γ2); α=0.1), w0
+            ) for γ2 in (1.0, 1.5, 3.0)
+        ]
         @test issorted(values_γ2; rev=true, lt=(a, b) -> a < b - tol)
     end
 
@@ -166,7 +190,9 @@
             w0 = random_portfolio(grng, numA)
             σ = sqrt(w0' * cov(d) * w0)
             gaussian = mean(d)' * w0 - σ * pdf(Normal(), quantile(Normal(), α)) / α
-            @test fixed_value(ConditionalExpectedReturn(MomentUncertainty(d, 0.0, 1.0); α=α), w0) <= gaussian + tol
+            @test fixed_value(
+                ConditionalExpectedReturn(MomentUncertainty(d, 0.0, 1.0); α=α), w0
+            ) <= gaussian + tol
         end
     end
 
@@ -177,8 +203,15 @@
         μ = mean(d)
         δ = 2 * sqrt.(diag(cov(d)))
         for γ1 in (0.0, 0.1)
-            unbounded = fixed_value(ConditionalExpectedReturn(MomentUncertainty(d, γ1, 1.5); α=0.1), w0)
-            bounded = fixed_value(ConditionalExpectedReturn(MomentUncertainty(d, γ1, 1.5, μ .- δ, μ .+ δ); α=0.1), w0)
+            unbounded = fixed_value(
+                ConditionalExpectedReturn(MomentUncertainty(d, γ1, 1.5); α=0.1), w0
+            )
+            bounded = fixed_value(
+                ConditionalExpectedReturn(
+                    MomentUncertainty(d, γ1, 1.5, μ .- δ, μ .+ δ); α=0.1
+                ),
+                w0,
+            )
             @test unbounded <= bounded + tol
             @test bounded <= μ' * w0 + tol
         end
@@ -188,7 +221,11 @@
         d = generate_gaussian_distribution(numA, grng)
         s = DeterministicSamples(rand(grng, d, 40))
         w0 = random_portfolio(grng, numA)
-        @test isapprox(fixed_value(ExpectedReturn(DuWassersteinBall(s; ϵ=0.0)), w0), mean(s)' * w0; atol=tol)
+        @test isapprox(
+            fixed_value(ExpectedReturn(DuWassersteinBall(s; ϵ=0.0)), w0),
+            mean(s)' * w0;
+            atol=tol,
+        )
     end
 
     @testset "wasserstein_monotone_in_radius" begin
@@ -196,7 +233,10 @@
         s = DeterministicSamples(rand(grng, d, 40))
         w0 = random_portfolio(grng, numA)
         for p in (1.0, 2.0, Inf)
-            v = [fixed_value(ExpectedReturn(DuWassersteinBall(s; ϵ=ϵ, norm_cone=p)), w0) for ϵ in (0.0, 0.01, 0.05)]
+            v = [
+                fixed_value(ExpectedReturn(DuWassersteinBall(s; ϵ=ϵ, norm_cone=p)), w0) for
+                ϵ in (0.0, 0.01, 0.05)
+            ]
             @test issorted(v; rev=true, lt=(a, b) -> a < b - tol)
             @test v[end] <= mean(s)' * w0 + tol
         end
@@ -212,7 +252,8 @@
             @test fixed_value(CertaintyEquivalent(d, u), w0) <= mean(d)' * w0 + tol
             @test fixed_value(CertaintyEquivalent(s, u), w0) <= mean(s)' * w0 + tol
             # E[u(R)] <= u(E[R])
-            @test fixed_value(ExpectedUtility(s, u), w0) <= (1 - exp(-a * mean(s)' * w0)) / a + tol
+            @test fixed_value(ExpectedUtility(s, u), w0) <=
+                (1 - exp(-a * mean(s)' * w0)) / a + tol
         end
     end
 
@@ -223,21 +264,39 @@
         d = MvNormal(mean(d) / 10, cov(d) / 100)
         s = DeterministicSamples(rand(grng, d, 50))
         σ_max = 0.5 * sqrt(minimum(diag(cov(d))))
-        f = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(d)), RiskConstraint(SqrtVariance(d), LessThan(σ_max)))
+        f = PortfolioFormulation(
+            MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(d)),
+            RiskConstraint(SqrtVariance(d), LessThan(σ_max)),
+        )
         w = portfolio_weights(f, numA, DEFAULT_SOLVER)
         @test sqrt(w' * cov(d) * w) <= σ_max + tol
 
-        f = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(d)), RiskConstraint(Variance(d), LessThan(σ_max^2)))
+        f = PortfolioFormulation(
+            MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(d)),
+            RiskConstraint(Variance(d), LessThan(σ_max^2)),
+        )
         w = portfolio_weights(f, numA, DEFAULT_SOLVER)
         @test w' * cov(d) * w <= σ_max^2 + tol
 
         cvar_min = sorted_tail_mean(rand(s)' * (ones(numA) / numA), 0.1) / 2
-        f = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(s)), RiskConstraint(ConditionalExpectedReturn(s; α=0.1), GreaterThan(cvar_min)))
+        f = PortfolioFormulation(
+            MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(s)),
+            RiskConstraint(ConditionalExpectedReturn(s; α=0.1), GreaterThan(cvar_min)),
+        )
         w = portfolio_weights(f, numA, DEFAULT_SOLVER)
         @test sorted_tail_mean(rand(s)' * w, 0.1) >= cvar_min - tol
 
         ce_min = 0.0
-        f = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(d)), RiskConstraint(CertaintyEquivalent(d, ExponentialUtility(50.0)), GreaterThan(ce_min)))
+        f = PortfolioFormulation(
+            MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(d)),
+            RiskConstraint(
+                CertaintyEquivalent(d, ExponentialUtility(50.0)), GreaterThan(ce_min)
+            ),
+        )
         w = portfolio_weights(f, numA, DEFAULT_SOLVER)
         @test mean(d)' * w - 25.0 * w' * cov(d) * w >= ce_min - tol
     end
@@ -246,12 +305,19 @@
         # a penalized norm equals the norm of the optimal portfolio
         d = generate_gaussian_distribution(numA, grng)
         reg_uid = uuid1()
-        f = PortfolioFormulation(MAX_SENSE, [
-            ObjectiveTerm(ExpectedReturn(d)),
-            ObjectiveTerm(ConeRegularizer(MOI.SecondOrderCone(numA + 1)), -0.1, reg_uid),
-        ])
+        f = PortfolioFormulation(
+            MAX_SENSE,
+            [
+                ObjectiveTerm(ExpectedReturn(d)),
+                ObjectiveTerm(
+                    ConeRegularizer(MOI.SecondOrderCone(numA + 1)), -0.1, reg_uid
+                ),
+            ],
+        )
         market = VolumeMarket(numA)
-        model, w, pointers = build_portfolio_model(market, f, DEFAULT_SOLVER; record_measures=true)
+        model, w, pointers = build_portfolio_model(
+            market, f, DEFAULT_SOLVER; record_measures=true
+        )
         JuMP.optimize!(model)
         @test termination_status(model) == MOI.OPTIMAL
         @test isapprox(value(pointers[reg_uid]), norm(value.(w)); atol=tol)

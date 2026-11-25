@@ -5,7 +5,8 @@ using Aqua
 using ExplicitImports
 
 @testset "Aqua" begin
-    Aqua.test_all(PortfolioOpt;
+    Aqua.test_all(
+        PortfolioOpt;
         # known: `rand(::DeterministicSamples, n)` is ambiguous with methods of Random and
         # Distributions for `n::Integer` (not `Int`) and `n::Tuple`
         ambiguities=(broken=true,),

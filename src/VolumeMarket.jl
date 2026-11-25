@@ -16,12 +16,22 @@ mutable struct VolumeMarket{T<:Real,N} <: PortfolioMarket
     clearing_prices::Union{Vector{T},Nothing}
 end
 
-function VolumeMarket(N::Int, budget::T, volume_fee::T, allow_short_selling::Bool, risk_free_rate::T) where {T<:Real}
-    VolumeMarket{T,N}(budget, volume_fee, allow_short_selling, risk_free_rate, nothing, nothing)
+function VolumeMarket(
+    N::Int, budget::T, volume_fee::T, allow_short_selling::Bool, risk_free_rate::T
+) where {T<:Real}
+    return VolumeMarket{T,N}(
+        budget, volume_fee, allow_short_selling, risk_free_rate, nothing, nothing
+    )
 end
 
-function VolumeMarket(N::Int; budget::T=1.0, volume_fee::T=0.0, allow_short_selling::Bool=false, risk_free_rate::T=0.0) where {T<:Real}
-    VolumeMarket(N, budget, volume_fee, allow_short_selling, risk_free_rate)
+function VolumeMarket(
+    N::Int;
+    budget::T=1.0,
+    volume_fee::T=0.0,
+    allow_short_selling::Bool=false,
+    risk_free_rate::T=0.0,
+) where {T<:Real}
+    return VolumeMarket(N, budget, volume_fee, allow_short_selling, risk_free_rate)
 end
 
 """
@@ -34,7 +44,7 @@ risk_free_rate(market::VolumeMarket) = market.risk_free_rate
 
 market_budget(market::VolumeMarket) = market.budget
 function set_market_budget(market::VolumeMarket{T,N}, val::T) where {T,N}
-    market.budget = val
+    return market.budget = val
 end
 """
     market_volume_fee(market::VolumeMarket)
@@ -47,11 +57,13 @@ function eltype(::VolumeMarket{T,N}) where {T,N}
     return T
 end
 
-function set_bids!(market::VolumeMarket{T, N}, new_bids::AbstractVector{<:Real}) where {T<:Real,N}
+function set_bids!(
+    market::VolumeMarket{T,N}, new_bids::AbstractVector{<:Real}
+) where {T<:Real,N}
     @assert length(new_bids) == N
     new_bids = convert(Vector{T}, new_bids)
     total_volume = norm(new_bids, 1)
-    if  total_volume > market.budget
+    if total_volume > market.budget
         # rescale (e.g. solver tolerance overshoot) so that the total volume equals the budget
         market.volume_bids = new_bids * (market.budget / total_volume)
     else
@@ -64,13 +76,15 @@ end
 function clear_market!(market::VolumeMarket)
     @warn "Prices have not yet been set for this market. 
     This function can only be dispatched passing cleared prices (`clearing_prices`)"
-    
-    throw(MethodError(clear_market!, (market,)))
+
+    return throw(MethodError(clear_market!, (market,)))
 end
 
-function clear_market!(market::VolumeMarket{T, N}, clearing_prices::Vector{T}) where {T<:Real,N}
+function clear_market!(
+    market::VolumeMarket{T,N}, clearing_prices::Vector{T}
+) where {T<:Real,N}
     @assert length(clearing_prices) == N
-    market.clearing_prices = clearing_prices
+    return market.clearing_prices = clearing_prices
 end
 
 function calculate_profit(market::VolumeMarket)
@@ -78,7 +92,8 @@ function calculate_profit(market::VolumeMarket)
         cleared_volumes=market.volume_bids,
         clearing_prices=market.clearing_prices,
         profit=dot(market.volume_bids, market.clearing_prices),
-        risk_free_profit=market.risk_free_rate * (market.budget - norm(market.volume_bids, 1))
+        risk_free_profit=market.risk_free_rate *
+                         (market.budget - norm(market.volume_bids, 1)),
     )
 end
 
@@ -87,7 +102,7 @@ function total_profit(market::VolumeMarket)
     return sum(profits.profit) + profits.risk_free_profit
 end
 
-function length(::VolumeMarket{T, N}) where {T, N}
+function length(::VolumeMarket{T,N}) where {T,N}
     return N
 end
 
@@ -106,8 +121,11 @@ Returns the model and the reference to the vector of decision variables (length 
 Aditional arguments:
  - `optimizer_factory`: callable with zero arguments and return an empty `MathOptInterface.AbstractOptimizer``.
 """
-function market_model(market::VolumeMarket{T,N}, optimizer_factory::Any; 
-    sense::MOI.OptimizationSense, model::JuMP.Model=Model(optimizer_factory)
+function market_model(
+    market::VolumeMarket{T,N},
+    optimizer_factory::Any;
+    sense::MOI.OptimizationSense,
+    model::JuMP.Model=Model(optimizer_factory),
 ) where {T,N}
     w = @variable(model, [1:N])
     sum_invested = @variable(model)
@@ -118,7 +136,9 @@ function market_model(market::VolumeMarket{T,N}, optimizer_factory::Any;
         @constraint(model, [sum_invested; w] in MOI.NormOneCone(length(w) + 1))
     end
     @constraint(model, sum_invested <= market_budget(market))
-    obj = (market_budget(market) - sum_invested) * risk_free_rate(market) - sum_invested * market_volume_fee(market)
+    obj =
+        (market_budget(market) - sum_invested) * risk_free_rate(market) -
+        sum_invested * market_volume_fee(market)
     if sense === MAX_SENSE
         @objective(model, sense, obj)
     else
@@ -158,7 +178,12 @@ struct VolumeMarketHistory{T<:Real,N} <: MarketHistory{T,N}
     history_risk_free_rates::Any
     timestamp::Any
 
-    function VolumeMarketHistory{T,N}(market::VolumeMarket{T,N}, history_clearing_prices, history_risk_free_rates, timestamp) where {T,N}
+    function VolumeMarketHistory{T,N}(
+        market::VolumeMarket{T,N},
+        history_clearing_prices,
+        history_risk_free_rates,
+        timestamp,
+    ) where {T,N}
         @assert eltype(values(history_clearing_prices)) === T
         @assert eltype(values(history_risk_free_rates)) === T
         @assert issetequal(_timestamps(history_risk_free_rates), timestamp)
@@ -168,16 +193,26 @@ struct VolumeMarketHistory{T<:Real,N} <: MarketHistory{T,N}
     end
 end
 
-function VolumeMarketHistory(market::VolumeMarket{T,N}, history_clearing_prices) where {T<:Real,N}
+function VolumeMarketHistory(
+    market::VolumeMarket{T,N}, history_clearing_prices
+) where {T<:Real,N}
     rf = Dict(_timestamps(history_clearing_prices) .=> market.risk_free_rate)
-    return VolumeMarketHistory{T,N}(market, history_clearing_prices, rf, sort(unique(_timestamps(history_clearing_prices))))
+    return VolumeMarketHistory{T,N}(
+        market,
+        history_clearing_prices,
+        rf,
+        sort(unique(_timestamps(history_clearing_prices))),
+    )
 end
 
 function VolumeMarketHistory(history_clearing_prices; kwards...)
-    return VolumeMarketHistory(VolumeMarket(length(values(first(history_clearing_prices))); kwards...), history_clearing_prices)
+    return VolumeMarketHistory(
+        VolumeMarket(length(values(first(history_clearing_prices))); kwards...),
+        history_clearing_prices,
+    )
 end
 
-num_assets(::VolumeMarketHistory{T,N}) where {T,N} = N 
+num_assets(::VolumeMarketHistory{T,N}) where {T,N} = N
 
 timestamp(hist::VolumeMarketHistory) = hist.timestamp
 keys(hist::VolumeMarketHistory) = timestamp(hist)
@@ -200,7 +235,7 @@ function past_prices end
 function past_prices(hist::VolumeMarketHistory, t)
     timestamps = timestamp(hist)
     idx = findfirst(x -> x == t, timestamps)
-    hist.history_clearing_prices[timestamps[1:idx-1]]
+    return hist.history_clearing_prices[timestamps[1:(idx - 1)]]
 end
 """
     current_prices(hist::MarketHistory, t) -> Vector
@@ -210,8 +245,10 @@ Prices (returns) of the assets at date `t`, used to clear the market in
 """
 function current_prices end
 
-current_prices(hist::VolumeMarketHistory, t) = values(hist.history_clearing_prices[t])[1,:]
-risk_free_rate(hist::VolumeMarketHistory, t) = first(values(hist.history_risk_free_rates[t]))
+current_prices(hist::VolumeMarketHistory, t) = values(hist.history_clearing_prices[t])[1, :]
+function risk_free_rate(hist::VolumeMarketHistory, t)
+    return first(values(hist.history_risk_free_rates[t]))
+end
 function size(hist::VolumeMarketHistory{T,N}) where {T,N}
     return (length(eachindex(hist.history_risk_free_rates)), N)
 end

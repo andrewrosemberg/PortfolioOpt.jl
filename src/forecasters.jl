@@ -20,9 +20,11 @@ function forecast end
 function forecast(f::AbstractForecaster, returns)
     returns isa AbstractMatrix && throw(MethodError(forecast, (f, returns)))
     returns_matrix = values(returns)
-    returns_matrix isa AbstractMatrix || throw(ArgumentError(
-        "returns must be a T × N matrix (or a table whose `values` is one), got $(typeof(returns))"
-    ))
+    returns_matrix isa AbstractMatrix || throw(
+        ArgumentError(
+            "returns must be a T × N matrix (or a table whose `values` is one), got $(typeof(returns))",
+        ),
+    )
     return forecast(f, returns_matrix)
 end
 
@@ -41,7 +43,9 @@ periods (all periods if `nothing`).
 struct EmpiricalGaussian <: AbstractForecaster
     lookback::Union{Int,Nothing}
     function EmpiricalGaussian(lookback::Union{Integer,Nothing}=nothing)
-        isnothing(lookback) || lookback >= 2 || throw(ArgumentError("lookback must be >= 2"))
+        isnothing(lookback) ||
+            lookback >= 2 ||
+            throw(ArgumentError("lookback must be >= 2"))
         return new(lookback)
     end
 end
@@ -62,7 +66,9 @@ periods if `nothing`). Note that `DeterministicSamples` stores one sample per co
 struct EmpiricalSamples <: AbstractForecaster
     lookback::Union{Int,Nothing}
     function EmpiricalSamples(lookback::Union{Integer,Nothing}=nothing)
-        isnothing(lookback) || lookback >= 1 || throw(ArgumentError("lookback must be >= 1"))
+        isnothing(lookback) ||
+            lookback >= 1 ||
+            throw(ArgumentError("lookback must be >= 1"))
         return new(lookback)
     end
 end

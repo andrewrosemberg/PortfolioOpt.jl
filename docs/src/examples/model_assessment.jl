@@ -40,7 +40,8 @@ const OBJECTIVE_UID = uuid1()
 ## Markowitz: maximize the expected return with the daily standard deviation limited to 1%
 function markowitz(past_returns, wealth)
     d = forecast(EmpiricalGaussian(lookback), past_returns)
-    return PortfolioFormulation(MAX_SENSE,
+    return PortfolioFormulation(
+        MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d), 1.0, OBJECTIVE_UID),
         RiskConstraint(SqrtVariance(d), LessThan(0.01 * wealth), RISK_UID),
     )
@@ -49,16 +50,20 @@ end
 ## Sampled CVaR: maximize the expected return with the average of the 5% worst days above -2%
 function sampled_cvar(past_returns, wealth)
     s = forecast(EmpiricalSamples(lookback), past_returns)
-    return PortfolioFormulation(MAX_SENSE,
+    return PortfolioFormulation(
+        MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(s), 1.0, OBJECTIVE_UID),
-        RiskConstraint(ConditionalExpectedReturn(s; α=0.05), GreaterThan(-0.02 * wealth), RISK_UID),
+        RiskConstraint(
+            ConditionalExpectedReturn(s; α=0.05), GreaterThan(-0.02 * wealth), RISK_UID
+        ),
     )
 end
 
 ## Distributionally robust: maximize the worst case expected return over a moment ambiguity set
 function moment_dro(past_returns, wealth)
     d = forecast(EmpiricalGaussian(lookback), past_returns)
-    return PortfolioFormulation(MAX_SENSE,
+    return PortfolioFormulation(
+        MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(MomentUncertainty(d, 0.05, 1.3)), 1.0, OBJECTIVE_UID),
     )
 end
@@ -80,7 +85,8 @@ function backtest(strategy)
         fill(NaN, length(date_range), 2), date_range, [OBJECTIVE_UID, RISK_UID]
     )
     recorders, _ = sequential_backtest_market(
-        VolumeMarketHistory(returns_series), date_range;
+        VolumeMarketHistory(returns_series),
+        date_range;
         optimization_recorder=optimization_recorder,
     ) do market, past_returns, ext
         wealth = market_budget(market)
@@ -111,23 +117,25 @@ function assessment(recorders)
     r = get_records(recorders[:returns]).data
     wealth = get_records(recorders[:wealth]).data
     decisions = get_records(recorders[:decisions]).data
-    weights = decisions ./ wealth[1:end-1]
+    weights = decisions ./ wealth[1:(end - 1)]
     worst = r[r .<= quantile(r, 0.05)]
     return (
-        final_wealth = wealth[end],
-        mean = mean(r),
-        std = std(r),
-        sharpe = mean(r) / std(r),
-        cvar_5 = -mean(worst),
-        max_drawdown = maximum(1 .- wealth ./ accumulate(max, wealth)),
-        turnover = mean(sum(abs.(diff(weights; dims=1)); dims=2)),
+        final_wealth=wealth[end],
+        mean=mean(r),
+        std=std(r),
+        sharpe=mean(r) / std(r),
+        cvar_5=-mean(worst),
+        max_drawdown=maximum(1 .- wealth ./ accumulate(max, wealth)),
+        turnover=mean(sum(abs.(diff(weights; dims=1)); dims=2)),
     )
 end
 
 metrics = [name => assessment(first(results[name])) for (name, _) in strategies]
 
 for (name, m) in metrics
-    println(rpad(name, 15), join(["$(k) = $(round(v; digits=4))" for (k, v) in pairs(m)], ", "))
+    println(
+        rpad(name, 15), join(["$(k) = $(round(v; digits=4))" for (k, v) in pairs(m)], ", ")
+    )
 end
 
 # ## Calibration: predicted versus realized risk
@@ -141,26 +149,38 @@ end
 
 function predicted_risk(name)
     recorders, optimization_recorder = results[name]
-    wealth = get_records(recorders[:wealth]).data[1:end-1]
+    wealth = get_records(recorders[:wealth]).data[1:(end - 1)]
     predicted = optimization_recorder[:, RISK_UID].data ./ wealth
     return mean(filter(!isnan, predicted))
 end
 
 markowitz_returns = get_records(first(results["Markowitz"])[:returns]).data
-println("Markowitz    predicted std  = ", round(predicted_risk("Markowitz"); digits=4),
-    ", realized std  = ", round(std(markowitz_returns); digits=4))
+println(
+    "Markowitz    predicted std  = ",
+    round(predicted_risk("Markowitz"); digits=4),
+    ", realized std  = ",
+    round(std(markowitz_returns); digits=4),
+)
 
 cvar_returns = get_records(first(results["Sampled CVaR"])[:returns]).data
-println("Sampled CVaR predicted CVaR = ", round(-predicted_risk("Sampled CVaR"); digits=4),
-    ", realized CVaR = ", round(-mean(cvar_returns[cvar_returns .<= quantile(cvar_returns, 0.05)]); digits=4))
+println(
+    "Sampled CVaR predicted CVaR = ",
+    round(-predicted_risk("Sampled CVaR"); digits=4),
+    ", realized CVaR = ",
+    round(-mean(cvar_returns[cvar_returns .<= quantile(cvar_returns, 0.05)]); digits=4),
+)
 
 # ## Cumulative wealth
 
 using Plots
 using Plots.PlotMeasures
 
-plt = plot(; title="Cumulative Wealth", xlabel="Time", ylabel="Wealth",
-    legend=:outertopright, left_margin=10mm,
+plt = plot(;
+    title="Cumulative Wealth",
+    xlabel="Time",
+    ylabel="Wealth",
+    legend=:outertopright,
+    left_margin=10mm,
 );
 for (name, _) in strategies
     wealth = get_records(first(results[name])[:wealth])

@@ -1,7 +1,7 @@
 module PortfolioOptTimeSeriesExt
 
 using TimeSeries: TimeArray, timestamp
-import PortfolioOpt
+using PortfolioOpt: PortfolioOpt
 
 # a `TimeArray` of returns (one column per asset) can be used as the history of a
 # `VolumeMarketHistory`

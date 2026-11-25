@@ -1,6 +1,6 @@
 # Integrations with optional packages (weak dependencies), loaded in runtests.jl
-import OptimalBids
-import TimeSeries
+using OptimalBids: OptimalBids
+using TimeSeries: TimeSeries
 
 @testset "package extensions" begin
     @testset "core dependencies" begin
@@ -41,7 +41,8 @@ import TimeSeries
         returns_series = percentchange(get_test_data())
         hist = VolumeMarketHistory(returns_series)
         @test num_days(hist) == size(returns_series, 1)
-        @test PortfolioOpt._timestamps(returns_series) == TimeSeries.timestamp(returns_series)
+        @test PortfolioOpt._timestamps(returns_series) ==
+            TimeSeries.timestamp(returns_series)
     end
 
     @testset "OptimalBids" begin

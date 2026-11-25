@@ -25,9 +25,9 @@ function PortfolioOpt.calculate_measure!(m::TestMeanAbsoluteDeviation, w)
     samples = rand(ambiguityset(m))
     r̄ = mean(ambiguityset(m))
     S = size(samples, 2)
-    u = @variable(model, [1:S], lower_bound = 0)
-    @constraint(model, [s=1:S], u[s] >= dot(samples[:, s] - r̄, w))
-    @constraint(model, [s=1:S], u[s] >= -dot(samples[:, s] - r̄, w))
+    u = @variable(model, [1:S], lower_bound=0)
+    @constraint(model, [s = 1:S], u[s] >= dot(samples[:, s] - r̄, w))
+    @constraint(model, [s = 1:S], u[s] >= -dot(samples[:, s] - r̄, w))
     return sum(u) / S
 end
 
@@ -49,7 +49,9 @@ PortfolioOpt.num_assets(m::TestCashMarket) = m.n
 PortfolioOpt.market_budget(m::TestCashMarket) = m.budget
 PortfolioOpt.set_market_budget(m::TestCashMarket, v) = (m.budget = v)
 PortfolioOpt.bids(m::TestCashMarket) = m.bids
-PortfolioOpt.set_bids!(m::TestCashMarket, b::AbstractVector) = (m.bids = collect(Float64, b))
+function PortfolioOpt.set_bids!(m::TestCashMarket, b::AbstractVector)
+    return (m.bids = collect(Float64, b))
+end
 PortfolioOpt.clear_market!(m::TestCashMarket, r::AbstractVector) = (m.returns = r)
 PortfolioOpt.total_profit(m::TestCashMarket) = dot(m.bids, m.returns)
 
@@ -58,7 +60,9 @@ struct TestCashHistory{N} <: MarketHistory{Float64,N}
     market::TestCashMarket
     returns::Matrix{Float64} # T × N
 end
-TestCashHistory(returns::Matrix{Float64}) = TestCashHistory{size(returns, 2)}(TestCashMarket(size(returns, 2)), returns)
+function TestCashHistory(returns::Matrix{Float64})
+    return TestCashHistory{size(returns, 2)}(TestCashMarket(size(returns, 2)), returns)
+end
 PortfolioOpt.num_assets(::TestCashHistory{N}) where {N} = N
 PortfolioOpt.past_prices(h::TestCashHistory, t) = h.returns[1:(t - 1), :]
 PortfolioOpt.current_prices(h::TestCashHistory, t) = h.returns[t, :]
@@ -67,8 +71,9 @@ PortfolioOpt.market_template(h::TestCashHistory, t) = h.market
 
 # A forecaster: Gaussian with the covariance shrunk to its diagonal
 struct TestDiagonalGaussian <: AbstractForecaster end
-PortfolioOpt.forecast(::TestDiagonalGaussian, returns::AbstractMatrix) =
-    MvNormal(vec(mean(returns; dims=1)), Diagonal(vec(var(returns; dims=1))))
+function PortfolioOpt.forecast(::TestDiagonalGaussian, returns::AbstractMatrix)
+    return MvNormal(vec(mean(returns; dims=1)), Diagonal(vec(var(returns; dims=1))))
+end
 
 @testset "extensions" begin
     numA = 3
@@ -95,7 +100,11 @@ PortfolioOpt.forecast(::TestDiagonalGaussian, returns::AbstractMatrix) =
         optimize!(model)
         @test isapprox(value(er), dot(mean(d), value.(w)) - δ * 1.0; atol=1e-6)
         # used in a formulation
-        f = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(s)), RiskConstraint(SqrtVariance(d), LessThan(0.03)))
+        f = PortfolioFormulation(
+            MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(s)),
+            RiskConstraint(SqrtVariance(d), LessThan(0.03)),
+        )
         w_box = portfolio_weights(f, numA, DEFAULT_SOLVER)
         @test length(w_box) == numA
         @test sum(w_box) <= 1 + 1e-6
@@ -105,7 +114,11 @@ PortfolioOpt.forecast(::TestDiagonalGaussian, returns::AbstractMatrix) =
         mad = TestMeanAbsoluteDeviation(samples)
         cost = TestLinearCost(fill(0.001, numA))
         con = RiskConstraint(mad, LessThan(0.01))
-        f = PortfolioFormulation(MAX_SENSE, [ObjectiveTerm(ExpectedReturn(samples)), ObjectiveTerm(cost, -1.0)], con)
+        f = PortfolioFormulation(
+            MAX_SENSE,
+            [ObjectiveTerm(ExpectedReturn(samples)), ObjectiveTerm(cost, -1.0)],
+            con,
+        )
         market = VolumeMarket(numA)
         pointers = change_bids!(market, f, DEFAULT_SOLVER; record_measures=true)
         @test length(pointers) == 3
@@ -118,7 +131,11 @@ PortfolioOpt.forecast(::TestDiagonalGaussian, returns::AbstractMatrix) =
     @testset "external market" begin
         market = TestCashMarket(numA; budget=2.0)
         @test length(market) == numA
-        f = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(d)), RiskConstraint(SqrtVariance(d), LessThan(0.03)))
+        f = PortfolioFormulation(
+            MAX_SENSE,
+            ObjectiveTerm(ExpectedReturn(d)),
+            RiskConstraint(SqrtVariance(d), LessThan(0.03)),
+        )
         change_bids!(market, f, DEFAULT_SOLVER)
         @test length(bids(market)) == numA
         @test all(bids(market) .>= -1e-6)
@@ -149,7 +166,9 @@ PortfolioOpt.forecast(::TestDiagonalGaussian, returns::AbstractMatrix) =
         returns = collect(rand(rng, d, T)') # T × N
         hist = TestCashHistory(returns)
         date_range = 21:T
-        recorders, _ = sequential_backtest_market(hist, date_range) do market, past_returns, ext
+        recorders, _ = sequential_backtest_market(
+            hist, date_range
+        ) do market, past_returns, ext
             @test size(past_returns, 1) == ext[:date] - 1
             change_bids!(market, fill(market_budget(market) / numA, numA))
         end
@@ -163,7 +182,9 @@ PortfolioOpt.forecast(::TestDiagonalGaussian, returns::AbstractMatrix) =
         market = VolumeMarket(numA)
         con = RiskConstraint(SqrtVariance(d), LessThan(0.03))
         f = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(d)), con)
-        model, w, pointers = build_portfolio_model(market, f, DEFAULT_SOLVER; record_measures=true)
+        model, w, pointers = build_portfolio_model(
+            market, f, DEFAULT_SOLVER; record_measures=true
+        )
         @test length(w) == numA
         @test haskey(pointers, uid(con))
         @constraint(model, w[1] == 0.0) # e.g. an asset that cannot be traded
@@ -189,15 +210,20 @@ PortfolioOpt.forecast(::TestDiagonalGaussian, returns::AbstractMatrix) =
         # TimeArray input
         prices = get_test_data()
         returns_series = percentchange(prices)
-        @test mean(forecast(EmpiricalGaussian(30), returns_series)) ≈ vec(mean(values(returns_series)[(end - 29):end, :]; dims=1))
+        @test mean(forecast(EmpiricalGaussian(30), returns_series)) ≈
+            vec(mean(values(returns_series)[(end - 29):end, :]; dims=1))
         # external forecaster
         dg = forecast(TestDiagonalGaussian(), returns)
         @test cov(dg) ≈ Diagonal(vec(var(returns; dims=1)))
         @test_throws ArgumentError forecast(TestDiagonalGaussian(), "not returns")
         # forecasts plug into the measures
-        f = PortfolioFormulation(MAX_SENSE,
+        f = PortfolioFormulation(
+            MAX_SENSE,
             ObjectiveTerm(ExpectedReturn(forecast(EmpiricalGaussian(20), returns))),
-            RiskConstraint(ConditionalExpectedReturn(forecast(EmpiricalSamples(20), returns); α=0.1), GreaterThan(-0.05)),
+            RiskConstraint(
+                ConditionalExpectedReturn(forecast(EmpiricalSamples(20), returns); α=0.1),
+                GreaterThan(-0.05),
+            ),
         )
         @test length(portfolio_weights(f, numA, DEFAULT_SOLVER)) == numA
     end

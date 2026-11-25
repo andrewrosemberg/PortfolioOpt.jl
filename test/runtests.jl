@@ -16,7 +16,7 @@ DEFAULT_SOLVER = optimizer_with_attributes(
 
 rng = MersenneTwister(1234)
 
-function util_test_directory(dir, exclude = String[])
+function util_test_directory(dir, exclude=String[])
     for (root, _, files) in walkdir(dir)
         for file in files
             if endswith(file, ".jl") && !(file in exclude)
@@ -28,7 +28,7 @@ function util_test_directory(dir, exclude = String[])
             end
         end
     end
-    return
+    return nothing
 end
 
 @testset "PortfolioOpt.jl" begin
