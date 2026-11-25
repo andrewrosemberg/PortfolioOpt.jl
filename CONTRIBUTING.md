@@ -24,7 +24,8 @@ follows [ColPrac](https://github.com/SciML/ColPrac).
 
 - Subtype `PortfolioRiskMeasure` / `CenteredAmbiguitySet` and implement `calculate_measure!` (see the
   "Extending PortfolioOpt" docs page).
-- Write the method as an optimization problem in the Theory pages, with its notation, assumptions and reference.
-- State its claims (closed forms, bounds, monotonicity) in the docstring under "Guarantees", and add one named
-  testset per claim in `test/guarantees.jl`.
+- Write the method as an optimization problem in the Theory pages, with its notation, the conditions it needs and
+  its reference.
+- Add tests that compare the reformulation against a closed form, a direct evaluation or a primal solve on small
+  random instances (fixed seeds).
 - Document every exported symbol; the tests check it.

@@ -12,8 +12,8 @@ PortfolioOpt.jl writes portfolio optimization problems as [JuMP](https://jump.de
 return (expected return, variance, conditional value at risk, expected exponential utility, certainty equivalent),
 evaluated over a forecast distribution or in the worst case over an uncertainty or ambiguity set (budget and
 ellipsoidal sets, moment uncertainty with an optional box support, Wasserstein balls). Each measure is added to the
-model as a conic reformulation that is exact under stated assumptions, so any conic solver supported by JuMP can
-solve it, and every reformulation is checked numerically by named tests. A small market interface and a
+model as a conic reformulation that is exact under stated conditions, so any conic solver supported by JuMP can
+solve it, and the tests compare every reformulation against closed forms and direct evaluation. A small market interface and a
 walk-forward backtest evaluate the resulting strategies. The methods follow Markowitz (1952), Rockafellar & Uryasev
 (2000), Bertsimas & Sim (2004), Ben-Tal & Nemirovski (2000), Delage & Ye (2010) and Yang et al. (2014); see the
 [Theory pages](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev/theory/problem/) for the full references.
@@ -95,10 +95,8 @@ bids(market)
 | `ExpectedReturn`, `ConditionalExpectedReturn`, `ExpectedUtility(·, PieceWiseUtility)` | `MomentUncertainty` | worst case over the moment set | PSD | Delage & Ye (2010); box support: Yang et al. (2014) |
 | `ExpectedReturn` | `DuWassersteinBall` | worst case over a Wasserstein ball | norm cones | Du et al. (2021) |
 
-Each row is stated as an optimization problem, with its assumptions and what the reformulation guarantees, in the
-[Theory](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev/theory/problem/) pages; the
-[Guarantees](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev/theory/guarantees/) page lists the named tests that
-check each claim.
+Each row is stated as an optimization problem, with its conic reformulation and the conditions under which it is
+exact, in the [Theory](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev/theory/problem/) pages.
 
 ## What you need to provide
 
