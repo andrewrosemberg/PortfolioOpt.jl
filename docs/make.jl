@@ -54,7 +54,7 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://andrewrosemberg.github.io/PortfolioOpt.jl",
         edit_link="master",
-        assets=String[],
+        assets=["assets/figures.css"],
         size_threshold=400 * 1024,
     ),
     pages=[
