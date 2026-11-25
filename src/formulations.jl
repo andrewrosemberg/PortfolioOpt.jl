@@ -1,5 +1,34 @@
+"""
+    ConcaveUtilityFunction
+
+Supertype of the (concave) utility functions `u` of the portfolio return used by
+[`ExpectedUtility`](@ref) and [`CertaintyEquivalent`](@ref): [`PieceWiseUtility`](@ref) and
+[`ExponentialUtility`](@ref). A new utility needs a [`calculate_measure!`](@ref) method for the
+measures and ambiguity sets it supports.
+"""
 abstract type ConcaveUtilityFunction end
 
+"""
+    PieceWiseUtility(c=[1.0], b=[0.0])
+
+Concave piecewise linear utility of the portfolio return `x`,
+
+```math
+u(x) = \\min_{k} \\; (c_k x + b_k),
+```
+
+the minimum of the affine functions with slopes `c` and intercepts `b` (vectors of the same
+length). The default is the identity, `u(x) = x`. It is implemented for [`ExpectedUtility`](@ref)
+over a [`MomentUncertainty`](@ref) set.
+
+# Examples
+```jldoctest
+julia> u = PieceWiseUtility([1.0, 0.5], [0.0, 0.01]);
+
+julia> coefficients(u), intercepts(u)
+([1.0, 0.5], [0.0, 0.01])
+```
+"""
 struct PieceWiseUtility{T<:Real} <: ConcaveUtilityFunction
     c::Vector{T}
     b::Vector{T}
@@ -10,7 +39,18 @@ struct PieceWiseUtility{T<:Real} <: ConcaveUtilityFunction
     end
 end
 
+"""
+    coefficients(u::PieceWiseUtility) -> Vector
+
+Slopes ``c_k`` of the affine pieces of `u`.
+"""
 coefficients(u::PieceWiseUtility) = u.c
+
+"""
+    intercepts(u::PieceWiseUtility) -> Vector
+
+Intercepts ``b_k`` of the affine pieces of `u`.
+"""
 intercepts(u::PieceWiseUtility) = u.b
 
 ==(a::PieceWiseUtility, b::PieceWiseUtility) = coefficients(a) == coefficients(b) && intercepts(a) == intercepts(b)
@@ -132,6 +172,19 @@ end
 
 ambiguityset(m::ConditionalExpectedReturn) = m.ambiguity_set
 
+"""
+    alpha_quantile(m::ConditionalExpectedReturn) -> Real
+
+Fraction `α` of worst outcomes averaged by `m`.
+
+# Examples
+```jldoctest
+julia> s = DeterministicSamples([0.01 -0.02 0.03; 0.00 0.01 -0.01]);
+
+julia> alpha_quantile(ConditionalExpectedReturn(s; α=0.1))
+0.1
+```
+"""
 function alpha_quantile(::ConditionalExpectedReturn{α,S}) where {α,S}
     return α
 end
@@ -147,6 +200,12 @@ struct ExpectedUtility{C<:ConcaveUtilityFunction,S<:AmbiguitySet} <: PortfolioRi
 end
 
 ambiguityset(m::ExpectedUtility) = m.ambiguity_set
+
+"""
+    utility(m::Union{ExpectedUtility,CertaintyEquivalent}) -> ConcaveUtilityFunction
+
+Utility function of the measure `m`.
+"""
 utility(m::ExpectedUtility) = m.utility
 
 """

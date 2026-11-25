@@ -31,6 +31,14 @@ function record!(recorder::WealthRecorder, market::PortfolioMarket, date)
     return nothing
 end
 
+"""
+    get_records(recorder::StateRecorder)
+    get_records(recorder::StateRecorder, t)
+
+Values stored by `recorder` (a `DenseAxisArray` indexed by date), or the value at date `t`.
+[`sequential_backtest_market`](@ref) returns a `Dict` of recorders with keys `:wealth`,
+`:returns` and `:decisions`.
+"""
 get_records(recorder::StateRecorder) = recorder.record
 get_records(recorder::StateRecorder, t) = get_records(recorder)[t]
 length(recorder::AbstractRecorder) = size(get_records(recorder), 1)

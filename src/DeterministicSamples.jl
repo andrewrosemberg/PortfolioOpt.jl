@@ -14,6 +14,17 @@ DeterministicSamples(samples, num_samples=size(samples, 2)) = DeterministicSampl
 Base.length(s::DeterministicSamples) = size(s.samples, 1)
 Base.size(s::DeterministicSamples) = (length(s), s.num_samples)
 Base.size(s::DeterministicSamples, dim::Int) = dim == 1 ? length(s) : s.num_samples
+"""
+    sample_size(s::Union{DeterministicSamples,DuWassersteinBall}) -> Int
+
+Number of samples used by the measures over `s` (each with probability `1 / sample_size(s)`).
+
+# Examples
+```jldoctest
+julia> sample_size(DeterministicSamples(rand(3, 10)))
+10
+```
+"""
 sample_size(s::DeterministicSamples) = s.num_samples
 # add probabilities vector atribute
 samples_probability(s::DeterministicSamples) = fill(1.0/sample_size(s), sample_size(s))

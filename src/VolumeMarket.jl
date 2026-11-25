@@ -24,12 +24,23 @@ function VolumeMarket(N::Int; budget::T=1.0, volume_fee::T=0.0, allow_short_sell
     VolumeMarket(N, budget, volume_fee, allow_short_selling, risk_free_rate)
 end
 
+"""
+    risk_free_rate(market::VolumeMarket)
+    risk_free_rate(hist::VolumeMarketHistory, t)
+
+Return of the money that is not invested: in `market`, or at date `t` of a history.
+"""
 risk_free_rate(market::VolumeMarket) = market.risk_free_rate
 
 market_budget(market::VolumeMarket) = market.budget
 function set_market_budget(market::VolumeMarket{T,N}, val::T) where {T,N}
     market.budget = val
 end
+"""
+    market_volume_fee(market::VolumeMarket)
+
+Cost paid per unit of money invested in `market`.
+"""
 market_volume_fee(market::VolumeMarket) = market.volume_fee
 
 function eltype(::VolumeMarket{T,N}) where {T,N}
@@ -171,6 +182,11 @@ num_assets(::VolumeMarketHistory{T,N}) where {T,N} = N
 timestamp(hist::VolumeMarketHistory) = hist.timestamp
 keys(hist::VolumeMarketHistory) = timestamp(hist)
 
+"""
+    num_days(hist::VolumeMarketHistory) -> Int
+
+Number of dates in the history.
+"""
 num_days(hist::VolumeMarketHistory) = length(timestamp(hist))
 
 """
@@ -186,11 +202,29 @@ function past_prices(hist::VolumeMarketHistory, t)
     idx = findfirst(x -> x == t, timestamps)
     hist.history_clearing_prices[timestamps[1:idx-1]]
 end
+"""
+    current_prices(hist::MarketHistory, t) -> Vector
+
+Prices (returns) of the assets at date `t`, used to clear the market in
+[`sequential_backtest_market`](@ref). Implement it for a new [`MarketHistory`](@ref).
+"""
+function current_prices end
+
 current_prices(hist::VolumeMarketHistory, t) = values(hist.history_clearing_prices[t])[1,:]
 risk_free_rate(hist::VolumeMarketHistory, t) = first(values(hist.history_risk_free_rates[t]))
 function size(hist::VolumeMarketHistory{T,N}) where {T,N}
     return (length(eachindex(hist.history_risk_free_rates)), N)
 end
+
+"""
+    market_template(hist::MarketHistory)
+    market_template(hist::MarketHistory, t)
+
+Market traded in the backtest of `hist` (at date `t`, with the risk free rate of that date). The
+backtest reuses the same market object, updating its budget with the profits. Implement both
+methods for a new [`MarketHistory`](@ref).
+"""
+function market_template end
 
 market_template(hist::VolumeMarketHistory) = hist.market
 
