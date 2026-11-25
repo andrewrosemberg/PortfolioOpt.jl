@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="referrer" content="no-referrer"/><title>Distributionally robust optimization · PortfolioOpt.jl</title><meta name="title" content="Distributionally robust optimization · PortfolioOpt.jl"/><meta property="og:title" content="Distributionally robust optimization · PortfolioOpt.jl"/><meta property="twitter:title" content="Distributionally robust optimization · PortfolioOpt.jl"/><meta name="description" content="Documentation for PortfolioOpt.jl."/><meta property="og:description" content="Documentation for PortfolioOpt.jl."/><meta property="twitter:description" content="Documentation for PortfolioOpt.jl."/><meta property="og:url" content="https://andrewrosemberg.github.io/PortfolioOpt.jl/examples/distributionally_robust_optimization/"/><meta property="twitter:url" content="https://andrewrosemberg.github.io/PortfolioOpt.jl/examples/distributionally_robust_optimization/"/><link rel="canonical" href="https://andrewrosemberg.github.io/PortfolioOpt.jl/examples/distributionally_robust_optimization/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">PortfolioOpt.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Theory</span><ul><li><a class="tocitem" href="../../theory/problem/">The portfolio problem</a></li><li><a class="tocitem" href="../../theory/measures/">Risk measures</a></li><li><a class="tocitem" href="../../theory/ambiguity/">Ambiguity sets</a></li><li><a class="tocitem" href="../../theory/robust_po/">Robust portfolio optimization</a></li></ul></li><li><span class="tocitem">Package guide</span><ul><li><a class="tocitem" href="../../guide/getting_started/">Getting started</a></li><li><a class="tocitem" href="../../guide/concepts/">Concepts</a></li><li><a class="tocitem" href="../../guide/extending/">Extending PortfolioOpt</a></li><li><a class="tocitem" href="../../guide/migration/">Breaking changes in v2.0</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../stochastic_optimization/">Stochastic optimization</a></li><li><a class="tocitem" href="../robust_optimization/">Robust optimization</a></li><li class="is-active"><a class="tocitem" href>Distributionally robust optimization</a><ul class="internal"><li><a class="tocitem" href="#distributionally-Robust-Return-as-Objective-Term"><span>distributionally Robust Return as Objective Term</span></a></li><li><a class="tocitem" href="#Plot"><span>Plot</span></a></li></ul></li><li><a class="tocitem" href="../model_assessment/">Model assessment</a></li></ul></li><li><a class="tocitem" href="../../api/">API reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Distributionally robust optimization</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Distributionally robust optimization</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/andrewrosemberg/PortfolioOpt.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/andrewrosemberg/PortfolioOpt.jl/blob/master/docs/src/examples/distributionally_robust_optimization.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Distributionally-Robust-Portfolio-Optimization"><a class="docs-heading-anchor" href="#Distributionally-Robust-Portfolio-Optimization">Distributionally Robust Portfolio Optimization</a><a id="Distributionally-Robust-Portfolio-Optimization-1"></a><a class="docs-heading-anchor-permalink" href="#Distributionally-Robust-Portfolio-Optimization" title="Permalink"></a></h1><h2 id="distributionally-Robust-Return-as-Objective-Term"><a class="docs-heading-anchor" href="#distributionally-Robust-Return-as-Objective-Term">distributionally Robust Return as Objective Term</a><a id="distributionally-Robust-Return-as-Objective-Term-1"></a><a class="docs-heading-anchor-permalink" href="#distributionally-Robust-Return-as-Objective-Term" title="Permalink"></a></h2><pre><code class="language-julia hljs">using HiGHS
+using Clarabel
+using Distributions
+using PortfolioOpt
+using PortfolioOpt.TestUtils
+using MarketData # test data (loads the TimeSeries integration)</code></pre><p>Read Prices</p><pre><code class="language-julia hljs">prices = get_test_data();
+numD, numA = size(prices) # A: Assets    D: Days</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(316, 6)</code></pre><p>Calculating returns</p><pre><code class="language-julia hljs">returns_series = percentchange(prices);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">315×6 TimeSeries.TimeArray{Float64, 2, Dates.Date, Matrix{Float64}} 2009-09-02 to 2010-12-01
+┌────────────┬──────────────┬──────────────┬─────────────┬─────────────┬────────
+│<span class="sgr1">            </span>│<span class="sgr1"> AAPL         </span>│<span class="sgr1"> BA           </span>│<span class="sgr1"> DELL        </span>│<span class="sgr1"> CAT         </span>│<span class="sgr1"> EBAY </span> ⋯
+├────────────┼──────────────┼──────────────┼─────────────┼─────────────┼────────
+│ 2009-09-02 │ -0.000725953 │  -0.00758663 │  0.00920447 │ -0.00752737 │  -0.0 ⋯
+│ 2009-09-03 │   0.00829398 │   0.00123967 │ -0.00651466 │   0.0351643 │  0.00 ⋯
+│ 2009-09-04 │    0.0225758 │    0.0142385 │   0.0288525 │   0.0237567 │   0.0 ⋯
+│ 2009-09-08 │    0.0153837 │   0.00712106 │   0.0172084 │   0.0186511 │  -0.0 ⋯
+│ 2009-09-09 │    -0.010351 │    0.0208081 │ -0.00250627 │   0.0306579 │   0.0 ⋯
+│ 2009-09-10 │    0.0082973 │ -0.000791609 │    0.040201 │  0.00578393 │   0.0 ⋯
+│ 2009-09-11 │  -0.00231803 │    0.0170331 │  0.00241546 │  -0.0032861 │  0.00 ⋯
+│ 2009-09-14 │   0.00906134 │  -0.00740019 │  -0.0126506 │  0.00494539 │   0.0 ⋯
+│     ⋮      │      ⋮       │      ⋮       │      ⋮      │      ⋮      │       ⋱
+│ 2010-11-22 │    0.0216151 │   0.00691933 │  0.00431655 │  0.00035727 │   0.0 ⋯
+│ 2010-11-23 │   -0.0147753 │   -0.0067156 │  -0.0100287 │  -0.0163095 │  -0.0 ⋯
+│ 2010-11-24 │    0.0196612 │    0.0284591 │  0.00434153 │   0.0249304 │   0.0 ⋯
+│ 2010-11-26 │  0.000635324 │  -0.00932579 │  -0.0165706 │ -0.00661235 │ -0.00 ⋯
+│ 2010-11-29 │   0.00593651 │  -0.00679012 │ -0.00586081 │ -0.00546773 │  -0.0 ⋯
+│ 2010-11-30 │   -0.0180516 │  -0.00916718 │  -0.0257922 │   0.0111151 │  -0.0 ⋯
+│ 2010-12-01 │    0.0168729 │    0.0305786 │   0.0143722 │   0.0336879 │  0.00 ⋯
+└────────────┴──────────────┴──────────────┴─────────────┴─────────────┴────────
+<span class="sgr36">                                                  2 columns and 300 rows omitted</span></code></pre><p>Backtest parameters</p><pre><code class="language-julia hljs">DEFAULT_SOLVER = optimizer_with_attributes(
+    HiGHS.Optimizer, &quot;presolve&quot; =&gt; &quot;on&quot;, &quot;time_limit&quot; =&gt; 60.0, &quot;log_to_console&quot; =&gt; false
+)
+
+Clarabel_SOLVER = optimizer_with_attributes(
+    Clarabel.Optimizer, &quot;verbose&quot; =&gt; false, &quot;max_iter&quot; =&gt; 900000
+)
+
+date_range = timestamp(returns_series)[100:end];</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">216-element Vector{Dates.Date}:
+ 2010-01-26
+ 2010-01-27
+ 2010-01-28
+ 2010-01-29
+ 2010-02-01
+ 2010-02-02
+ 2010-02-03
+ 2010-02-04
+ 2010-02-05
+ 2010-02-08
+ ⋮
+ 2010-11-18
+ 2010-11-19
+ 2010-11-22
+ 2010-11-23
+ 2010-11-24
+ 2010-11-26
+ 2010-11-29
+ 2010-11-30
+ 2010-12-01</code></pre><h3 id="Backtest-Delage&#39;s-robust-return"><a class="docs-heading-anchor" href="#Backtest-Delage&#39;s-robust-return">Backtest Delage&#39;s robust return</a><a id="Backtest-Delage&#39;s-robust-return-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-Delage&#39;s-robust-return" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results = Dict()
+
+backtest_results[&quot;Delage&quot;], _ = sequential_backtest_market(
+    VolumeMarketHistory(returns_series), date_range
+) do market, past_returns, ext
+    numD, numA = size(past_returns)
+    returns = values(past_returns)
+    k_back = 80
+    Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
+
+    d = MvNormal(r̄, Σ)
+
+    formulation = PortfolioFormulation(
+        MAX_SENSE,
+        ObjectiveTerm(
+            ExpectedUtility(MomentUncertainty(d, 0.05, 1.3), PieceWiseUtility([1.0], [0.0]))
+        ),
+    )
+
+    pointers = change_bids!(market, formulation, Clarabel_SOLVER)
+    return pointers
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(Dict{Symbol, StateRecorder}(:decisions =&gt; PortfolioOpt.DecisionRecorder{Float64}(2-dimensional DenseAxisArray{Float64,2,...} with index sets:
+    Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-17&quot;), Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;)]
+    Dimension 2, 1:6
+And data, a 216×6 Matrix{Float64}:
+ 1.1293762539062305e-9  1.9057134967914346e-9  …  2.300988417501401e-8
+ 4.021175588596781e-9   2.3255631262093663e-9     6.773467793555783e-8
+ 4.7338020942649087e-7  1.2775623509841696e-6     0.9999942982323148
+ 3.8832650605445e-7     0.03878922401963778       0.9490879632956345
+ 2.5261463061308e-7     0.09698241453483972       0.8422653012717418
+ 1.0119048780519455e-7  0.11870287802385016    …  0.8440405278588177
+ 5.4576280975958775e-8  0.09603261120930001       0.8876891062407164
+ 3.52148868835542e-7    0.01606115342350256       0.9863983644802913
+ 4.6821191809308e-10    8.121763081474817e-9      1.2476877533624794e-7
+ 3.93348240487307e-10   2.198556562337862e-9      8.012640712212777e-8
+ ⋮                                             ⋱  ⋮
+ 4.928957414558392e-7   7.633277789206965e-8      0.23326147743632744
+ 2.392556901739562e-6   3.1135878426277936e-7     0.10312206967019802
+ 5.6980461850468075e-6  6.223098935560553e-7      0.17288424149282108
+ 1.973254368240643e-6   6.666153735125684e-7   …  0.09152593572893526
+ 3.1310888230489583e-6  1.5260018608578304e-7     0.09077065360166627
+ 6.313684940015506e-6   2.2935455310652442e-7     0.055322200261541124
+ 3.149613734404245e-6   3.955762698647034e-7      0.07930866348751826
+ 0.04582564565905647    2.9844660399449685e-8     0.12604051862057042
+ 0.09867414316188941    1.595211208357076e-7   …  0.2018351371240272), :wealth =&gt; PortfolioOpt.WealthRecorder{Float64}(1-dimensional DenseAxisArray{Float64,1,...} with index sets:
+    Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;), Dates.Date(&quot;2010-12-02&quot;)]
+And data, a 217-element Vector{Float64}:
+ 1.0
+ 1.000000000346542
+ 1.000000002636764
+ 0.9878788368085312
+ 0.9392507458288396
+ 0.9627670953393149
+ 0.9837226162410412
+ 1.002462376637036
+ 0.9527526639486423
+ 0.9527526621801584
+ ⋮
+ 1.1501459764553223
+ 1.14192206313637
+ 1.151946113331195
+ 1.1332011215191162
+ 1.170223083031246
+ 1.1686000024535967
+ 1.136231487559162
+ 1.0996904861395167
+ 1.1112309112641119), :returns =&gt; PortfolioOpt.ReturnsRecorder{Float64}(1-dimensional DenseAxisArray{Float64,1,...} with index sets:
+    Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-17&quot;), Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;)]
+And data, a 216-element Vector{Float64}:
+  3.4654201524962026e-10
+  2.2902220964471768e-9
+ -0.01212116579627211
+ -0.04922475223458666
+  0.02503734983965695
+  0.021765929686598556
+  0.019049841984524425
+ -0.049587609317723165
+ -1.8561836234684021e-9
+  4.22869799666597e-10
+  ⋮
+  0.004520476806893336
+ -0.007150321339468507
+  0.008778226219128557
+ -0.016272455451819712
+  0.03267024785723807
+ -0.0013869839017743352
+ -0.027698540840727093
+ -0.032159821145374246
+  0.01049424839993663)), nothing)</code></pre><h3 id="Backtest-NingNing-Du&#39;s-Wasserstein-robust-return-(under-light-tail-assumption)"><a class="docs-heading-anchor" href="#Backtest-NingNing-Du&#39;s-Wasserstein-robust-return-(under-light-tail-assumption)">Backtest NingNing Du&#39;s Wasserstein robust return (under light tail assumption)</a><a id="Backtest-NingNing-Du&#39;s-Wasserstein-robust-return-(under-light-tail-assumption)-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-NingNing-Du&#39;s-Wasserstein-robust-return-(under-light-tail-assumption)" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results[&quot;Wasserstein_light_tail&quot;], _ = sequential_backtest_market(
+    VolumeMarketHistory(returns_series), date_range
+) do market, past_returns, ext
+    numD, numA = size(past_returns)
+    returns = values(past_returns)
+
+    j_robust = 30
+    δ = 0.1
+    ϵ = log(1 / δ) / j_robust
+
+    d = DeterministicSamples(returns&#39;[:, (end - j_robust):end])
+    s = DuWassersteinBall(d; ϵ=ϵ)
+
+    formulation = PortfolioFormulation(MAX_SENSE, ObjectiveTerm(ExpectedReturn(s)))
+
+    pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
+    return pointers
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(Dict{Symbol, StateRecorder}(:decisions =&gt; PortfolioOpt.DecisionRecorder{Float64}(2-dimensional DenseAxisArray{Float64,2,...} with index sets:
+    Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-17&quot;), Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;)]
+    Dimension 2, 1:6
+And data, a 216×6 Matrix{Float64}:
+  0.0  -0.0  -0.0  -0.0  -0.0  -0.0
+ -0.0  -0.0  -0.0  -0.0  -0.0  -0.0
+  0.0  -0.0   0.0  -0.0  -0.0  -0.0
+ -0.0  -0.0  -0.0  -0.0  -0.0  -0.0
+ -0.0  -0.0  -0.0   0.0   0.0  -0.0
+ -0.0   0.0  -0.0   0.0  -0.0  -0.0
+ -0.0  -0.0   0.0  -0.0  -0.0  -0.0
+ -0.0  -0.0  -0.0   0.0  -0.0  -0.0
+ -0.0  -0.0  -0.0  -0.0   0.0  -0.0
+ -0.0  -0.0  -0.0  -0.0   0.0  -0.0
+  ⋮                             ⋮
+ -0.0  -0.0   0.0  -0.0  -0.0  -0.0
+ -0.0  -0.0  -0.0   0.0  -0.0  -0.0
+ -0.0  -0.0   0.0  -0.0  -0.0  -0.0
+ -0.0  -0.0  -0.0  -0.0  -0.0  -0.0
+ -0.0  -0.0  -0.0  -0.0  -0.0  -0.0
+  0.0  -0.0   0.0  -0.0  -0.0  -0.0
+  0.0   0.0  -0.0  -0.0  -0.0  -0.0
+ -0.0  -0.0  -0.0   0.0  -0.0  -0.0
+  0.0  -0.0  -0.0  -0.0  -0.0  -0.0), :wealth =&gt; PortfolioOpt.WealthRecorder{Float64}(1-dimensional DenseAxisArray{Float64,1,...} with index sets:
+    Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;), Dates.Date(&quot;2010-12-02&quot;)]
+And data, a 217-element Vector{Float64}:
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ ⋮
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0), :returns =&gt; PortfolioOpt.ReturnsRecorder{Float64}(1-dimensional DenseAxisArray{Float64,1,...} with index sets:
+    Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-17&quot;), Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;)]
+And data, a 216-element Vector{Float64}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ ⋮
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0)), nothing)</code></pre><h2 id="Plot"><a class="docs-heading-anchor" href="#Plot">Plot</a><a id="Plot-1"></a><a class="docs-heading-anchor-permalink" href="#Plot" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Plots
+using Plots.PlotMeasures
+
+plt = plot(;
+    title=&quot;Culmulative Wealth&quot;,
+    xlabel=&quot;Time&quot;,
+    ylabel=&quot;Wealth&quot;,
+    legend=:outertopright,
+    left_margin=10mm,
+);
+for (strategy_name, recorders) in backtest_results
+    plot!(
+        plt,
+        axes(get_records(recorders[:wealth]), 1),
+        get_records(recorders[:wealth]).data;
+        label=strategy_name,
+    )
+end
+plt</code></pre><img src="e67091fd.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/+esm';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral"
+});
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../robust_optimization/">« Robust optimization</a><a class="docs-footer-nextpage" href="../model_assessment/">Model assessment »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Wednesday 25 November 2026 14:14">Wednesday 25 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
