@@ -54,7 +54,8 @@ CE(R) = -\\frac{1}{a} \\log \\mathbb{E} [e^{-a R}]
 which equals ``\\mu'w - \\frac{a}{2} w' \\Sigma w`` for a Gaussian distribution. It is concave in the
 portfolio, so maximize it or constrain it from below (`GreaterThan`).
 """
-struct CertaintyEquivalent{C<:ConcaveUtilityFunction,S<:AmbiguitySet} <: PortfolioRiskMeasure{S}
+struct CertaintyEquivalent{C<:ConcaveUtilityFunction,S<:AmbiguitySet} <:
+       PortfolioRiskMeasure{S}
     ambiguity_set::S
     utility::C
 end
@@ -63,7 +64,9 @@ ambiguityset(m::CertaintyEquivalent) = m.ambiguity_set
 utility(m::CertaintyEquivalent) = m.utility
 
 const GaussianMixture = MixtureModel{Multivariate,Continuous,<:AbstractMvNormal}
-const ExponentialUtilityDistribution = Union{AbstractMvNormal,GaussianMixture,DeterministicSamples}
+const ExponentialUtilityDistribution = Union{
+    AbstractMvNormal,GaussianMixture,DeterministicSamples
+}
 
 # epigraph `v ≥ w'Σw` of the portfolio variance
 function _variance_epigraph!(model::JuMP.Model, Σ::AbstractMatrix, w)
@@ -98,7 +101,9 @@ end
 Expected [`ExponentialUtility`](@ref) of the portfolio return,
 ``(1 - \\mathbb{E}[e^{-a w'r}]) / a``, with one exponential cone per Gaussian component or sample.
 """
-function calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:ExponentialUtility,S<:ExponentialUtilityDistribution}
+function calculate_measure!(
+    m::ExpectedUtility{U,S}, w
+) where {U<:ExponentialUtility,S<:ExponentialUtilityDistribution}
     model = _owner_model(w)
     a = risk_aversion(utility(m))
     π, e = _exponential_terms!(model, ambiguityset(m), w, a)
@@ -114,14 +119,18 @@ end
 Certainty equivalent of the [`ExponentialUtility`](@ref), ``-\\log(\\mathbb{E}[e^{-a w'r}]) / a``,
 represented as ``\\theta`` such that ``\\sum_k \\pi_k e^{e_k + a \\theta} \\leq 1``.
 """
-function calculate_measure!(m::CertaintyEquivalent{U,S}, w) where {U<:ExponentialUtility,S<:ExponentialUtilityDistribution}
+function calculate_measure!(
+    m::CertaintyEquivalent{U,S}, w
+) where {U<:ExponentialUtility,S<:ExponentialUtilityDistribution}
     model = _owner_model(w)
     a = risk_aversion(utility(m))
     π, e = _exponential_terms!(model, ambiguityset(m), w, a)
     θ = @variable(model)
     t = @variable(model, [eachindex(e)])
     # t_k ≥ exp(e_k + a θ)
-    @constraint(model, [k in eachindex(e)], [e[k] + a * θ; 1.0; t[k]] in MOI.ExponentialCone())
+    @constraint(
+        model, [k in eachindex(e)], [e[k] + a * θ; 1.0; t[k]] in MOI.ExponentialCone()
+    )
     @constraint(model, dot(π, t) <= 1)
     return θ
 end

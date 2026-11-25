@@ -25,7 +25,7 @@
     end
     @testset "samples_probability" begin
         s = DeterministicSamples([1.0 2.0 3.0; 4.0 5.0 6.0])
-        @test PortfolioOpt.samples_probability(s) ≈ [1/3; 1/3; 1/3]
+        @test PortfolioOpt.samples_probability(s) ≈ [1 / 3; 1 / 3; 1 / 3]
     end
     @testset "size and length" begin
         s = DeterministicSamples([1.0 2.0 3.0; 4.0 5.0 6.0])

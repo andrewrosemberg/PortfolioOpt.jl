@@ -1,7 +1,7 @@
 @testset "Robust Formulations" begin
     numA = 3
     d = generate_gaussian_distribution(numA, rng)
-    
+
     @testset "BudgetSet" begin
         @testset "constructor" begin
             @test BudgetSet(d) isa BudgetSet
@@ -18,18 +18,20 @@
             measure = ExpectedReturn(ambiguity_set)
             model = Model(DEFAULT_SOLVER)
             w = @variable(model, [1:numA])
-            fix.(w, ones(numA)/numA)
+            fix.(w, ones(numA) / numA)
             er_pointer = PortfolioOpt.calculate_measure!(measure, w)
 
             @objective(model, Max, er_pointer)
             JuMP.optimize!(model)
 
-            @test isapprox(value(er_pointer), (mean(d) - sqrt.(var(d)) ./ 5)' * value.(w), atol=1e-4)
+            @test isapprox(
+                value(er_pointer), (mean(d) - sqrt.(var(d)) ./ 5)' * value.(w), atol=1e-4
+            )
         end
         @testset "used twice in a model" begin
             model = Model(DEFAULT_SOLVER)
             w = @variable(model, [1:numA])
-            fix.(w, ones(numA)/numA)
+            fix.(w, ones(numA) / numA)
             p1 = PortfolioOpt.calculate_measure!(ExpectedReturn(ambiguity_set), w)
             p2 = PortfolioOpt.calculate_measure!(ExpectedReturn(BudgetSet(d; Γ=1.0)), w)
             @objective(model, Max, p1 + p2)
@@ -51,14 +53,17 @@
             measure = ExpectedReturn(ambiguity_set)
             model = Model(DEFAULT_SOLVER)
             w = @variable(model, [1:numA])
-            fix.(w, ones(numA)/numA)
+            fix.(w, ones(numA) / numA)
             er_pointer = PortfolioOpt.calculate_measure!(measure, w)
 
             @objective(model, Max, er_pointer)
             JuMP.optimize!(model)
 
-            @test isapprox(value(er_pointer), 
-                mean(d)' * value.(w) - sqrt(value.(w)' * cov(d) * value.(w)) * ambiguity_set.Δ, atol=1e-4
+            @test isapprox(
+                value(er_pointer),
+                mean(d)' * value.(w) -
+                sqrt(value.(w)' * cov(d) * value.(w)) * ambiguity_set.Δ,
+                atol=1e-4,
             )
         end
     end

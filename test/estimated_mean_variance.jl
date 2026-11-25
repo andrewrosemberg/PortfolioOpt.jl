@@ -1,10 +1,10 @@
 @testset "Estimated Case" begin
     numA = 3
     d = generate_gaussian_distribution(numA, rng)
-    
+
     model = Model(DEFAULT_SOLVER)
     w = @variable(model, [1:numA])
-    fix.(w, ones(numA)/numA)
+    fix.(w, ones(numA) / numA)
 
     er = ExpectedReturn(d)
     er_pointer = PortfolioOpt.calculate_measure!(er, w)

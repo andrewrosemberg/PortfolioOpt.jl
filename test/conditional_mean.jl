@@ -10,7 +10,7 @@
 
     model = Model(DEFAULT_SOLVER)
     w = @variable(model, [1:numA])
-    fix.(w, ones(numA)/numA)
+    fix.(w, ones(numA) / numA)
     er_pointer = PortfolioOpt.calculate_measure!(measure, w)
     er_pointer2 = PortfolioOpt.calculate_measure!(measure2, w)
 
@@ -28,7 +28,7 @@
     @testset "same measure used twice in a model" begin
         model = Model(DEFAULT_SOLVER)
         w = @variable(model, [1:numA])
-        fix.(w, ones(numA)/numA)
+        fix.(w, ones(numA) / numA)
         p1 = PortfolioOpt.calculate_measure!(ConditionalExpectedReturn(s; α=0.1), w)
         p2 = PortfolioOpt.calculate_measure!(ConditionalExpectedReturn(s; α=0.05), w)
         @objective(model, Max, p1 + p2)

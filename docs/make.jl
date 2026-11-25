@@ -1,5 +1,6 @@
 using PortfolioOpt
 using Documenter
+using DocumenterMermaid
 using Literate
 using Test
 using Random
@@ -8,7 +9,7 @@ const EXAMPLES_DIR = joinpath(@__DIR__, "src", "examples")
 
 _sorted_files(dir, ext) = sort(filter(f -> endswith(f, ext), readdir(dir)))
 
-function list_of_sorted_files(prefix, dir, ext = ".md")
+function list_of_sorted_files(prefix, dir, ext=".md")
     return Any["$(prefix)/$(file)" for file in _sorted_files(dir, ext)]
 end
 
@@ -29,32 +30,54 @@ for dir in joinpath.(@__DIR__, "src", ("examples",))
         Literate.markdown(
             jl_filename,
             dir;
-            documenter = true,
-            postprocess = content -> replace(content, "nothing #hide" => ""),
+            documenter=true,
+            postprocess=content -> replace(content, "nothing #hide" => ""),
         )
     end
 end
 
+DocMeta.setdocmeta!(PortfolioOpt, :DocTestSetup, :(using PortfolioOpt); recursive=true)
+
+const EXAMPLES = [
+    "Stochastic optimization" => "examples/stochastic_optimization.md",
+    "Robust optimization" => "examples/robust_optimization.md",
+    "Distributionally robust optimization" => "examples/distributionally_robust_optimization.md",
+    "Model assessment" => "examples/model_assessment.md",
+]
+@assert sort(last.(EXAMPLES)) == list_of_sorted_files("examples", EXAMPLES_DIR)
+
 makedocs(;
     modules=[PortfolioOpt],
     authors="Andrew Rosemberg",
-    repo="https://github.com/andrewrosemberg/PortfolioOpt.jl/blob/{commit}{path}#L{line}",
     sitename="PortfolioOpt.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://andrewrosemberg.github.io/PortfolioOpt.jl",
+        edit_link="master",
         assets=String[],
+        size_threshold=400 * 1024,
     ),
     pages=[
         "Home" => "index.md",
-        "Robust PO" => "robust_po.md",
-        "Examples" => list_of_sorted_files("examples", EXAMPLES_DIR),
-        "Extending PortfolioOpt" => "extending.md",
-        "Breaking changes in v2.0" => "migration.md",
-        "API" => "api.md",
+        "Theory" => [
+            "The portfolio problem" => "theory/problem.md",
+            "Risk measures" => "theory/measures.md",
+            "Ambiguity sets" => "theory/ambiguity.md",
+            "Robust portfolio optimization" => "theory/robust_po.md",
+        ],
+        "Package guide" => [
+            "Getting started" => "guide/getting_started.md",
+            "Concepts" => "guide/concepts.md",
+            "Extending PortfolioOpt" => "guide/extending.md",
+            "Breaking changes in v2.0" => "guide/migration.md",
+        ],
+        "Examples" => EXAMPLES,
+        "API reference" => "api.md",
     ],
-    strict=true,
+    doctest=true,
     checkdocs=:exports,
 )
 
-deploydocs(; repo="github.com/andrewrosemberg/PortfolioOpt.jl")
+deploydocs(;
+    repo="github.com/andrewrosemberg/PortfolioOpt.jl", devbranch="master", push_preview=true
+)

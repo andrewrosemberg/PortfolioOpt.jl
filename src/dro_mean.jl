@@ -43,7 +43,8 @@ References:
   models and their applications. Journal of Applied Mathematics, 2014, 784715.
   https://doi.org/10.1155/2014/784715
 """
-struct MomentUncertainty{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
+struct MomentUncertainty{T<:Real,D<:ContinuousMultivariateSampleable} <:
+       CenteredAmbiguitySet{T,D}
     d::D
     γ1::T
     γ2::T
@@ -51,43 +52,51 @@ struct MomentUncertainty{T<:Real, D<:ContinuousMultivariateSampleable} <: Center
     upper::Vector{T}
 
     # Inner constructor for validating arguments
-    function MomentUncertainty{T, D}(
+    function MomentUncertainty{T,D}(
         d::D, γ1::T, γ2::T, lower::AbstractVector{<:Real}, upper::AbstractVector{<:Real}
-    ) where {T<:Real, D<:ContinuousMultivariateSampleable}
+    ) where {T<:Real,D<:ContinuousMultivariateSampleable}
         γ1 >= 0 || throw(ArgumentError("γ1 must be >= 0"))
         γ2 >= 1 || throw(ArgumentError("γ2 must be >= 1"))
         n = length(d)
-        length(lower) == n || throw(ArgumentError(
-            "Distribution ($(n)) and lower ($(length(lower))) must have the same length"
-        ))
-        length(upper) == n || throw(ArgumentError(
-            "Distribution ($(n)) and upper ($(length(upper))) must have the same length"
-        ))
+        length(lower) == n || throw(
+            ArgumentError(
+                "Distribution ($(n)) and lower ($(length(lower))) must have the same length",
+            ),
+        )
+        length(upper) == n || throw(
+            ArgumentError(
+                "Distribution ($(n)) and upper ($(length(upper))) must have the same length",
+            ),
+        )
         μ = Vector(Distributions.mean(d))
-        all(lower .<= μ .<= upper) || throw(ArgumentError(
-            "the mean of the distribution must be inside the support [lower, upper]"
-        ))
-        return new{T, D}(d, γ1, γ2, convert(Vector{T}, lower), convert(Vector{T}, upper))
+        all(lower .<= μ .<= upper) || throw(
+            ArgumentError(
+                "the mean of the distribution must be inside the support [lower, upper]"
+            ),
+        )
+        return new{T,D}(d, γ1, γ2, convert(Vector{T}, lower), convert(Vector{T}, upper))
     end
 end
 
 # unbounded support
-function MomentUncertainty{T, D}(d::D, γ1::T, γ2::T) where {T<:Real, D<:ContinuousMultivariateSampleable}
+function MomentUncertainty{T,D}(
+    d::D, γ1::T, γ2::T
+) where {T<:Real,D<:ContinuousMultivariateSampleable}
     n = length(d)
-    return MomentUncertainty{T, D}(d, γ1, γ2, fill(typemin(T), n), fill(typemax(T), n))
+    return MomentUncertainty{T,D}(d, γ1, γ2, fill(typemin(T), n), fill(typemax(T), n))
 end
 
 # Default outer constructors
 function MomentUncertainty(
     d::D, γ1::T, γ2::T
-) where {T<:Real, D<:ContinuousMultivariateSampleable}
-    MomentUncertainty{T, D}(d, γ1, γ2)
+) where {T<:Real,D<:ContinuousMultivariateSampleable}
+    return MomentUncertainty{T,D}(d, γ1, γ2)
 end
 
 function MomentUncertainty(
     d::D, γ1::T, γ2::T, lower::AbstractVector{<:Real}, upper::AbstractVector{<:Real}
-) where {T<:Real, D<:ContinuousMultivariateSampleable}
-    MomentUncertainty{T, D}(d, γ1, γ2, lower, upper)
+) where {T<:Real,D<:ContinuousMultivariateSampleable}
+    return MomentUncertainty{T,D}(d, γ1, γ2, lower, upper)
 end
 
 function MomentUncertainty(d::Sampleable; γ1, γ2, lower=nothing, upper=nothing)
@@ -105,7 +114,9 @@ distribution(s::MomentUncertainty) = s.d
 # function min_k (a_k r'w + b_k) of the returns `r` (the intercepts `b` can be JuMP expressions).
 # Adds the SDP dual of Delage & Ye (2010) to the model of `w`, with one nonnegative multiplier per
 # finite bound of the support (Yang et al. 2014), and returns its value.
-function _worst_case_piecewise!(s::MomentUncertainty, w, a::AbstractVector, b::AbstractVector)
+function _worst_case_piecewise!(
+    s::MomentUncertainty, w, a::AbstractVector, b::AbstractVector
+)
     @assert length(a) == length(b)
     model = _owner_model(w)
 
@@ -119,11 +130,11 @@ function _worst_case_piecewise!(s::MomentUncertainty, w, a::AbstractVector, b::A
     bounded_above = findall(isfinite, s.upper)
 
     # dual variables
-    P = @variable(model, [i=1:n, j=1:n])
-    p = @variable(model, [i=1:n])
+    P = @variable(model, [i = 1:n, j = 1:n])
+    p = @variable(model, [i = 1:n])
     t = @variable(model)
-    Q = @variable(model, [i=1:n, j=1:n])
-    q = @variable(model, [i=1:n])
+    Q = @variable(model, [i = 1:n, j = 1:n])
+    q = @variable(model, [i = 1:n])
     r = @variable(model)
 
     # constraints: from duality
@@ -134,19 +145,21 @@ function _worst_case_piecewise!(s::MomentUncertainty, w, a::AbstractVector, b::A
         linear = q + a[k] * w
         constant = r + b[k]
         if !isempty(bounded_below)
-            λ = @variable(model, [eachindex(bounded_below)], lower_bound = 0)
+            λ = @variable(model, [eachindex(bounded_below)], lower_bound=0)
             linear[bounded_below] -= λ
             constant += dot(λ, s.lower[bounded_below])
         end
         if !isempty(bounded_above)
-            λ = @variable(model, [eachindex(bounded_above)], lower_bound = 0)
+            λ = @variable(model, [eachindex(bounded_above)], lower_bound=0)
             linear[bounded_above] += λ
             constant -= dot(λ, s.upper[bounded_above])
         end
         @constraint(model, [[Q (linear / 2)]; [(linear' / 2) constant]] in PSDCone())
     end
 
-    return -(γ2 * dot(Σ, Q) - first(means'Q * means) + r + dot(Σ, P) - 2 * dot(means, p) + γ1 * t)
+    return -(
+        γ2 * dot(Σ, Q) - first(means'Q * means) + r + dot(Σ, P) - 2 * dot(means, p) + γ1 * t
+    )
 end
 
 """
@@ -159,7 +172,9 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `m::ExpectedUtility`: Struct containing information about the utility and ambiguity set.
 """
-function calculate_measure!(m::ExpectedUtility{U,S}, w) where {U<:PieceWiseUtility,S<:MomentUncertainty}
+function calculate_measure!(
+    m::ExpectedUtility{U,S}, w
+) where {U<:PieceWiseUtility,S<:MomentUncertainty}
     u = utility(m)
     return _worst_case_piecewise!(ambiguityset(m), w, coefficients(u), intercepts(u))
 end
@@ -189,10 +204,14 @@ where the inner supremum is the Delage & Ye (2010) SDP dual of a piecewise linea
 `α` has to be in `(0, 1]` (`α = 1` gives the worst case expected return). With unbounded support,
 `γ1 = 0` and `γ2 = 1` it equals ``\\hat{r}'w - \\sqrt{(1 - \\alpha) / \\alpha} \\sqrt{w' \\Sigma w}``.
 """
-function calculate_measure!(m::ConditionalExpectedReturn{α,S}, w) where {α,S<:MomentUncertainty}
-    0 < α <= 1 || throw(ArgumentError(
-        "α must be in (0, 1] for MomentUncertainty (the worst case return is unbounded), got $(α)"
-    ))
+function calculate_measure!(
+    m::ConditionalExpectedReturn{α,S}, w
+) where {α,S<:MomentUncertainty}
+    0 < α <= 1 || throw(
+        ArgumentError(
+            "α must be in (0, 1] for MomentUncertainty (the worst case return is unbounded), got $(α)",
+        ),
+    )
     s = ambiguityset(m)
     isone(α) && return _worst_case_piecewise!(s, w, [1.0], [0.0])
     model = _owner_model(w)
@@ -236,7 +255,7 @@ Atributes:
 References:
 - NingNing paper on Wasserstein DRO (Corollary 1-3): https://ieeexplore.ieee.org/abstract/document/9311154
 """
-struct DuWassersteinBall{T<:Real, D<:DeterministicSamples} <: CenteredAmbiguitySet{T,D}
+struct DuWassersteinBall{T<:Real,D<:DeterministicSamples} <: CenteredAmbiguitySet{T,D}
     d::D
     ϵ::T
     Λ::T
@@ -244,26 +263,30 @@ struct DuWassersteinBall{T<:Real, D<:DeterministicSamples} <: CenteredAmbiguityS
     norm_cone::Real
 
     # Inner constructor for validating arguments
-    function DuWassersteinBall{T, D}(
+    function DuWassersteinBall{T,D}(
         d::D, ϵ::T, Λ::T, Q::Array{T,2}, norm_cone::Real
-    ) where {T<:Real, D<:DeterministicSamples}
-        length(d) == size(Q,1) == size(Q,2) || throw(ArgumentError(
-            "Distribution ($(length(d))) and Q ($(size(Q,2))) must have coherent dimensions (m and mxm)"
-        ))
+    ) where {T<:Real,D<:DeterministicSamples}
+        length(d) == size(Q, 1) == size(Q, 2) || throw(
+            ArgumentError(
+                "Distribution ($(length(d))) and Q ($(size(Q,2))) must have coherent dimensions (m and mxm)",
+            ),
+        )
         ϵ >= 0 || throw(ArgumentError("ϵ must be >= 0"))
         Λ >= 0 || throw(ArgumentError("Λ must be >= 0"))
-        _has_primal_cone(norm_cone) || throw(ArgumentError(
-            "no cone for the norm $(norm_cone): implement `PortfolioOpt.primal_cone(::Val{$(Float64(norm_cone))})`"
-        ))
-        return new{T, D}(d, ϵ, Λ, Q, norm_cone)
+        _has_primal_cone(norm_cone) || throw(
+            ArgumentError(
+                "no cone for the norm $(norm_cone): implement `PortfolioOpt.primal_cone(::Val{$(Float64(norm_cone))})`",
+            ),
+        )
+        return new{T,D}(d, ϵ, Λ, Q, norm_cone)
     end
 end
 
 # Default outer constructor
 function DuWassersteinBall(
     d::D, ϵ::T, Λ::T, Q::Array{T,2}, norm_cone::Real
-) where {T<:Real, D<:DeterministicSamples}
-    DuWassersteinBall{T, D}(d, ϵ, Λ, Q, norm_cone)
+) where {T<:Real,D<:DeterministicSamples}
+    return DuWassersteinBall{T,D}(d, ϵ, Λ, Q, norm_cone)
 end
 
 # Kwarg constructor with defaults
@@ -272,7 +295,7 @@ function DuWassersteinBall(
     ϵ=0.01,
     norm_cone=Inf,
     Λ=default_DuWassersteinBall_lambda(d, norm_cone),
-    Q=Matrix(I(length(d))* 1.0)
+    Q=Matrix(I(length(d)) * 1.0),
 ) where {S<:DeterministicSamples}
     return DuWassersteinBall(d, ϵ, Λ, Q, norm_cone)
 end
@@ -281,13 +304,18 @@ distribution(s::DuWassersteinBall) = s.d
 sample_size(s::DuWassersteinBall) = sample_size(distribution(s))
 
 # samples are stored column-wise, so the support bound is the largest norm of a sample (column)
-default_DuWassersteinBall_lambda(d::Sampleable, norm_cone::Real; num_samples::Int=20, rng::AbstractRNG=MersenneTwister(123)) = maximum(
-    norm.(eachcol(rand(rng, d, num_samples)), norm_cone)
+function default_DuWassersteinBall_lambda(
+    d::Sampleable,
+    norm_cone::Real;
+    num_samples::Int=20,
+    rng::AbstractRNG=MersenneTwister(123),
 )
+    return maximum(norm.(eachcol(rand(rng, d, num_samples)), norm_cone))
+end
 # the support bound has to hold for every sample, otherwise the worst case problem is unbounded
-default_DuWassersteinBall_lambda(d::DeterministicSamples, norm_cone::Real) = maximum(
-    norm.(eachcol(rand(d)), norm_cone)
-)
+function default_DuWassersteinBall_lambda(d::DeterministicSamples, norm_cone::Real)
+    return maximum(norm.(eachcol(rand(d)), norm_cone))
+end
 
 """
     calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:DuWassersteinBall}
@@ -312,16 +340,16 @@ function calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:DuWasserste
     λ = @variable(model)
     e = @variable(model)
     s = @variable(model, [1:N])
-    ν = @variable(model, [i=1:N, j=1:m])
-    τ = @variable(model, [i=1:N])
+    ν = @variable(model, [i = 1:N, j = 1:m])
+    τ = @variable(model, [i = 1:N])
 
-    @constraint(model, [i=1:N], - dot(w, ξ[:, i])
-        + ν[i, :]' * Q_inv * ξ[:, i] + Λ * τ[i] <= s[i]
+    @constraint(
+        model, [i = 1:N], - dot(w, ξ[:, i]) + ν[i, :]' * Q_inv * ξ[:, i] + Λ * τ[i] <= s[i]
     )
 
-    @constraint(model, [i=1:N], [λ; - Q_inv * ν[i, :] + w] in K(m + 1))
+    @constraint(model, [i = 1:N], [λ; - Q_inv * ν[i, :] + w] in K(m + 1))
 
-    @constraint(model, [i=1:N], [τ[i]; ν[i, :]] in MOI.dual_set(K(m + 1)))
+    @constraint(model, [i = 1:N], [τ[i]; ν[i, :]] in MOI.dual_set(K(m + 1)))
 
     return - (λ * ϵ + sum(s) / N)
 end

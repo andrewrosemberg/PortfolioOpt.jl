@@ -7,12 +7,10 @@ Mainly:
     - `get_test_data` that returns a `TimeArray` of prices for 6 assets (needs `using MarketData`).
 """
 module TestUtils
-    using LinearAlgebra
-    using Statistics
+using LinearAlgebra
+using Statistics
 
-    include("auxilary_functions.jl")
+include("auxilary_functions.jl")
 
-    export get_test_data,
-        mean_variance,
-        max_sharpe
+export get_test_data, mean_variance, max_sharpe
 end

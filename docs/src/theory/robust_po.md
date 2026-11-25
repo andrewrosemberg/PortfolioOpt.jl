@@ -9,7 +9,7 @@ The available information for many market data (e.g. stock prices, future prices
 One alternative approach is Robust Optimization.
 
 ## Background
-Robust Optimization (RO) problems belong to the class of optimization under uncertainty problems where some problem data is uncertain (either because the decision is taken before the realization of the random event or because its observation is not available). Usual application cases for RO are when there isn’t sufficient information to derive probability distributions, but this isn’t strictly necessary. RO focuses on guaranteeing solution feasibility for any possible value of the uncertain data inside a defined Uncertainty Set. In the case where the uncertainty impacts the objective function, it guarantees optimality for the works case scenario considered in the Uncertainty Set.
+Robust Optimization (RO) problems belong to the class of optimization under uncertainty problems where some problem data is uncertain (either because the decision is taken before the realization of the random event or because its observation is not available). Usual application cases for RO are when there isn’t sufficient information to derive probability distributions, but this isn’t strictly necessary. RO seeks solutions that remain feasible for any possible value of the uncertain data inside a defined Uncertainty Set. When the uncertainty affects the objective function, it optimizes for the worst case scenario in the Uncertainty Set.
 
 Many uncertainty sets have been proposed to accommodate different levels of conservatism and data structures ([1]-[7]). A comparison of uncertainty sets to usual risk measures used in finance are included in [4] and [11].
 
@@ -104,38 +104,37 @@ s.t. \quad & R = \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i 
 #### Uncertainty Set Vizualization and Special Case (Soyster's Uncertainty Set)
 In order to visualize Bertsimas's uncertainty set, it's useful to plot the case with only two assets. For instance, when the budget parameter is equal to one (``\Gamma = 1``) the resulting feasible region of the uncertaity set only allows one asset to be in its extreme value:
 
-![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_bertsimas.png?raw=true)
+![](../assets/set_bertsimas.png)
 
 On the other hand, when the budget parameter is equal to the number of assets (``\Gamma = 2``), the uncertainty set becomes similar to the one proposed by Soyster in [1], i.e. box uncertainty:
 
-![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/set_soyster.png?raw=true)
+![](../assets/set_soyster.png)
 
 #### Building Intuition with Efficient Frontiers
 Understanding the impacts on the final optimal portfolio given the uncertainty set is not trivial, but some easy analysis can help. One useful analysis is to plot the Efficient Frontier (EF) (a.k.a Pareto Frontier) for our optimization problems, which shows what are the optimal porfolios given our objective and constraints.
 
 If we plot the EF for the classic mean-variance problem (Markoviz) as well as the closest robust portfolios (e.g. Bertsimas and Soyster), we can see that by expanding our uncertainty set (and consequently restricting further our problem), we get sub-optimal solutions for the non-robust problem:
 
-![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/pareto_markowitz.png?raw=true)
+![](../assets/pareto_markowitz.png)
 
 Its also useful to see the EF for the respective robust problems since they have their own efficient frontier:
 
-![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/pareto_robust.png?raw=true)
+![](../assets/pareto_robust.png)
 
 Notwithstanding the importance of looking at EF for specific objectives, its more useful to see the possible returns the portfolio from a certain strategy might have if we allow the asset returns to vary inside the uncertainty sets. For instance, lets allow returns to vary inside Bertsimas' uncertainty set and see the consequences for Markowitz optimal portfolios and Bertsimas' optimal portfolios:
 
-![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/uncertain_pareto_bertsimas.png?raw=true)
+![](../assets/uncertain_pareto_bertsimas.png)
 
 Now we can cleary see the trade-off the robust portfolio is providing: a lower avarage return for a smaller range of possible portfolio return that is contained in the range of the non-robust counterpart.
 
 Moreover, if we allow returns to vary inside Soyster's uncertainty set, we get the following frontiers:
 
-![](https://github.com/andrewrosemberg/PortfolioOpt/blob/master/docs/src/assets/uncertain_pareto_soyster.png?raw=true)
+![](../assets/uncertain_pareto_soyster.png)
 
 Once again we get a lower avarage return for a smaller range of possible portfolio return that is contained in the range of the less-robust counterpart.
 
-PS.: Code in `examples/test_effi_robust.jl`.
-### Comming Soon
-TODO: Ben-Tal's uncertainty set ([`EllipticalSet`](@ref))
+### Other sets
+The ellipsoidal set of Ben-Tal & Nemirovski [3] ([`EllipticalSet`](@ref)) and the distributionally robust sets are described on the [Ambiguity sets](ambiguity.md) page.
 
 ## References
 
@@ -162,7 +161,7 @@ programming. Oper. Res. 1973, 21, 1154–1157.
 
 [11] Natarajan, K., Pachamanova, D., e Sim, M. (2009). Constructing risk measures from uncertainty sets. Operations research, 57(5):1129–1141.
 
-[12] Fernandes, B., Street, A., ValladA˜ £o, D., e Fernandes, C. (2016). An adaptive robust portfolio
+[12] Fernandes, B., Street, A., Valladão, D., e Fernandes, C. (2016). An adaptive robust portfolio
 optimization model with loss constraints based on data-driven polyhedral uncertainty sets. European Journal of Operational Research, 255(3):961 – 970. ISSN 0377-2217. [URL](https://www.sciencedirect.com/science/article/pii/S0377221716303757).
 
 [13] Futures Contracts Portfolio Selection via Robust Data Driven Optimization publication date Aug 9, 2018  publication descriptionL SBPO, 2018, Rio de Janeiro. Anais do L SBPO, 2018. v. 1. [URL](https://proceedings.science/sbpo/papers/selecao-de-carteira-de-contratos-futuros-via-otimizacao-robusta-direcionado-por-dados).

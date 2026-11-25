@@ -25,32 +25,32 @@ References:
 - Bertsimas, D. e Sim, M. (2004). The price of robustness. Operations research, 52(1):35–53.
 
 """
-struct BudgetSet{T<:Real, D<:Sampleable} <: CenteredAmbiguitySet{T,D}
+struct BudgetSet{T<:Real,D<:Sampleable} <: CenteredAmbiguitySet{T,D}
     d::D
     Δ::Vector{T}
     Γ::T
     # Inner constructor for validating arguments
-    function BudgetSet{T, D}(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:Sampleable}
-        length(d) == length(Δ) || throw(ArgumentError(
-            "Distribution ($(length(d))) and Δ ($(length(Δ))) are not the same length"
-        ))
+    function BudgetSet{T,D}(d::D, Δ::Vector{T}, Γ::T) where {T<:Real,D<:Sampleable}
+        length(d) == length(Δ) || throw(
+            ArgumentError(
+                "Distribution ($(length(d))) and Δ ($(length(Δ))) are not the same length",
+            ),
+        )
         all(>=(0), Δ) || throw(ArgumentError("All uncertainty deltas must be >= 0"))
         Γ >= 0 || throw(ArgumentError("Budget must be >= 0"))
         Γ <= length(d) || @warn "Budget should not exceed the distribution length"
-        return new{T, D}(d, Δ, Γ)
+        return new{T,D}(d, Δ, Γ)
     end
 end
 
 distribution(s::BudgetSet) = s.d
 
 # Default outer constructor
-BudgetSet(d::D, Δ::Vector{T}, Γ::T) where {T<:Real, D<:Sampleable} = BudgetSet{T, D}(d, Δ, Γ)
+BudgetSet(d::D, Δ::Vector{T}, Γ::T) where {T<:Real,D<:Sampleable} = BudgetSet{T,D}(d, Δ, Γ)
 
 # Kwarg constructor with defaults
 function BudgetSet(
-    d::Sampleable;
-    Δ=default_budgetset_delta(d),
-    Γ=default_budgetset_budget(d),
+    d::Sampleable; Δ=default_budgetset_delta(d), Γ=default_budgetset_budget(d)
 )
     return BudgetSet(d, Δ, Γ)
 end
@@ -99,7 +99,7 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `s::BudgetSet`: Struct containing atributes of BudgetSet's uncertainty set.
 """
-function calculate_measure!(measure::ExpectedReturn{S}, w)  where {S<:BudgetSet}
+function calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:BudgetSet}
     model = _owner_model(w)
     s = ambiguityset(measure)
 
@@ -109,13 +109,13 @@ function calculate_measure!(measure::ExpectedReturn{S}, w)  where {S<:BudgetSet}
     Δ = s.Δ
     Γ = s.Γ
     # dual variables (anonymous, so that the measure can be used more than once per model)
-    λ = @variable(model, lower_bound = 0)
-    π_neg = @variable(model, [i=1:n], lower_bound = 0)
-    π_pos = @variable(model, [i=1:n], lower_bound = 0)
-    θ = @variable(model, [i=1:n], lower_bound = 0)
+    λ = @variable(model, lower_bound=0)
+    π_neg = @variable(model, [i = 1:n], lower_bound=0)
+    π_pos = @variable(model, [i = 1:n], lower_bound=0)
+    θ = @variable(model, [i = 1:n], lower_bound=0)
     # constraints: from duality
-    @constraint(model, [i=1:n], w[i] == π_pos[i] - π_neg[i])
-    @constraint(model, [i=1:n], Δ[i] * (π_pos[i] + π_neg[i]) - θ[i] <= λ)
+    @constraint(model, [i = 1:n], w[i] == π_pos[i] - π_neg[i])
+    @constraint(model, [i = 1:n], Δ[i] * (π_pos[i] + π_neg[i]) - θ[i] <= λ)
 
     return dot(means, w) - sum(θ) - λ * Γ
 end
@@ -138,19 +138,24 @@ References:
 - Ben-Tal, A. e Nemirovski, A. (2000). Robust solutions of linear programming problems contaminated with uncertain data. Mathematical programming, 88(3):411–424.
 
 """
-struct EllipticalSet{T<:Real, D<:ContinuousMultivariateSampleable} <: CenteredAmbiguitySet{T,D}
+struct EllipticalSet{T<:Real,D<:ContinuousMultivariateSampleable} <:
+       CenteredAmbiguitySet{T,D}
     d::D
     Δ::T
 
     # Inner constructor for validating arguments
-    function EllipticalSet{T, D}(d::D, Δ::T) where {T<:Real, D<:ContinuousMultivariateSampleable}
+    function EllipticalSet{T,D}(
+        d::D, Δ::T
+    ) where {T<:Real,D<:ContinuousMultivariateSampleable}
         Δ >= 0 || throw(ArgumentError("Uncertainty delta must be >= 0"))
-        return new{T, D}(d, Δ)
+        return new{T,D}(d, Δ)
     end
 end
 
 # Default outer constructor
-EllipticalSet(d::D, Δ::T) where {T<:Real, D<:ContinuousMultivariateSampleable} = EllipticalSet{T, D}(d, Δ)
+function EllipticalSet(d::D, Δ::T) where {T<:Real,D<:ContinuousMultivariateSampleable}
+    return EllipticalSet{T,D}(d, Δ)
+end
 
 EllipticalSet(d::Sampleable; Δ) = EllipticalSet(d, Δ)
 
@@ -186,7 +191,7 @@ Arguments:
  - `w`: portfolio optimization investment variable ("weights").
  - `s:: EllipticalSet `: Struct containing atributes of EllipticalSet's uncertainty set.
 """
-function calculate_measure!(measure::ExpectedReturn{S}, w)   where {S<:EllipticalSet}
+function calculate_measure!(measure::ExpectedReturn{S}, w) where {S<:EllipticalSet}
     model = _owner_model(w)
     s = ambiguityset(measure)
 
