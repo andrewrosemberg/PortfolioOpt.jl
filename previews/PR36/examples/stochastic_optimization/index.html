@@ -51,7 +51,7 @@ date_range = timestamp(returns_series)[100:end];</code></pre><pre class="documen
  2010-11-30
  2010-12-01</code></pre><h3 id="Backtest-Markowitz"><a class="docs-heading-anchor" href="#Backtest-Markowitz">Backtest Markowitz</a><a id="Backtest-Markowitz-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-Markowitz" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results = Dict()
 backtest_results[&quot;EP_markowitz_limit_var&quot;], _ = sequential_backtest_market(
-    VolumeMarketHistory(returns_series), date_range,
+    VolumeMarketHistory(returns_series), date_range
 ) do market, past_returns, ext
     max_std = 0.003 / market_budget(market)
     k_back = 60
@@ -62,7 +62,8 @@ backtest_results[&quot;EP_markowitz_limit_var&quot;], _ = sequential_backtest_ma
     Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
     d = MvNormal(r̄, Σ)
 
-    formulation = PortfolioFormulation(MAX_SENSE,
+    formulation = PortfolioFormulation(
+        MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
         RiskConstraint(SqrtVariance(d), LessThan(max_std)),
     )
@@ -137,15 +138,16 @@ And data, a 216-element Vector{Float64}:
  -0.0020274301709163303
  -0.0038155091774883716
   0.0053603525640959545)), nothing)</code></pre><h3 id="Backtest-Sampled-CVAR"><a class="docs-heading-anchor" href="#Backtest-Sampled-CVAR">Backtest Sampled CVAR</a><a id="Backtest-Sampled-CVAR-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-Sampled-CVAR" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results[&quot;EP_limit_cvar&quot;], _ = sequential_backtest_market(
-    VolumeMarketHistory(returns_series), date_range,
+    VolumeMarketHistory(returns_series), date_range
 ) do market, past_returns, ext
     numD, numA = size(past_returns)
     returns = values(past_returns)
 
     R = -0.001 / market_budget(market)
-    d = DeterministicSamples(returns&#39;[:,:])
+    d = DeterministicSamples(returns&#39;[:, :])
 
-    formulation = PortfolioFormulation(MAX_SENSE,
+    formulation = PortfolioFormulation(
+        MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
         RiskConstraint(ConditionalExpectedReturn(d), GreaterThan(R)),
     )
@@ -222,21 +224,24 @@ And data, a 216-element Vector{Float64}:
   0.0006518992926114061)), nothing)</code></pre><h2 id="Plot"><a class="docs-heading-anchor" href="#Plot">Plot</a><a id="Plot-1"></a><a class="docs-heading-anchor-permalink" href="#Plot" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Plots
 using Plots.PlotMeasures
 
-plt = plot(;title=&quot;Culmulative Wealth&quot;,
+plt = plot(;
+    title=&quot;Culmulative Wealth&quot;,
     xlabel=&quot;Time&quot;,
     ylabel=&quot;Wealth&quot;,
     legend=:outertopright,
-    left_margin=10mm
+    left_margin=10mm,
 );
 for (strategy_name, recorders) in backtest_results
-    plot!(plt,
-        axes(get_records(recorders[:wealth]), 1), get_records(recorders[:wealth]).data;
+    plot!(
+        plt,
+        axes(get_records(recorders[:wealth]), 1),
+        get_records(recorders[:wealth]).data;
         label=strategy_name,
     )
 end
-plt</code></pre><img src="81c0bb41.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/+esm';
+plt</code></pre><img src="7b7df550.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/+esm';
 mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../guide/migration/">« Breaking changes in v2.0</a><a class="docs-footer-nextpage" href="../robust_optimization/">Robust optimization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Wednesday 25 November 2026 04:04">Wednesday 25 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../guide/migration/">« Breaking changes in v2.0</a><a class="docs-footer-nextpage" href="../robust_optimization/">Robust optimization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Wednesday 25 November 2026 07:36">Wednesday 25 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -57,7 +57,7 @@ date_range = timestamp(returns_series)[100:end];</code></pre><pre class="documen
  2010-12-01</code></pre><h3 id="Backtest-Soyster&#39;s-robust-return"><a class="docs-heading-anchor" href="#Backtest-Soyster&#39;s-robust-return">Backtest Soyster&#39;s robust return</a><a id="Backtest-Soyster&#39;s-robust-return-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-Soyster&#39;s-robust-return" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results = Dict()
 
 backtest_results[&quot;Soyster&quot;], _ = sequential_backtest_market(
-    VolumeMarketHistory(returns_series), date_range,
+    VolumeMarketHistory(returns_series), date_range
 ) do market, past_returns, ext
     numD, numA = size(past_returns)
     returns = values(past_returns)
@@ -67,9 +67,15 @@ backtest_results[&quot;Soyster&quot;], _ = sequential_backtest_market(
     d = MvNormal(r̄, Σ)
     R = -0.015 / market_budget(market)
 
-    formulation = PortfolioFormulation(MAX_SENSE,
+    formulation = PortfolioFormulation(
+        MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ExpectedReturn(BudgetSet(d; Δ=maximum(abs.(returns); dims=1)&#39;[:] .- r̄, Γ=numA * 1.0)), GreaterThan(R)),
+        RiskConstraint(
+            ExpectedReturn(
+                BudgetSet(d; Δ=maximum(abs.(returns); dims=1)&#39;[:] .- r̄, Γ=numA * 1.0)
+            ),
+            GreaterThan(R),
+        ),
     )
 
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -142,7 +148,7 @@ And data, a 216-element Vector{Float64}:
  -0.005270742609574128
  -0.006240649457927837
   0.005758320979680924)), nothing)</code></pre><h3 id="Backtest-Bertsimas&#39;s-robust-return"><a class="docs-heading-anchor" href="#Backtest-Bertsimas&#39;s-robust-return">Backtest Bertsimas&#39;s robust return</a><a id="Backtest-Bertsimas&#39;s-robust-return-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-Bertsimas&#39;s-robust-return" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results[&quot;Bertsimas&quot;], _ = sequential_backtest_market(
-    VolumeMarketHistory(returns_series), date_range,
+    VolumeMarketHistory(returns_series), date_range
 ) do market, past_returns, ext
     numD, numA = size(past_returns)
     returns = values(past_returns)
@@ -152,9 +158,15 @@ And data, a 216-element Vector{Float64}:
     d = MvNormal(r̄, Σ)
     R = -0.015 / market_budget(market)
 
-    formulation = PortfolioFormulation(MAX_SENSE,
+    formulation = PortfolioFormulation(
+        MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ExpectedReturn(BudgetSet(d; Δ=maximum(abs.(returns); dims=1)&#39;[:] .- r̄, Γ=numA * 0.3)), GreaterThan(R)),
+        RiskConstraint(
+            ExpectedReturn(
+                BudgetSet(d; Δ=maximum(abs.(returns); dims=1)&#39;[:] .- r̄, Γ=numA * 0.3)
+            ),
+            GreaterThan(R),
+        ),
     )
 
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -227,7 +239,7 @@ And data, a 216-element Vector{Float64}:
  -0.002862163132448593
  -0.0044046965926032135
   0.006408102031658544)), nothing)</code></pre><h3 id="Backtest-BenTal&#39;s-robust-return"><a class="docs-heading-anchor" href="#Backtest-BenTal&#39;s-robust-return">Backtest BenTal&#39;s robust return</a><a id="Backtest-BenTal&#39;s-robust-return-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-BenTal&#39;s-robust-return" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results[&quot;Ben-Tal&quot;], _ = sequential_backtest_market(
-    VolumeMarketHistory(returns_series), date_range,
+    VolumeMarketHistory(returns_series), date_range
 ) do market, past_returns, ext
     numD, numA = size(past_returns)
     returns = values(past_returns)
@@ -237,7 +249,8 @@ And data, a 216-element Vector{Float64}:
     d = MvNormal(r̄, Σ)
     R = -0.015 / market_budget(market)
 
-    formulation = PortfolioFormulation(MAX_SENSE,
+    formulation = PortfolioFormulation(
+        MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
         RiskConstraint(ExpectedReturn(EllipticalSet(d, 2.0)), GreaterThan(R)),
     )
@@ -312,7 +325,7 @@ And data, a 216-element Vector{Float64}:
  -0.01003073526061221
  -0.010804939824764081
   0.00855006931681952)), nothing)</code></pre><h3 id="Backtest-Betina&#39;s-robust-return"><a class="docs-heading-anchor" href="#Backtest-Betina&#39;s-robust-return">Backtest Betina&#39;s robust return</a><a id="Backtest-Betina&#39;s-robust-return-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-Betina&#39;s-robust-return" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results[&quot;Betina&quot;], _ = sequential_backtest_market(
-    VolumeMarketHistory(returns_series), date_range,
+    VolumeMarketHistory(returns_series), date_range
 ) do market, past_returns, ext
     numD, numA = size(past_returns)
     returns = values(past_returns)
@@ -324,9 +337,15 @@ And data, a 216-element Vector{Float64}:
     Σ, r̄ = mean_variance(returns[(end - k_back):end, :])
     d = MvNormal(r̄, Σ)
 
-    formulation = PortfolioFormulation(MAX_SENSE,
+    formulation = PortfolioFormulation(
+        MAX_SENSE,
         ObjectiveTerm(ExpectedReturn(d)),
-        RiskConstraint(ConditionalExpectedReturn(DeterministicSamples(returns&#39;[:, (end - j_robust):end]); α=0.0), GreaterThan(R)),
+        RiskConstraint(
+            ConditionalExpectedReturn(
+                DeterministicSamples(returns&#39;[:, (end - j_robust):end]); α=0.0
+            ),
+            GreaterThan(R),
+        ),
     )
 
     pointers = change_bids!(market, formulation, DEFAULT_SOLVER)
@@ -401,21 +420,24 @@ And data, a 216-element Vector{Float64}:
   0.010043887598505044)), nothing)</code></pre><h2 id="Plot"><a class="docs-heading-anchor" href="#Plot">Plot</a><a id="Plot-1"></a><a class="docs-heading-anchor-permalink" href="#Plot" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Plots
 using Plots.PlotMeasures
 
-plt = plot(;title=&quot;Culmulative Wealth&quot;,
+plt = plot(;
+    title=&quot;Culmulative Wealth&quot;,
     xlabel=&quot;Time&quot;,
     ylabel=&quot;Wealth&quot;,
     legend=:outertopright,
-    left_margin=10mm
+    left_margin=10mm,
 );
 for (strategy_name, recorders) in backtest_results
-    plot!(plt,
-        axes(get_records(recorders[:wealth]), 1), get_records(recorders[:wealth]).data;
+    plot!(
+        plt,
+        axes(get_records(recorders[:wealth]), 1),
+        get_records(recorders[:wealth]).data;
         label=strategy_name,
     )
 end
-plt</code></pre><img src="c0325bfd.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/+esm';
+plt</code></pre><img src="51adeb2a.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/+esm';
 mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../stochastic_optimization/">« Stochastic optimization</a><a class="docs-footer-nextpage" href="../distributionally_robust_optimization/">Distributionally robust optimization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Wednesday 25 November 2026 04:04">Wednesday 25 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../stochastic_optimization/">« Stochastic optimization</a><a class="docs-footer-nextpage" href="../distributionally_robust_optimization/">Distributionally robust optimization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Wednesday 25 November 2026 07:36">Wednesday 25 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
