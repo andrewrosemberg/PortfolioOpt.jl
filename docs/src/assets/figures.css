@@ -1,0 +1,50 @@
+/* Figures: the treatment of the author's website (white paper-figure frame, centred, caption below). */
+.content figure.fig {
+  margin: 1.75em auto;
+  max-width: 760px;
+  text-align: center;
+}
+.content figure.fig img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 760px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e3e5e8;
+  border-radius: 6px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+.content figure.fig.inset { max-width: 600px; }
+.content figure.fig figcaption {
+  margin: 0.7em auto 0;
+  max-width: 700px;
+  font-size: 0.875em;
+  line-height: 1.5;
+  text-align: left;
+  opacity: 0.85;
+}
+.content figure.fig figcaption b { font-weight: 600; }
+.content p.lede {
+  font-size: 1.12em;
+  line-height: 1.6;
+}
+/* dark themes: keep the white paper, add a subtle ring instead of the light border */
+html.theme--documenter-dark .content figure.fig img,
+html.theme--catppuccin-frappe .content figure.fig img,
+html.theme--catppuccin-macchiato .content figure.fig img,
+html.theme--catppuccin-mocha .content figure.fig img {
+  border-color: transparent;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.content p.eyebrow {
+  margin: -0.4em 0 1.2em;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.content figure.fig.hero { margin-top: 0.5em; }
+.content figure.fig.hero figcaption { text-align: center; }
