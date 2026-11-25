@@ -1,10 +1,12 @@
 /* Figures: the treatment of the author's website (white paper-figure frame, centred, caption below). */
-.content figure.fig {
+html body .content figure.fig {
   margin: 1.75em auto;
   max-width: 760px;
+  padding: 0;
+  background: transparent;
   text-align: center;
 }
-.content figure.fig img {
+html body .content figure.fig img {
   display: block;
   width: 100%;
   height: auto;
@@ -16,29 +18,32 @@
   padding: 12px;
   box-sizing: border-box;
 }
-.content figure.fig.inset { max-width: 600px; }
-.content figure.fig figcaption {
+html body .content figure.fig.inset { max-width: 600px; }
+html body .content figure.fig figcaption {
   margin: 0.7em auto 0;
   max-width: 700px;
   font-size: 0.875em;
   line-height: 1.5;
   text-align: left;
   opacity: 0.85;
+  font-style: normal;
+  padding: 0;
+  background: transparent;
 }
-.content figure.fig figcaption b { font-weight: 600; }
-.content p.lede {
+html body .content figure.fig figcaption b { font-weight: 600; }
+html body .content p.lede {
   font-size: 1.12em;
   line-height: 1.6;
 }
 /* dark themes: keep the white paper, add a subtle ring instead of the light border */
-html.theme--documenter-dark .content figure.fig img,
-html.theme--catppuccin-frappe .content figure.fig img,
-html.theme--catppuccin-macchiato .content figure.fig img,
-html.theme--catppuccin-mocha .content figure.fig img {
+html.theme--documenter-dark body .content figure.fig img,
+html.theme--catppuccin-frappe body .content figure.fig img,
+html.theme--catppuccin-macchiato body .content figure.fig img,
+html.theme--catppuccin-mocha body .content figure.fig img {
   border-color: transparent;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
-.content p.eyebrow {
+html body .content p.eyebrow {
   margin: -0.4em 0 1.2em;
   font-size: 0.8em;
   font-weight: 600;
@@ -46,5 +51,5 @@ html.theme--catppuccin-mocha .content figure.fig img {
   text-transform: uppercase;
   opacity: 0.7;
 }
-.content figure.fig.hero { margin-top: 0.5em; }
-.content figure.fig.hero figcaption { text-align: center; }
+html body .content figure.fig.hero { margin-top: 0.5em; }
+html body .content figure.fig.hero figcaption { text-align: center; }
