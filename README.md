@@ -1,36 +1,26 @@
+<div align="center">
+
 # PortfolioOpt.jl
 
-[![CI](https://github.com/andrewrosemberg/PortfolioOpt.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/andrewrosemberg/PortfolioOpt.jl/actions/workflows/CI.yml?query=branch%3Amaster)
-[![Coverage](https://codecov.io/gh/andrewrosemberg/PortfolioOpt.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/andrewrosemberg/PortfolioOpt.jl)
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://andrewrosemberg.github.io/PortfolioOpt.jl/stable)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev)
-[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
-[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+<p><sub><b>UNCERTAINTY SETS · AMBIGUITY SETS · RISK MEASURES</b></sub></p>
 
-PortfolioOpt.jl writes portfolio optimization problems as [JuMP](https://jump.dev) models. A problem is a
-`PortfolioFormulation`: objective terms and risk constraints built from measures of the next period portfolio
-return (expected return, variance, conditional value at risk, expected exponential utility, certainty equivalent),
-evaluated over a forecast distribution or in the worst case over an uncertainty or ambiguity set (budget and
-ellipsoidal sets, moment uncertainty with an optional box support, Wasserstein balls). Each measure is added to the
-model as a conic reformulation that is exact under stated conditions, so any conic solver supported by JuMP can
-solve it, and the tests compare every reformulation against closed forms and direct evaluation. A small market interface and a
-walk-forward backtest evaluate the resulting strategies. The methods follow Markowitz (1952), Rockafellar & Uryasev
-(2000), Bertsimas & Sim (2004), Ben-Tal & Nemirovski (2000), Delage & Ye (2010) and Yang et al. (2014); see the
-[Theory pages](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev/theory/problem/) for the full references.
+[![CI](https://github.com/andrewrosemberg/PortfolioOpt.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/andrewrosemberg/PortfolioOpt.jl/actions/workflows/CI.yml?query=branch%3Amaster) [![Coverage](https://codecov.io/gh/andrewrosemberg/PortfolioOpt.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/andrewrosemberg/PortfolioOpt.jl) [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://andrewrosemberg.github.io/PortfolioOpt.jl/stable) [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev) [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle) [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
-```mermaid
-flowchart LR
-    data["past returns"] --> fc["forecast<br/>MvNormal, samples"]
-    fc --> set["uncertainty / ambiguity set<br/>(optional)"]
-    fc --> meas["risk / utility measure"]
-    set --> meas
-    meas --> form["PortfolioFormulation<br/>objective terms + risk constraints"]
-    mkt["market<br/>budget, short selling, fees"] --> jump["JuMP conic model"]
-    form --> jump
-    jump --> solve["solve<br/>any conic solver"]
-    solve --> sim["market clearing<br/>and backtest"]
-    sim -->|next period| data
-```
+</div>
+
+<p align="center">
+  <picture>
+    <source media="(max-width: 640px)" srcset="docs/src/assets/diagrams/portfolioopt--formulation-compact.svg">
+    <img src="docs/src/assets/diagrams/portfolioopt--formulation.svg" width="760" alt="Formulation lane: a returns model, P or a set of distributions, feeds a measure rho of w, which takes a role, an objective weight or a constraint set, in a portfolio problem over the feasible set X. Backtest lane: JuMP solves the conic model, the decision w star is cleared with the realized returns, and the history of returns feeds the next forecast.">
+  </picture>
+</p>
+<p align="center"><i>A returns model, a measure over it and the measure's role make one formulation; JuMP solves it as a conic program, and the backtest clears the decision before the next period.</i></p>
+
+PortfolioOpt.jl writes portfolio optimization problems as [JuMP](https://jump.dev) models. How the returns are
+modeled (a distribution, an uncertainty set or an ambiguity set), which risk measure is applied, and whether that
+measure enters the objective or a constraint are separate objects, so swapping a set or a measure leaves the rest of
+the formulation untouched. Each supported combination is added to the model as a conic reformulation that any conic
+solver supported by JuMP can solve, and a walk-forward backtest evaluates the resulting strategies.
 
 ## Installation
 
@@ -79,6 +69,16 @@ change_bids!(market, model, w) # solves and stores the decision
 bids(market)
 ```
 
+<p align="center">
+  <img src="docs/src/assets/portfolio-backtest.svg" width="760" alt="Cumulative wealth over 2010 for four strategies. The two Markowitz strategies swing more and end highest; the two strategies with robust return floors follow smoother paths and end lower.">
+</p>
+
+**Four documented strategies on the package's six-stock test dataset, 2010, without transaction costs.** The
+mean–variance portfolio of Markowitz (1952) with a variance limit; the same strategy with a worst-case return floor
+over the box set and an ℓ1 penalty; and expected-return maximization with a worst-case return floor over an
+ellipsoidal or a budget set. Each strategy differs from the others in one or two arguments of the formulation. The
+figure re-runs the documentation examples to illustrate the backtest and makes no claim about the strategies.
+
 ## Supported measures and sets
 
 | Measure | Over | Value | Cones | Reference |
@@ -100,10 +100,10 @@ exact, in the [Theory](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev/the
 
 ## What you need to provide
 
-- Returns: a `T × N` matrix (one row per period) or a `TimeArray`, or directly a distribution of the next period
-  returns (any multivariate `Distributions.Sampleable`, or `DeterministicSamples` with one sample per column).
-- A JuMP optimizer that supports the cones of the measures you use (Clarabel, SCS and Mosek support all of them).
-- For backtests: a `VolumeMarketHistory` of returns and a strategy function `(market, past_returns, ext) -> ...`.
+Returns, as a `T × N` matrix (one row per period) or a `TimeArray`, or directly a distribution of the next period
+returns (any multivariate `Distributions.Sampleable`, or `DeterministicSamples` with one sample per column); and a JuMP
+optimizer that supports the cones of the measures you use (Clarabel, SCS and Mosek support all of them). A backtest
+also needs a `VolumeMarketHistory` of returns and a strategy function `(market, past_returns, ext) -> ...`.
 
 ## Extending
 
@@ -137,10 +137,11 @@ See [Extending PortfolioOpt](https://andrewrosemberg.github.io/PortfolioOpt.jl/d
 The core depends only on JuMP, MathOptInterface, Distributions, PDMats, ProgressMeter, Reexport and standard
 libraries. Loading these packages enables:
 
-- [TimeSeries.jl](https://github.com/JuliaStats/TimeSeries.jl): a `TimeArray` of returns as a `VolumeMarketHistory`;
-- [MarketData.jl](https://github.com/JuliaQuant/MarketData.jl): `TestUtils.get_test_data()` (6 assets of daily prices);
-- [OptimalBids.jl](https://github.com/andrewrosemberg/OptimalBids.jl): its `change_bids!`, `clear_market!` and
-  `calculate_profit` accept any `PortfolioMarket`.
+| Package | Adds |
+|:--|:--|
+| [TimeSeries.jl](https://github.com/JuliaStats/TimeSeries.jl) | a `TimeArray` of returns as a `VolumeMarketHistory` |
+| [MarketData.jl](https://github.com/JuliaQuant/MarketData.jl) | `TestUtils.get_test_data()` (6 assets of daily prices) |
+| [OptimalBids.jl](https://github.com/andrewrosemberg/OptimalBids.jl) | its `change_bids!`, `clear_market!` and `calculate_profit` accept any `PortfolioMarket` |
 
 Upgrading from v1? See [Breaking changes in v2.0](https://andrewrosemberg.github.io/PortfolioOpt.jl/dev/guide/migration/).
 
@@ -148,11 +149,11 @@ Upgrading from v1? See [Breaking changes in v2.0](https://andrewrosemberg.github
 
 PortfolioOpt.jl is part of a family of Julia packages for optimization under uncertainty and learning to optimize:
 
-- [OptimalBids.jl](https://github.com/andrewrosemberg/OptimalBids.jl): bidding strategies in generic markets;
-- [DecisionRules.jl](https://github.com/LearningToOptimize/DecisionRules.jl): parametric decision rules for
-  multistage stochastic programs;
-- [LearningToOptimize.jl](https://github.com/LearningToOptimize/LearningToOptimize.jl): proxy models that learn to
-  solve optimization problems.
+| Package | Scope |
+|:--|:--|
+| [OptimalBids.jl](https://github.com/andrewrosemberg/OptimalBids.jl) | bidding strategies in generic markets |
+| [DecisionRules.jl](https://github.com/LearningToOptimize/DecisionRules.jl) | parametric decision rules for multistage stochastic programs |
+| [LearningToOptimize.jl](https://github.com/LearningToOptimize/LearningToOptimize.jl) | proxy models that learn to solve optimization problems |
 
 ## Citation
 
