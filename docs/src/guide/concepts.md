@@ -4,9 +4,9 @@
 <figure class="fig">
   <picture>
     <source media="(max-width: 640px)" srcset="../../assets/diagrams/portfolioopt--formulation-compact.svg">
-    <img src="../../assets/diagrams/portfolioopt--formulation.svg" alt="Formulation lane: a returns model, P or a set of distributions, feeds a measure rho of w, which takes a role, an objective weight c_j or a constraint set C_i, in the problem max over w in X of the weighted measures subject to the constraints. Backtest lane: JuMP solves the conic model, the decision w star is cleared with the realized returns, and the history of returns feeds the next forecast." width="554" height="264">
+    <img src="../../assets/diagrams/portfolioopt--formulation.svg" alt="Formulation: three independent choices. A returns model (a distribution P, samples r_1 to r_S, or an ambiguity set of distributions); a measure rho of w (expected return, standard deviation, minus CVaR, a worst case over the ambiguity set, or your own); and a role (objective term c_j rho_j of w, or risk constraint rho_i of w in C_i). Together they make one portfolio problem, maximize the weighted measures subject to the risk constraints and w in X; each measure has a conic form, so JuMP and any conic solver give the decision w star." width="760" height="256">
   </picture>
-  <figcaption><b>One strategy, from returns to a decision and back.</b> The three blue objects are independent arguments of a formulation; the backtest lane is the walk-forward loop of <code>sequential_backtest_market</code>. Notation of <a href="../../theory/problem/">The portfolio problem</a>; <i>r</i><sub>1:<i>t</i></sub> are the returns observed up to period <i>t</i>.</figcaption>
+  <figcaption><b>From three choices to a decision.</b> The returns model, the measure and its role are independent arguments of a formulation, so any one can be swapped. Notation of <a href="../../theory/problem/">The portfolio problem</a>; the conic form is explained in <a href="../../theory/problem/#direction">Conic representation of the measures</a>.</figcaption>
 </figure>
 ```
 
@@ -18,9 +18,9 @@ Each box of the diagram is a type or a function of the package:
 | measure ``\rho(w)`` | a [`PortfolioRiskMeasure`](@ref), or another [`AbstractPortfolioTerm`](@ref) |
 | role ``c_j`` or ``\mathcal{C}_i`` | [`ObjectiveTerm`](@ref) (weight) or [`RiskConstraint`](@ref) (sense and level) |
 | the problem | [`PortfolioFormulation`](@ref); ``\mathcal{X}`` is the [`PortfolioMarket`](@ref) |
-| JuMP conic model, conic solve | [`market_model`](@ref) + [`portfolio_model!`](@ref) ([`build_portfolio_model`](@ref)), solved by [`change_bids!`](@ref) |
-| clear market | [`clear_market!`](@ref), [`total_profit`](@ref) |
-| next period, ``r_{1:t}`` | [`sequential_backtest_market`](@ref) over a [`MarketHistory`](@ref), with recorders |
+| conic form, JuMP + conic solver | [`market_model`](@ref) + [`portfolio_model!`](@ref) ([`build_portfolio_model`](@ref)), solved by [`change_bids!`](@ref) |
+
+The walk-forward backtest repeats this every period: [`sequential_backtest_market`](@ref) forecasts from a [`MarketHistory`](@ref), solves, clears the decision against the realized returns ([`clear_market!`](@ref), [`total_profit`](@ref)) and moves to the next date.
 
 ## Uncertainty: distributions and ambiguity sets
 

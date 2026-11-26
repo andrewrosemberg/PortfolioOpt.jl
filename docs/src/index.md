@@ -9,9 +9,9 @@ CurrentModule = PortfolioOpt
 <figure class="fig hero">
   <picture>
     <source media="(max-width: 640px)" srcset="assets/diagrams/portfolioopt--formulation-compact.svg">
-    <img src="assets/diagrams/portfolioopt--formulation.svg" alt="Formulation lane: a returns model, P or a set of distributions, feeds a measure rho of w, which takes a role, an objective weight c_j or a constraint set C_i, in the problem max over w in X of the weighted measures subject to the constraints. Backtest lane: JuMP solves the conic model, the decision w star is cleared with the realized returns, and the history of returns feeds the next forecast." width="554" height="264">
+    <img src="assets/diagrams/portfolioopt--formulation.svg" alt="Formulation: three independent choices. A returns model (a distribution P, samples r_1 to r_S, or an ambiguity set of distributions); a measure rho of w (expected return, standard deviation, minus CVaR, a worst case over the ambiguity set, or your own); and a role (objective term c_j rho_j of w, or risk constraint rho_i of w in C_i). Together they make one portfolio problem, maximize the weighted measures subject to the risk constraints and w in X; each measure has a conic form, so JuMP and any conic solver give the decision w star." width="760" height="256">
   </picture>
-  <figcaption><i>A returns model, a measure over it and the measure's role make one formulation. JuMP solves it as a conic program, and the backtest clears the decision against the realized returns before the next period.</i></figcaption>
+  <figcaption><i>A returns model, a measure and its role are independent choices; together they make one portfolio problem, which JuMP solves as a conic program.</i></figcaption>
 </figure>
 <p class="lede">A portfolio decision under uncertainty combines three choices that are easy to conflate: how the returns are modeled (a distribution, an uncertainty set or an ambiguity set), which risk measure is applied, and whether that measure enters the objective or a constraint. PortfolioOpt.jl keeps the three as separate objects and compiles each supported combination into a conic JuMP model, so swapping a set or a measure leaves the rest of the formulation untouched.</p>
 ```
