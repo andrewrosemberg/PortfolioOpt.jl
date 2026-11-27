@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="referrer" content="no-referrer"/><title>Robust optimization · PortfolioOpt.jl</title><meta name="title" content="Robust optimization · PortfolioOpt.jl"/><meta property="og:title" content="Robust optimization · PortfolioOpt.jl"/><meta property="twitter:title" content="Robust optimization · PortfolioOpt.jl"/><meta name="description" content="Documentation for PortfolioOpt.jl."/><meta property="og:description" content="Documentation for PortfolioOpt.jl."/><meta property="twitter:description" content="Documentation for PortfolioOpt.jl."/><meta property="og:url" content="https://andrewrosemberg.github.io/PortfolioOpt.jl/examples/robust_optimization/"/><meta property="twitter:url" content="https://andrewrosemberg.github.io/PortfolioOpt.jl/examples/robust_optimization/"/><link rel="canonical" href="https://andrewrosemberg.github.io/PortfolioOpt.jl/examples/robust_optimization/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">PortfolioOpt.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Theory</span><ul><li><a class="tocitem" href="../../theory/problem/">The portfolio problem</a></li><li><a class="tocitem" href="../../theory/measures/">Risk measures</a></li><li><a class="tocitem" href="../../theory/ambiguity/">Ambiguity sets</a></li><li><a class="tocitem" href="../../theory/robust_po/">Robust portfolio optimization</a></li></ul></li><li><span class="tocitem">Package guide</span><ul><li><a class="tocitem" href="../../guide/getting_started/">Getting started</a></li><li><a class="tocitem" href="../../guide/concepts/">Concepts</a></li><li><a class="tocitem" href="../../guide/extending/">Extending PortfolioOpt</a></li><li><a class="tocitem" href="../../guide/migration/">Breaking changes in v2.0</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../stochastic_optimization/">Stochastic optimization</a></li><li class="is-active"><a class="tocitem" href>Robust optimization</a><ul class="internal"><li><a class="tocitem" href="#Robust-Return-as-Risk-Constraint"><span>Robust Return as Risk Constraint</span></a></li><li><a class="tocitem" href="#Plot"><span>Plot</span></a></li></ul></li><li><a class="tocitem" href="../distributionally_robust_optimization/">Distributionally robust optimization</a></li><li><a class="tocitem" href="../model_assessment/">Model assessment</a></li></ul></li><li><a class="tocitem" href="../../api/">API reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Robust optimization</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Robust optimization</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/andrewrosemberg/PortfolioOpt.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/andrewrosemberg/PortfolioOpt.jl/blob/master/docs/src/examples/robust_optimization.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Robust-Portfolio-Optimization"><a class="docs-heading-anchor" href="#Robust-Portfolio-Optimization">Robust Portfolio Optimization</a><a id="Robust-Portfolio-Optimization-1"></a><a class="docs-heading-anchor-permalink" href="#Robust-Portfolio-Optimization" title="Permalink"></a></h1><h2 id="Robust-Return-as-Risk-Constraint"><a class="docs-heading-anchor" href="#Robust-Return-as-Risk-Constraint">Robust Return as Risk Constraint</a><a id="Robust-Return-as-Risk-Constraint-1"></a><a class="docs-heading-anchor-permalink" href="#Robust-Return-as-Risk-Constraint" title="Permalink"></a></h2><pre><code class="language-julia hljs">using HiGHS
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="referrer" content="no-referrer"/><title>Robust optimization · PortfolioOpt.jl</title><meta name="title" content="Robust optimization · PortfolioOpt.jl"/><meta property="og:title" content="Robust optimization · PortfolioOpt.jl"/><meta property="twitter:title" content="Robust optimization · PortfolioOpt.jl"/><meta name="description" content="Documentation for PortfolioOpt.jl."/><meta property="og:description" content="Documentation for PortfolioOpt.jl."/><meta property="twitter:description" content="Documentation for PortfolioOpt.jl."/><meta property="og:url" content="https://andrewrosemberg.github.io/PortfolioOpt.jl/examples/robust_optimization/"/><meta property="twitter:url" content="https://andrewrosemberg.github.io/PortfolioOpt.jl/examples/robust_optimization/"/><link rel="canonical" href="https://andrewrosemberg.github.io/PortfolioOpt.jl/examples/robust_optimization/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/figures.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">PortfolioOpt.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Theory</span><ul><li><a class="tocitem" href="../../theory/problem/">The portfolio problem</a></li><li><a class="tocitem" href="../../theory/measures/">Risk measures</a></li><li><a class="tocitem" href="../../theory/ambiguity/">Ambiguity sets</a></li><li><a class="tocitem" href="../../theory/robust_po/">Robust portfolio optimization</a></li></ul></li><li><span class="tocitem">Package guide</span><ul><li><a class="tocitem" href="../../guide/getting_started/">Getting started</a></li><li><a class="tocitem" href="../../guide/concepts/">Concepts</a></li><li><a class="tocitem" href="../../guide/extending/">Extending PortfolioOpt</a></li><li><a class="tocitem" href="../../guide/migration/">Breaking changes in v2.0</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../stochastic_optimization/">Stochastic optimization</a></li><li class="is-active"><a class="tocitem" href>Robust optimization</a><ul class="internal"><li><a class="tocitem" href="#Robust-Return-as-Risk-Constraint"><span>Robust Return as Risk Constraint</span></a></li><li><a class="tocitem" href="#Plot"><span>Plot</span></a></li></ul></li><li><a class="tocitem" href="../distributionally_robust_optimization/">Distributionally robust optimization</a></li><li><a class="tocitem" href="../model_assessment/">Model assessment</a></li></ul></li><li><a class="tocitem" href="../../api/">API reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Robust optimization</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Robust optimization</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/andrewrosemberg/PortfolioOpt.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/andrewrosemberg/PortfolioOpt.jl/blob/master/docs/src/examples/robust_optimization.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Robust-Portfolio-Optimization"><a class="docs-heading-anchor" href="#Robust-Portfolio-Optimization">Robust Portfolio Optimization</a><a id="Robust-Portfolio-Optimization-1"></a><a class="docs-heading-anchor-permalink" href="#Robust-Portfolio-Optimization" title="Permalink"></a></h1><h2 id="Robust-Return-as-Risk-Constraint"><a class="docs-heading-anchor" href="#Robust-Return-as-Risk-Constraint">Robust Return as Risk Constraint</a><a id="Robust-Return-as-Risk-Constraint-1"></a><a class="docs-heading-anchor-permalink" href="#Robust-Return-as-Risk-Constraint" title="Permalink"></a></h2><pre><code class="language-julia hljs">using HiGHS
 using Clarabel
 using Distributions
 using PortfolioOpt
@@ -176,7 +176,7 @@ end</code></pre><pre class="documenter-example-output"><code class="nohighlight 
     Dimension 2, 1:6
 And data, a 216×6 Matrix{Float64}:
  0.20289308736653008   0.24486952446614163  …  0.12726584082925055
- 0.1953388446189664    0.24063740619103535     0.12537474874411006
+ 0.1953388446189664    0.2406374061910353      0.12537474874411003
  0.1988578503457958    0.13702293602214888     0.1268202707862655
  0.19187430733948374   0.13507535643019292     0.12469450606375981
  0.0                  -0.0                     0.2154258801732391
@@ -186,13 +186,13 @@ And data, a 216×6 Matrix{Float64}:
  0.0                   0.13060766191114231     0.11618447426663103
  0.0                  -0.0                     0.20716602453458405
  ⋮                                          ⋱  ⋮
- 0.10960021189313257   0.0                     0.11094174387120354
+ 0.10960021189313257   0.0                     0.11094174387120356
  0.11196184769442043   0.0                     0.10966622870818175
  0.1115496686720318    0.0                     0.10970771038082248
  0.10985249024803737   0.0                  …  0.10644013245886835
  0.10734653247722736   0.0                     0.10316144334132374
  0.10918578734767426   0.0                     0.10521880851067232
- 0.10834929035351762   0.0                     0.10547950413651319
+ 0.1083492903535176    0.0                     0.10547950413651316
  0.10650457785573118   0.0                     0.10278488574177262
  0.0                   0.0                  …  0.10091695075143108), :wealth =&gt; PortfolioOpt.WealthRecorder{Float64}(1-dimensional DenseAxisArray{Float64,1,...} with index sets:
     Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;), Dates.Date(&quot;2010-12-02&quot;)]
@@ -220,7 +220,7 @@ And data, a 217-element Vector{Float64}:
     Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-17&quot;), Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;)]
 And data, a 216-element Vector{Float64}:
   0.004043437302106927
-  0.016121764134283106
+  0.0161217641342831
  -0.0129104283203946
  -0.021440976754650714
   0.005646570828875985
@@ -230,13 +230,13 @@ And data, a 216-element Vector{Float64}:
  -0.003678643351424106
   0.0011680686489537598
   ⋮
-  0.0029311006049640483
+  0.0029311006049640475
   0.0018669432315116582
   0.003002566559219948
  -0.007903859214212586
   0.009042132179019523
  -0.0010889711920195457
- -0.002862163132448594
+ -0.002862163132448593
  -0.0044046965926032135
   0.006408102031658544)), nothing)</code></pre><h3 id="Backtest-BenTal&#39;s-robust-return"><a class="docs-heading-anchor" href="#Backtest-BenTal&#39;s-robust-return">Backtest BenTal&#39;s robust return</a><a id="Backtest-BenTal&#39;s-robust-return-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-BenTal&#39;s-robust-return" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results[&quot;Ben-Tal&quot;], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range
@@ -261,70 +261,70 @@ end</code></pre><pre class="documenter-example-output"><code class="nohighlight 
     Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-17&quot;), Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;)]
     Dimension 2, 1:6
 And data, a 216×6 Matrix{Float64}:
- 1.8028597595357776e-8  9.464980251081132e-9   …  0.34213870555179576
- 8.116150036169451e-9   4.2778920170371323e-8     0.33987665503174685
- 3.5273339635363873e-9  0.06512786732298187       0.3053917789153314
- 7.202131382994101e-9   0.07426018936342856       0.30683425948999343
- 3.500889306688124e-9   0.016657117337601352      0.29736377103059874
- 1.0975802816745137e-8  0.11106193587843531    …  0.23825015705270852
- 2.403694637750166e-9   0.12728422577066784       0.23520948507117967
- 5.733164149512462e-9   0.09070917768220992       0.2632203510736665
- 5.898256199524877e-9   0.1977868442995794        0.16075610775175478
- 1.3661072137748925e-8  0.07002215315773834       0.24190068373679477
+ 1.8028596103630076e-8  9.464979401938512e-9   …  0.342138705552063
+ 8.11615008856765e-9    4.277892094621108e-8      0.3398766550318159
+ 3.527332365459436e-9   0.06512786732315698       0.3053917789149786
+ 7.202111268316925e-9   0.0742601893471174        0.3068342594985491
+ 3.5008892628482425e-9  0.016657117337845376      0.2973637710304776
+ 1.0975851975001953e-8  0.1110619358523797     …  0.23825015707363326
+ 2.403730711486592e-9   0.1272842257702233        0.23520948507120476
+ 5.733163455754555e-9   0.09070917768265936       0.2632203510731715
+ 5.898255820129151e-9   0.1977868442990932        0.16075610775190957
+ 1.366107193182183e-8   0.07002215315778852       0.24190068373661314
  ⋮                                             ⋱  ⋮
- 6.532961160058822e-9   8.764680959357894e-10     0.2632486123035871
- 6.181028689789488e-8   9.626863270476662e-9      0.16161959221057481
- 1.894884319662748e-8   2.3228561974942247e-9     0.16571945659166384
- 8.650343049066366e-8   9.144340498044285e-9   …  0.1346821384641227
- 6.035658272539817e-9   1.0897653439329299e-9     0.06102181303413794
- 2.5154253475042122e-8  6.947484052515095e-9      0.047455595859890384
- 2.5901466822231893e-8  4.394174380382992e-9      0.10990154183795445
- 2.4422213548094794e-8  1.0586506688354322e-9     0.13618941007303464
- 6.630189238844301e-10  6.053790491961917e-10  …  0.16557103065828765), :wealth =&gt; PortfolioOpt.WealthRecorder{Float64}(1-dimensional DenseAxisArray{Float64,1,...} with index sets:
+ 6.532960637136821e-9   8.764680558773461e-10     0.26324861230498653
+ 6.181028658292432e-8   9.626863207647872e-9      0.16161959221195132
+ 1.8948850291706075e-8  2.3228570648255e-9        0.1657194565934186
+ 8.650342959877987e-8   9.144340351840079e-9   …  0.13468213846526136
+ 6.035656437171979e-9   1.0897651574512783e-9     0.061021813034721616
+ 2.5154253385633063e-8  6.947484030446522e-9      0.04745559586032723
+ 2.5901465146441773e-8  4.394174094882903e-9      0.1099015418384578
+ 2.4423706918106975e-8  1.0587129868300318e-9     0.13618940830989434
+ 6.63027545356187e-10   6.054041299614613e-10  …  0.16557103093804593), :wealth =&gt; PortfolioOpt.WealthRecorder{Float64}(1-dimensional DenseAxisArray{Float64,1,...} with index sets:
     Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;), Dates.Date(&quot;2010-12-02&quot;)]
 And data, a 217-element Vector{Float64}:
  1.0
- 1.0066086246115855
- 1.017083179392952
- 1.0109178577595466
- 0.9925294063534396
- 1.0007249686180222
- 1.0066715958189731
- 1.0109724707573686
- 0.9936291555237828
- 0.988381423455012
+ 1.0066086246115695
+ 1.0170831793929394
+ 1.0109178577595133
+ 0.9925294063534723
+ 1.0007249686180562
+ 1.006671595819504
+ 1.0109724707579035
+ 0.9936291555243063
+ 0.9883814234555409
  ⋮
- 1.1951478010985026
- 1.1937206520281047
- 1.197218012326242
- 1.1856607387363323
- 1.2034890713226047
- 1.2024061992026962
- 1.190345180942984
- 1.177483572889368
- 1.1875511390985902), :returns =&gt; PortfolioOpt.ReturnsRecorder{Float64}(1-dimensional DenseAxisArray{Float64,1,...} with index sets:
+ 1.1951478010884298
+ 1.193720652018021
+ 1.1972180123161908
+ 1.1856607387261826
+ 1.2034890713125996
+ 1.202406199192682
+ 1.1903451809328613
+ 1.177483572882184
+ 1.1875511390497429), :returns =&gt; PortfolioOpt.ReturnsRecorder{Float64}(1-dimensional DenseAxisArray{Float64,1,...} with index sets:
     Dimension 1, [Dates.Date(&quot;2010-01-26&quot;), Dates.Date(&quot;2010-01-27&quot;), Dates.Date(&quot;2010-01-28&quot;), Dates.Date(&quot;2010-01-29&quot;), Dates.Date(&quot;2010-02-01&quot;), Dates.Date(&quot;2010-02-02&quot;), Dates.Date(&quot;2010-02-03&quot;), Dates.Date(&quot;2010-02-04&quot;), Dates.Date(&quot;2010-02-05&quot;), Dates.Date(&quot;2010-02-08&quot;)  …  Dates.Date(&quot;2010-11-17&quot;), Dates.Date(&quot;2010-11-18&quot;), Dates.Date(&quot;2010-11-19&quot;), Dates.Date(&quot;2010-11-22&quot;), Dates.Date(&quot;2010-11-23&quot;), Dates.Date(&quot;2010-11-24&quot;), Dates.Date(&quot;2010-11-26&quot;), Dates.Date(&quot;2010-11-29&quot;), Dates.Date(&quot;2010-11-30&quot;), Dates.Date(&quot;2010-12-01&quot;)]
 And data, a 216-element Vector{Float64}:
-  0.006608624611585507
-  0.010405786842337408
- -0.006061767373918517
- -0.018189857133259577
-  0.008257248815118863
-  0.005942319206008423
-  0.004272371403204839
- -0.017155081602363634
- -0.0052813789124419525
-  0.000727296055090865
+  0.006608624611569526
+  0.01040578684234081
+ -0.0060617673739389215
+ -0.01818985713319487
+  0.008257248815119954
+  0.005942319206504689
+  0.0042723714032065685
+ -0.017155081602365826
+ -0.005281378912433745
+  0.0007272960550890557
   ⋮
- -0.0034598091781898213
- -0.001194119312344528
-  0.0029297979323682213
- -0.009653441120095993
-  0.015036622200439678
- -0.0008997772773445634
- -0.010030735260438425
- -0.010804939827140803
-  0.008550069352150646)), nothing)</code></pre><h3 id="Backtest-Betina&#39;s-robust-return"><a class="docs-heading-anchor" href="#Backtest-Betina&#39;s-robust-return">Backtest Betina&#39;s robust return</a><a id="Backtest-Betina&#39;s-robust-return-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-Betina&#39;s-robust-return" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results[&quot;Betina&quot;], _ = sequential_backtest_market(
+ -0.003459809178213353
+ -0.0011941193123637841
+  0.0029297979324203424
+ -0.009653441120259228
+  0.01503662220069041
+ -0.0008997772773595202
+ -0.01003073526061221
+ -0.010804939824764081
+  0.00855006931681952)), nothing)</code></pre><h3 id="Backtest-Betina&#39;s-robust-return"><a class="docs-heading-anchor" href="#Backtest-Betina&#39;s-robust-return">Backtest Betina&#39;s robust return</a><a id="Backtest-Betina&#39;s-robust-return-1"></a><a class="docs-heading-anchor-permalink" href="#Backtest-Betina&#39;s-robust-return" title="Permalink"></a></h3><pre><code class="language-julia hljs">backtest_results[&quot;Betina&quot;], _ = sequential_backtest_market(
     VolumeMarketHistory(returns_series), date_range
 ) do market, past_returns, ext
     numD, numA = size(past_returns)
@@ -435,9 +435,9 @@ for (strategy_name, recorders) in backtest_results
         label=strategy_name,
     )
 end
-plt</code></pre><img src="dd46e951.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/+esm';
+plt</code></pre><img src="a85120d4.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/+esm';
 mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../stochastic_optimization/">« Stochastic optimization</a><a class="docs-footer-nextpage" href="../distributionally_robust_optimization/">Distributionally robust optimization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Wednesday 25 November 2026 14:15">Wednesday 25 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../stochastic_optimization/">« Stochastic optimization</a><a class="docs-footer-nextpage" href="../distributionally_robust_optimization/">Distributionally robust optimization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Friday 27 November 2026 15:22">Friday 27 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
