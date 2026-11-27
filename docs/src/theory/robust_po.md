@@ -102,13 +102,14 @@ s.t. \quad & R = \sum_{i}^{\mathcal{N}} (\hat{r}_i (\pi^+_i \pi^-_i) - \theta_i 
 \end{aligned}
 ```
 #### Uncertainty Set Vizualization and Special Case (Soyster's Uncertainty Set)
-In order to visualize Bertsimas's uncertainty set, it's useful to plot the case with only two assets. For instance, when the budget parameter is equal to one (``\Gamma = 1``) the resulting feasible region of the uncertaity set only allows one asset to be in its extreme value:
+In order to visualize Bertsimas's uncertainty set, it's useful to plot the case with only two assets. When the budget parameter is equal to one (``\Gamma = 1``) the uncertainty set is the diamond below, in which only one asset can be at its extreme value. When the budget parameter is equal to the number of assets (``\Gamma = 2``), the uncertainty set becomes the box uncertainty proposed by Soyster in [1]:
 
-![](../assets/set_bertsimas.png)
-
-On the other hand, when the budget parameter is equal to the number of assets (``\Gamma = 2``), the uncertainty set becomes similar to the one proposed by Soyster in [1], i.e. box uncertainty:
-
-![](../assets/set_soyster.png)
+```@raw html
+<figure class="fig inset">
+  <img src="../../assets/portfolio-budget-set.svg" alt="Three sets around an estimated pair of mean returns: a grey box, a purple diamond inscribed in it, and a teal ellipse, with half-widths Delta 1 and Delta 2 marked." width="560" height="307">
+  <figcaption><b>Three uncertainty sets for two mean returns, each a type in the package.</b> The box (<code>BudgetSet</code> with full budget Γ = 2, Soyster's set), the budget set with Γ = 1 (Bertsimas and Sim), and an ellipsoid (<code>EllipticalSet</code>, Ben-Tal and Nemirovski). A worst-case return over the first two compiles to linear constraints and over the third to one second-order cone. Schematic.</figcaption>
+</figure>
+```
 
 #### Building Intuition with Efficient Frontiers
 Understanding the impacts on the final optimal portfolio given the uncertainty set is not trivial, but some easy analysis can help. One useful analysis is to plot the Efficient Frontier (EF) (a.k.a Pareto Frontier) for our optimization problems, which shows what are the optimal porfolios given our objective and constraints.

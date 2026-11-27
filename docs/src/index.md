@@ -4,8 +4,19 @@ CurrentModule = PortfolioOpt
 
 # PortfolioOpt.jl
 
-PortfolioOpt.jl writes portfolio optimization problems as [JuMP](https://jump.dev) models. A
-problem is a [`PortfolioFormulation`](@ref): objective terms and risk constraints built from
+```@raw html
+<p class="eyebrow">Uncertainty sets · Ambiguity sets · Risk measures</p>
+<figure class="fig hero">
+  <picture>
+    <source media="(max-width: 640px)" srcset="assets/diagrams/portfolioopt--formulation-compact.svg">
+    <img src="assets/diagrams/portfolioopt--formulation.svg" alt="Formulation: three independent choices. A returns model (a distribution P, samples r_1 to r_S, or an ambiguity set of distributions); a measure rho of w (expected return, standard deviation, minus CVaR, a worst case over the ambiguity set, or your own); and a role (objective term c_j rho_j of w, or risk constraint rho_i of w in C_i). Together they make one portfolio problem, maximize the weighted measures subject to the risk constraints and w in X; each measure has a conic form, so JuMP and any conic solver give the decision w star." width="760" height="256">
+  </picture>
+  <figcaption><i>A returns model, a measure and its role are independent choices; together they make one portfolio problem, which JuMP solves as a conic program.</i></figcaption>
+</figure>
+<p class="lede">A portfolio decision under uncertainty combines three choices that are easy to conflate: how the returns are modeled (a distribution, an uncertainty set or an ambiguity set), which risk measure is applied, and whether that measure enters the objective or a constraint. PortfolioOpt.jl keeps the three as separate objects and compiles each supported combination into a conic JuMP model, so swapping a set or a measure leaves the rest of the formulation untouched.</p>
+```
+
+A problem is a [`PortfolioFormulation`](@ref): objective terms and risk constraints built from
 measures of the next period portfolio return, such as the expected return, the variance, the
 conditional value at risk (Rockafellar & Uryasev, 2000), expected exponential utility and its
 certainty equivalent, evaluated either over a distribution or in the worst case over an ambiguity
@@ -15,17 +26,6 @@ Wasserstein balls (Du et al., 2021). Each measure is added to the model as an ex
 reformulation (linear, second order, exponential or semidefinite cones), so any conic solver
 supported by JuMP can solve it. A small market interface and a walk-forward backtest are included
 to evaluate the resulting strategies.
-
-```@mermaid
-flowchart LR
-    F["forecast<br/>distribution or samples"] --> A["ambiguity set<br/>(optional)"]
-    F --> M["risk / utility measure"]
-    A --> M
-    M --> P["PortfolioFormulation"]
-    P --> J["JuMP conic model"]
-    J --> S["solve"]
-    S --> B["market simulation<br/>and backtest"]
-```
 
 ## Installation
 

@@ -1,20 +1,26 @@
 # Concepts
 
-```@mermaid
-flowchart LR
-    data["past returns<br/>(T × N matrix or TimeArray)"] --> fc["forecaster<br/>AbstractForecaster"]
-    fc --> dist["distribution / samples<br/>MvNormal, DeterministicSamples"]
-    dist --> set["ambiguity set<br/>CenteredAmbiguitySet"]
-    dist --> meas["measures<br/>PortfolioRiskMeasure"]
-    set --> meas
-    meas --> form["PortfolioFormulation<br/>ObjectiveTerm, RiskConstraint"]
-    mkt["market<br/>PortfolioMarket"] --> model["JuMP model<br/>market_model + portfolio_model!"]
-    form --> model
-    model --> solve["solve<br/>change_bids!"]
-    solve --> clear["clear_market!<br/>total_profit"]
-    clear --> bt["backtest<br/>sequential_backtest_market, recorders"]
-    bt -->|next date| data
+```@raw html
+<figure class="fig">
+  <picture>
+    <source media="(max-width: 640px)" srcset="../../assets/diagrams/portfolioopt--formulation-compact.svg">
+    <img src="../../assets/diagrams/portfolioopt--formulation.svg" alt="Formulation: three independent choices. A returns model (a distribution P, samples r_1 to r_S, or an ambiguity set of distributions); a measure rho of w (expected return, standard deviation, minus CVaR, a worst case over the ambiguity set, or your own); and a role (objective term c_j rho_j of w, or risk constraint rho_i of w in C_i). Together they make one portfolio problem, maximize the weighted measures subject to the risk constraints and w in X; each measure has a conic form, so JuMP and any conic solver give the decision w star." width="760" height="256">
+  </picture>
+  <figcaption><b>From three choices to a decision.</b> The returns model, the measure and its role are independent arguments of a formulation, so any one can be swapped. Notation of <a href="../../theory/problem/">The portfolio problem</a>; the conic form is explained in <a href="../../theory/problem/#direction">Conic representation of the measures</a>.</figcaption>
+</figure>
 ```
+
+Each box of the diagram is a type or a function of the package:
+
+| In the diagram | In the code |
+|:--|:--|
+| returns model ``P`` or ``\mathcal{P}`` | a distribution (`MvNormal`, [`DeterministicSamples`](@ref), ...) or a [`CenteredAmbiguitySet`](@ref), built from past returns by an [`AbstractForecaster`](@ref) with [`forecast`](@ref) |
+| measure ``\rho(w)`` | a [`PortfolioRiskMeasure`](@ref), or another [`AbstractPortfolioTerm`](@ref) |
+| role ``c_j`` or ``\mathcal{C}_i`` | [`ObjectiveTerm`](@ref) (weight) or [`RiskConstraint`](@ref) (sense and level) |
+| the problem | [`PortfolioFormulation`](@ref); ``\mathcal{X}`` is the [`PortfolioMarket`](@ref) |
+| conic form, JuMP + conic solver | [`market_model`](@ref) + [`portfolio_model!`](@ref) ([`build_portfolio_model`](@ref)), solved by [`change_bids!`](@ref) |
+
+The walk-forward backtest repeats this every period: [`sequential_backtest_market`](@ref) forecasts from a [`MarketHistory`](@ref), solves, clears the decision against the realized returns ([`clear_market!`](@ref), [`total_profit`](@ref)) and moves to the next date.
 
 ## Uncertainty: distributions and ambiguity sets
 
