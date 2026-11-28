@@ -1,10 +1,9 @@
-# Named guarantees.
+# Numerical checks of the properties stated in the Theory pages and docstrings.
 #
-# Each testset checks numerically one mathematical claim stated in the documentation
-# ("Theory" pages and docstrings). The name of the testset is the name of the claim, so that a
-# formal proof can later be attached to the same name. See docs/src/theory/guarantees.md.
+# Each testset checks one property (an exact reformulation, a bound, a monotonicity) on random
+# instances.
 
-@testset "guarantees" begin
+@testset "theory checks" begin
     grng = MersenneTwister(2024)
     numA = 4
     num_instances = 3
